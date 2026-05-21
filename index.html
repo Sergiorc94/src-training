@@ -544,7 +544,9 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         </div>
       </div>
       <div class="g3" id="i-stats"></div>
-      <div style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">
+      <div id="i-entreno-card" style="margin-top:1rem"></div>
+      <div id="i-streak-card" style="margin-top:.75rem"></div>
+      <div style="margin-top:.75rem;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn bg bsm" onclick="setupNotificaciones()" style="flex:1;min-width:140px">
           🔔 Activar recordatorios
         </button>
@@ -4567,21 +4569,141 @@ async function loadInicio(){
   var planBanner=document.getElementById('plan-banner');
   if(planBanner) planBanner.innerHTML=renderPlanificador(c,true);
   var iObj=getActiveObjetivos();
-  document.getElementById('i-macros').innerHTML=[
-    ['Kcal',iObj.k||0,'#7986CB'],['Prot',(iObj.p||0)+'g','#00E5FF'],
-    ['Carb',(iObj.c||0)+'g','#FFB300'],['Gras',(iObj.g||0)+'g','#F48FB1']
-  ].map(([l,v,col])=>'<div class="mp"><div class="mpv" style="color:'+col+'">'+v+'</div><div class="mpl">'+l+'</div></div>').join('');
+  if(c.tipo_cliente==='combate'){
+    // Combat: show fight countdown + camp phase instead of fitness macros
+    var fase=getFaseCombate(c);
+    var faseP=FASE_COMBATE_PARAMS[fase];
+    var diasPelea=0;
+    if(c.fecha_pelea){var fp2=new Date(c.fecha_pelea),hD2=new Date();hD2.setHours(0,0,0,0);diasPelea=Math.max(0,Math.ceil((fp2-hD2)/(24*3600*1000)));}
+    var mCombat=calcMacrosCombate(c)||{};
+    var mActivo=mCombat.tecnica||{};
+    document.getElementById('i-macros').innerHTML=
+      (c.fecha_pelea?
+        '<div style="grid-column:1/-1;background:rgba('+(diasPelea<=7?'255,23,68':diasPelea<=21?'255,179,0':'200,232,102')+',.06);border:1px solid rgba('+(diasPelea<=7?'255,23,68':diasPelea<=21?'255,179,0':'200,232,102')+',.2);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px">'+
+          '<div style="font-size:32px;font-weight:900;color:'+(diasPelea<=7?'#FF1744':diasPelea<=21?'#FFB300':'#C8E866')+'">'+diasPelea+'</div>'+
+          '<div><div style="font-size:11px;color:#4A5568;text-transform:uppercase;font-weight:700">días para la pelea</div>'+
+          '<div style="font-size:13px;font-weight:700;color:rgba('+(diasPelea<=7?'255,23,68':diasPelea<=21?'255,179,0':'200,232,102')+',1)">'+faseP.label+'</div></div>'+
+          '<div style="margin-left:auto;font-size:11px;color:#4A5568">'+c.fecha_pelea+'</div>'+
+        '</div>':'')+
+      [['Kcal',Math.round(mActivo.k||0),'#7986CB'],['Prot',Math.round(mActivo.p||0)+'g','#00E5FF'],['Carb',Math.round(mActivo.c||0)+'g','#FFB300'],['Gras',Math.round(mActivo.g||0)+'g','#F48FB1']]
+        .map(([l,v,col])=>'<div class="mp"><div class="mpv" style="color:'+col+'">'+v+'</div><div class="mpl">'+l+'</div></div>').join('');
+  } else {
+    document.getElementById('i-macros').innerHTML=[
+      ['Kcal',iObj.k||0,'#7986CB'],['Prot',(iObj.p||0)+'g','#00E5FF'],
+      ['Carb',(iObj.c||0)+'g','#FFB300'],['Gras',(iObj.g||0)+'g','#F48FB1']
+    ].map(([l,v,col])=>'<div class="mp"><div class="mpv" style="color:'+col+'">'+v+'</div><div class="mpl">'+l+'</div></div>').join('');
+  }
   try{
-    const rn=await db.get('registros_nutricion','cliente_id=eq.'+c.id+'&fecha=eq.'+hoy());
-    S.rn=rn&&rn[0]||null;
+    var [_rn, _re, _reHist, _pe] = await Promise.all([
+      db.get('registros_nutricion','cliente_id=eq.'+c.id+'&fecha=eq.'+hoy()),
+      db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=eq.'+hoy()),
+      db.get('registros_entreno','cliente_id=eq.'+c.id+'&completado=eq.true&order=fecha.desc&limit=30'),
+      db.get('planes','cliente_id=eq.'+c.id+'&tipo=eq.entreno&activo=eq.true&limit=1'),
+    ]);
+    S.rn=_rn&&_rn[0]||null;
+    var reHoy=_re&&_re[0]||null;
+    var peHoy=_pe&&_pe[0]||null;
     const pct=iObj.k>0?Math.min(100,Math.round((S.rn&&S.rn.kcal_real||0)/iObj.k*100)):0;
     document.getElementById('i-prog').style.width=pct+'%';
     document.getElementById('i-pct').textContent=pct+'%';
+
+    // Racha de días activos
+    var racha=0, hoyStr=hoy();
+    if(_reHist&&_reHist.length){
+      var fechas=_reHist.map(function(r){return r.fecha;});
+      var d=new Date(hoyStr+'T12:00:00');
+      while(true){
+        var ds=d.toISOString().split('T')[0];
+        if(fechas.indexOf(ds)===-1 && ds!==hoyStr) break;
+        if(fechas.indexOf(ds)!==-1) racha++;
+        d.setDate(d.getDate()-1);
+        if(racha>365) break;
+      }
+    }
+
+    // Stats
+    var nutAdh=pct+'%';
+    var totSes=(_reHist||[]).filter(function(r){return r.completado;}).length;
     document.getElementById('i-stats').innerHTML=[
       ['📅','Semana',sem(c.fecha_inicio),'de seguimiento'],
-      ['🎯','Kcal hoy',Math.round(S.rn&&S.rn.kcal_real||0),'de '+(iObj.k||0)],
-      ['✅','Adherencia',pct+'%','del día'],
+      ['🔥','Racha',racha,'días activos'],
+      ['🏆','Sesiones',totSes,'completadas'],
     ].map(([ic,l,v,s])=>'<div class="scard"><div style="font-size:24px;margin-bottom:6px">'+ic+'</div><div class="sl">'+l+'</div><div class="sv" style="color:#0055FF">'+v+'</div><div class="sl">'+s+'</div></div>').join('');
+
+    // Tarjeta entrenamiento hoy
+    var entCard=document.getElementById('i-entreno-card');
+    if(entCard){
+      if(!peHoy){
+        entCard.innerHTML='<div class="card"><div class="ch">💪 Entrenamiento</div><div class="cb"><div style="font-size:12px;color:#4A5568">Sin plan asignado aún</div></div></div>';
+      } else {
+        // Determinar sesión de hoy desde el plan
+        var dias=peHoy.contenido&&peHoy.contenido.dias||[];
+        var sched=peHoy.contenido&&peHoy.contenido.schedule||null;
+        var hoyDow=new Date().getDay();
+        var hoyIdx=hoyDow===0?6:hoyDow-1;
+        var diHoy=null;
+        if(sched&&sched[hoyIdx]!==undefined&&sched[hoyIdx]!=='') diHoy=parseInt(sched[hoyIdx]);
+        else diHoy=hoyIdx%Math.max(dias.length,1);
+        var diaHoy=dias[diHoy]||dias[0];
+        var ejTotal=diaHoy?(diaHoy.ejercicios||[]).length:0;
+        // Series completadas hoy
+        var ejHechos=0;
+        if(reHoy&&reHoy.ejercicios&&diaHoy){
+          (diaHoy.ejercicios||[]).forEach(function(ej){
+            var saved=reHoy.ejercicios[ej.nombre];
+            if(saved&&(saved.series||[]).some(function(s){return s.done;})) ejHechos++;
+          });
+        }
+        var sesCompleta=reHoy&&reHoy.completado;
+        var pctEj=ejTotal?Math.round(ejHechos/ejTotal*100):0;
+        var colEj=sesCompleta?'#00C853':pctEj>0?'#FFB300':'#4A5568';
+        entCard.innerHTML='<div class="card" style="border-color:'+(sesCompleta?'rgba(0,200,83,.2)':pctEj>0?'rgba(255,179,0,.15)':'#1A2A40')+'">'+
+          '<div class="ch">💪 Entrenamiento hoy'+
+            '<div style="margin-left:auto;font-size:11px;font-weight:700;color:'+colEj+'">'+
+              (sesCompleta?'✅ Completado':pctEj>0?ejHechos+'/'+ejTotal+' ej.':'Pendiente')+
+            '</div>'+
+          '</div>'+
+          '<div class="cb">'+
+            '<div style="display:flex;align-items:center;gap:10px">'+
+              '<div style="flex:1">'+
+                '<div style="font-size:14px;font-weight:800;color:#F0F4FF;margin-bottom:4px">'+
+                  (diaHoy?diaHoy.nombre:'—')+
+                '</div>'+
+                '<div style="font-size:11px;color:#4A5568">'+ejTotal+' ejercicios'+
+                  (reHoy&&reHoy.sensaciones?' · Sensaciones: <span style="color:#0055FF;font-weight:700">'+reHoy.sensaciones+'/10</span>':'')+
+                '</div>'+
+                (pctEj>0&&!sesCompleta?
+                  '<div style="height:3px;background:#1A2A40;border-radius:2px;margin-top:6px"><div style="height:100%;width:'+pctEj+'%;background:#FFB300;border-radius:2px"></div></div>':'')+
+              '</div>'+
+              '<button onclick="onTab(\'entreno\',document.querySelector(\'[onclick*=entreno]\'))" '+
+                'style="padding:10px 16px;border-radius:8px;border:none;background:'+(sesCompleta?'rgba(0,200,83,.1)':'rgba(0,85,255,.15)')+';'+
+                'color:'+(sesCompleta?'#00C853':'#4D9FFF')+';font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">'+
+                (sesCompleta?'Ver →':'Entrenar →')+
+              '</button>'+
+            '</div>'+
+          '</div>'+
+        '</div>';
+      }
+    }
+
+    // Tarjeta racha / motivación
+    var streakCard=document.getElementById('i-streak-card');
+    if(streakCard&&racha>0){
+      var msgs=['¡Sigue así!','¡Imparable!','¡Consistencia es clave!','¡Brutal racha!','¡Eres una máquina!'];
+      var msg=msgs[Math.min(msgs.length-1,Math.floor(racha/3))];
+      var flames=racha>=14?'🔥🔥🔥':racha>=7?'🔥🔥':'🔥';
+      streakCard.innerHTML='<div style="background:linear-gradient(135deg,rgba(255,107,53,.06),rgba(255,179,0,.06));'+
+        'border:1px solid rgba(255,179,0,.2);border-radius:12px;padding:12px 16px;'+
+        'display:flex;align-items:center;gap:12px">'+
+        '<div style="font-size:28px">'+flames+'</div>'+
+        '<div>'+
+          '<div style="font-size:13px;font-weight:800;color:#FFB300">'+racha+' días de racha</div>'+
+          '<div style="font-size:11px;color:#4A5568">'+msg+'</div>'+
+        '</div>'+
+      '</div>';
+    } else if(streakCard){
+      streakCard.innerHTML='';
+    }
   }catch(e){console.error(e);}
 }
 
