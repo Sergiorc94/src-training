@@ -7086,6 +7086,7 @@ function marcarSerieCombate(ejNom,si,ejId){
   if(!S.reCombate.ejercicios[ejNom].series[si]) S.reCombate.ejercicios[ejNom].series[si]={};
   var done=!S.reCombate.ejercicios[ejNom].series[si].done;
   S.reCombate.ejercicios[ejNom].series[si].done=done;
+  if(done&&navigator.vibrate) navigator.vibrate([30,10,30]);
   // Actualizar UI de la fila
   var row=document.getElementById(ejId+'-s'+si);
   var btn=row&&row.querySelector('button');
@@ -8626,6 +8627,8 @@ function marcarSerieFit(diaIdx, ei, si, ejNom, descansoSeg){
   if(!S.re.ejercicios[ejNom].series[si]) S.re.ejercicios[ejNom].series[si]={};
   var done=!S.re.ejercicios[ejNom].series[si].done;
   S.re.ejercicios[ejNom].series[si].done=done;
+  // Haptic feedback en móviles
+  if(done&&navigator.vibrate) navigator.vibrate(done?[30,10,30]:20);
 
   // Actualizar botón
   var rowId='serie-row-'+diaIdx+'-'+ei+'-'+si;
@@ -8634,7 +8637,7 @@ function marcarSerieFit(diaIdx, ei, si, ejNom, descansoSeg){
   if(row){
     row.style.background=done?'rgba(0,200,83,.05)':'transparent';
     row.style.border=done?'1px solid rgba(0,200,83,.2)':'1px solid transparent';
-    var numEl=row.querySelector('div[style*="min-width:22px"]');
+    var numEl=row.querySelector('.serie-num');
     if(numEl) numEl.style.color=done?'#00C853':'#4A5568';
   }
   if(btn){
