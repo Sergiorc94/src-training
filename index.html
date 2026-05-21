@@ -2,8 +2,19 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>SRC Training</title>
+<!-- PWA -->
+<meta name="theme-color" content="#05080F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SRC Training">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="SRC Performance - App de entrenamiento y nutrición personalizada">
+<link rel="manifest" href="manifest.json">
+<!-- Apple touch icons (inline SVG fallback handled by JS) -->
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:100vh}
@@ -177,6 +188,11 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
   </div>
 </div>
 
+<!-- Offline banner -->
+<div id="offline-banner" style="display:none;position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(255,107,53,.95);color:#fff;padding:8px 20px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.5px;box-shadow:0 4px 20px rgba(0,0,0,.4);pointer-events:none">
+  📡 Sin conexión — modo offline
+</div>
+
 <div id="app">
   <!-- NAVBAR -->
   <div class="nav" style="display:flex;align-items:center;gap:0;padding:0 1rem;background:#070E1A;border-bottom:1px solid #1A2A40;position:sticky;top:0;z-index:50;height:56px;box-shadow:0 2px 20px rgba(0,0,0,.4)">
@@ -188,6 +204,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
       </div>
     </div>
     <div id="tabs" style="display:flex;gap:0;overflow-x:auto;scrollbar-width:none"></div>
+    <button id="pwa-install-btn" onclick="pwaInstall()" style="display:none;align-items:center;gap:4px;background:rgba(0,85,255,.12);border:1px solid rgba(0,85,255,.3);color:#4D9FFF;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:4px;white-space:nowrap">⬇ Instalar</button>
     <button id="tbtn-salir" style="background:rgba(255,23,68,.08);border:1px solid rgba(255,23,68,.2);color:#FF1744;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:8px;white-space:nowrap">Salir</button>
   </div>
 
@@ -806,6 +823,18 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         <div class="ch">📈 Historial</div>
         <div class="cb"><div id="historial"><div class="empty">Los datos aparecerán semana a semana</div></div></div>
       </div>
+
+      <!-- GRÁFICAS DE FUERZA (1RM) -->
+      <div class="card" id="strength-card" style="display:none">
+        <div class="ch">💪 Evolución de Fuerza (1RM est.)
+          <div id="strength-ej-selector" style="margin-left:auto;display:flex;gap:4px;flex-wrap:wrap;max-width:60%"></div>
+        </div>
+        <div class="cb">
+          <div id="strength-chart-wrap" style="position:relative;width:100%;height:180px"></div>
+          <div id="strength-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:.75rem"></div>
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -8148,6 +8177,7 @@ async function loadProg(){
     S._chartPeriod=S._chartPeriod||8;
     setChartPeriod(S._chartPeriod);
     renderHistorial(checkins);
+    renderStrengthChart(entrenos);
     var semNum=sem(c.fecha_inicio);
     var ciSem=document.getElementById('ci-sem');
     if(ciSem) ciSem.textContent='Semana '+semNum;
@@ -8203,6 +8233,140 @@ async function enviarCheckin(existingId,semNum){
     toast('✅ Check-in enviado a Sergio','ok');
     loadProg();
   }catch(e){toast('Error: '+e.message,'err');}
+}
+
+function renderStrengthChart(entrenos){
+  var card=document.getElementById('strength-card');
+  if(!card) return;
+  // Recopilar ejercicios con datos 1RM desde historial
+  var ejMap={}; // { ejNom: [{fecha, e1rm}] }
+  entrenos.forEach(function(reg){
+    if(!reg.ejercicios||!reg.completado) return;
+    var fecha=reg.fecha;
+    Object.keys(reg.ejercicios).forEach(function(nom){
+      var series=(reg.ejercicios[nom]||{}).series||[];
+      // Buscar mejor serie del día (max kg con reps válidas)
+      var best=null;
+      series.forEach(function(s){
+        var kg=parseFloat(s.kg), reps=parseInt(s.reps);
+        if(kg>0&&reps>0){
+          var e1rm=Math.round(kg*(1+reps/30)*10)/10;
+          if(!best||e1rm>best.e1rm) best={e1rm:e1rm,kg:kg,reps:reps};
+        }
+      });
+      if(best){
+        if(!ejMap[nom]) ejMap[nom]=[];
+        ejMap[nom].push({fecha:fecha,e1rm:best.e1rm});
+      }
+    });
+  });
+  // Filtrar ejercicios con al menos 2 sesiones
+  var ejs=Object.keys(ejMap).filter(function(n){return ejMap[n].length>=2;})
+    .sort(function(a,b){return ejMap[b].length-ejMap[a].length;});
+  if(!ejs.length){card.style.display='none';return;}
+  card.style.display='';
+  S._strengthData=ejMap;
+  S._strengthEjs=ejs;
+  S._strengthSel=S._strengthSel&&ejs.indexOf(S._strengthSel)>=0?S._strengthSel:ejs[0];
+  // Selector de ejercicios
+  var sel=document.getElementById('strength-ej-selector');
+  if(sel){
+    sel.innerHTML=ejs.slice(0,5).map(function(n){
+      var act=n===S._strengthSel;
+      return '<button onclick="selectStrengthEj(\''+n.replace(/'/g,"\\'")+'\')" '+
+        'style="font-size:9px;padding:2px 7px;border-radius:10px;border:1px solid '+(act?'#0055FF':'#1A2A40')+';'+
+        'background:'+(act?'rgba(0,85,255,.15)':'transparent')+';color:'+(act?'#4D9FFF':'#4A5568')+';cursor:pointer;white-space:nowrap">'+
+        n.split(' ').slice(0,2).join(' ')+'</button>';
+    }).join('');
+  }
+  drawStrengthChart(S._strengthSel);
+}
+
+function selectStrengthEj(nom){
+  S._strengthSel=nom;
+  // Re-render selector buttons only (using cached data)
+  var sel=document.getElementById('strength-ej-selector');
+  var ejs=S._strengthEjs||[];
+  if(sel){
+    sel.innerHTML=ejs.slice(0,5).map(function(n){
+      var act=n===nom;
+      return '<button onclick="selectStrengthEj(\''+n.replace(/'/g,"\\'")+'\')" '+
+        'style="font-size:9px;padding:2px 7px;border-radius:10px;border:1px solid '+(act?'#0055FF':'#1A2A40')+';'+
+        'background:'+(act?'rgba(0,85,255,.15)':'transparent')+';color:'+(act?'#4D9FFF':'#4A5568')+';cursor:pointer;white-space:nowrap">'+
+        n.split(' ').slice(0,2).join(' ')+'</button>';
+    }).join('');
+  }
+  drawStrengthChart(nom);
+}
+
+function drawStrengthChart(ejNom){
+  var wrap=document.getElementById('strength-chart-wrap');
+  var stats=document.getElementById('strength-stats');
+  if(!wrap||!S._strengthData||!S._strengthData[ejNom]) return;
+  var data=S._strengthData[ejNom].sort(function(a,b){return a.fecha<b.fecha?-1:1;}).slice(-16);
+  var vals=data.map(function(d){return d.e1rm;});
+  var minV=Math.min.apply(null,vals), maxV=Math.max.apply(null,vals);
+  var range=maxV-minV||5;
+  var pad=range*0.1;
+  minV=Math.max(0,minV-pad); maxV=maxV+pad;
+  var W=wrap.offsetWidth||300, H=180;
+  var pl=40,pr=12,pt=16,pb=28;
+  var cW=W-pl-pr, cH=H-pt-pb;
+  var n=data.length;
+  // Build SVG
+  var pts=data.map(function(d,i){
+    var x=pl+(i/(n-1||1))*cW;
+    var y=pt+cH-(((d.e1rm-minV)/(maxV-minV||1))*cH);
+    return {x:x,y:y,v:d.e1rm,f:d.fecha};
+  });
+  // Area path
+  var area='M '+pts[0].x+','+(pt+cH);
+  pts.forEach(function(p){area+=' L '+p.x+','+p.y;});
+  area+=' L '+pts[pts.length-1].x+','+(pt+cH)+' Z';
+  // Line path
+  var line='M '+pts.map(function(p){return p.x+','+p.y;}).join(' L ');
+  // Y grid labels
+  var yLabels='';
+  [0,0.5,1].forEach(function(t){
+    var y=pt+cH-t*cH;
+    var v=minV+t*(maxV-minV);
+    yLabels+='<text x="'+(pl-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="9" fill="#4A5568">'+Math.round(v)+'</text>';
+    yLabels+='<line x1="'+pl+'" y1="'+y+'" x2="'+(W-pr)+'" y2="'+y+'" stroke="#1A2A40" stroke-width="1" stroke-dasharray="2,3"/>';
+  });
+  // X labels (every N points)
+  var xLabels='';
+  var step=Math.max(1,Math.floor(n/4));
+  pts.forEach(function(p,i){
+    if(i%step===0||i===n-1){
+      var d=p.f.slice(5); // MM-DD
+      xLabels+='<text x="'+p.x+'" y="'+(H-6)+'" text-anchor="middle" font-size="8" fill="#4A5568">'+d+'</text>';
+    }
+  });
+  // Dots
+  var dots=pts.map(function(p,i){
+    var isLast=i===n-1;
+    return '<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(isLast?4:2.5)+'" fill="'+(isLast?'#0055FF':'#4D9FFF')+'" stroke="#05080F" stroke-width="1.5"/>'+
+      (isLast?'<text x="'+p.x+'" y="'+(p.y-8)+'" text-anchor="middle" font-size="9" fill="#4D9FFF" font-weight="700">'+p.v+'</text>':'');
+  }).join('');
+  wrap.innerHTML='<svg width="'+W+'" height="'+H+'" style="overflow:visible">'+
+    '<defs><linearGradient id="sg1" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="#0055FF" stop-opacity=".3"/>'+
+      '<stop offset="100%" stop-color="#0055FF" stop-opacity="0"/>'+
+    '</linearGradient></defs>'+
+    yLabels+xLabels+
+    '<path d="'+area+'" fill="url(#sg1)"/>'+
+    '<path d="'+line+'" fill="none" stroke="#0055FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
+    dots+
+  '</svg>';
+  // Stats
+  var first=vals[0], last=vals[vals.length-1], best=Math.max.apply(null,vals);
+  var diff=Math.round((last-first)*10)/10;
+  var diffStr=(diff>0?'+':'')+diff+'kg';
+  var diffCol=diff>0?'#00C853':diff<0?'#FF1744':'#4A5568';
+  if(stats) stats.innerHTML=
+    _mst(last+'kg','1RM actual','#4D9FFF')+
+    _mst(diffStr,'vs inicio',diffCol)+
+    _mst(best+'kg','récord personal','#FFB300');
 }
 
 function renderHistorial(checkins){
@@ -9351,6 +9515,55 @@ function mobTab(id,btn){
   var topTab=document.querySelector('.tab[onclick*="\''+id+'\'"]');
   if(topTab) onTab(id,topTab);
   else{showSec(id);if(id==='nutri')loadNutri();else if(id==='entreno')loadEntreno();else if(id==='prog')loadProg();else if(id==='compra'){generarListaCompra();renderCompraManual();}else if(id==='camp')loadCamp();else if(id==='inicio')loadInicio();}
+}
+
+// ═══════════════════════════════════════
+// PWA – Offline Detection
+// ═══════════════════════════════════════
+function updateOnlineStatus(){
+  var banner=document.getElementById('offline-banner');
+  if(!banner) return;
+  banner.style.display=navigator.onLine?'none':'block';
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
+
+// ═══════════════════════════════════════
+// PWA – Service Worker Registration
+// ═══════════════════════════════════════
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      console.log('[PWA] SW registrado:', reg.scope);
+    }).catch(function(err){
+      console.log('[PWA] SW error:', err);
+    });
+  });
+}
+
+// PWA Install prompt
+var _pwaInstallEvt=null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _pwaInstallEvt=e;
+  // Mostrar botón de instalación si existe
+  var btn=document.getElementById('pwa-install-btn');
+  if(btn) btn.style.display='flex';
+});
+window.addEventListener('appinstalled', function(){
+  _pwaInstallEvt=null;
+  var btn=document.getElementById('pwa-install-btn');
+  if(btn) btn.style.display='none';
+});
+function pwaInstall(){
+  if(!_pwaInstallEvt) return;
+  _pwaInstallEvt.prompt();
+  _pwaInstallEvt.userChoice.then(function(r){
+    _pwaInstallEvt=null;
+    var btn=document.getElementById('pwa-install-btn');
+    if(btn) btn.style.display='none';
+  });
 }
 </script>
 </body>
