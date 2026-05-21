@@ -8503,7 +8503,7 @@ function calcProgresion(ejNom, reHistory, rirStr, repsStr){
     repsSug=repsMin;
     accion='subir'; icon='📈';
     msgCort='Sube a '+kgSug+'kg × '+repsMin+'rep';
-    msgDet='✅ Completaste '+Math.round(avgReps)+'rep × '+kgRef+'kg'+(rirReal!==null?' (RIR '+Math.round(rirReal*10)/10+')')+'.<br>'+
+    msgDet='✅ Completaste '+Math.round(avgReps)+'rep × '+kgRef+'kg'+(rirReal!==null?' (RIR '+Math.round(rirReal*10)/10+')':'')+'.<br>'+
            '<strong>Doble progresión: +'+incremento+'kg → objetivo '+repsMin+' reps</strong>';
   } else if(muyfacil&&!repsMáxCompletas){
     // RIR muy por encima: subir peso aunque no se completaron reps máximas
