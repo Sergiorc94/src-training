@@ -126,6 +126,17 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
   .card{border-radius:12px}
   .ch{font-size:13px}
 }
+/* ── ANIMACIONES ────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes ringFill{from{stroke-dashoffset:283}to{stroke-dashoffset:0}}
+/* ── FOCUSED SESSION ─────────────────── */
+#focused-session{position:fixed;inset:0;background:#05080F;z-index:500;display:none;flex-direction:column;overflow:hidden}
+#focused-session.open{display:flex}
+.fs-top{background:#070E1A;border-bottom:1px solid #1A2A40;padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.fs-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.fs-foot{background:#070E1A;border-top:1px solid #1A2A40;padding:12px 16px;flex-shrink:0}
+.fs-serie-btn{width:100%;padding:18px;font-size:18px;font-weight:900;letter-spacing:1px;border:none;border-radius:14px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
 /* ── BIBLIOTECA EJERCICIOS ───────────── */
 .ej-lib-group{margin-bottom:1rem}
 .ej-lib-group-title{font-size:11px;font-weight:700;color:#4D9FFF;text-transform:uppercase;letter-spacing:1px;padding:5px 0;border-bottom:1px solid #1A2A40;margin-bottom:6px}
@@ -186,6 +197,59 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
       © 2025 SRC Training · @ssergiorc
     </div>
   </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     FOCUSED SESSION OVERLAY
+     ════════════════════════════════════════ -->
+<div id="focused-session">
+  <!-- TOP BAR -->
+  <div class="fs-top">
+    <button onclick="cerrarFocused()" style="background:none;border:1px solid #1A2A40;border-radius:8px;color:#4A5568;font-size:13px;padding:6px 12px;cursor:pointer">✕ Salir</button>
+    <div style="flex:1">
+      <div id="fs-progress-text" style="font-size:11px;color:#4A5568;font-weight:700"></div>
+      <div style="height:4px;background:#1A2A40;border-radius:2px;margin-top:4px;overflow:hidden">
+        <div id="fs-progress-bar" style="height:100%;background:#0055FF;border-radius:2px;transition:width .4s"></div>
+      </div>
+    </div>
+    <div id="fs-ej-counter" style="font-size:11px;color:#4D9FFF;font-weight:700;white-space:nowrap"></div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="fs-body" id="fs-body">
+    <!-- Dynamic content rendered by renderFocused() -->
+  </div>
+
+  <!-- BOTTOM ACTION -->
+  <div class="fs-foot" id="fs-foot">
+    <button class="fs-serie-btn" id="fs-action-btn" onclick="serieFocusedHecha()">
+      ✓ SERIE HECHA
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     FOCUSED TIMER OVERLAY (dentro de focused session)
+     ════════════════════════════════════════ -->
+<div id="fs-timer-overlay" style="display:none;position:absolute;inset:0;background:rgba(5,8,15,.97);z-index:600;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="font-size:13px;font-weight:700;color:#00C853;letter-spacing:1px">DESCANSO</div>
+  <!-- Circular SVG ring -->
+  <div style="position:relative;width:160px;height:160px">
+    <svg width="160" height="160" viewBox="0 0 160 160" style="transform:rotate(-90deg)">
+      <circle cx="80" cy="80" r="70" fill="none" stroke="#1A2A40" stroke-width="10"/>
+      <circle id="fs-timer-ring" cx="80" cy="80" r="70" fill="none" stroke="#00C853" stroke-width="10"
+        stroke-dasharray="440" stroke-dashoffset="0" stroke-linecap="round"
+        style="transition:stroke-dashoffset 1s linear,stroke .5s"/>
+    </svg>
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <div id="fs-timer-num" style="font-size:44px;font-weight:900;color:#F0F4FF;font-family:monospace;line-height:1">0:00</div>
+      <div id="fs-timer-label" style="font-size:10px;color:#4A5568;margin-top:2px">segundos</div>
+    </div>
+  </div>
+  <!-- Next exercise preview -->
+  <div id="fs-timer-next" style="font-size:12px;color:#4A5568;text-align:center;max-width:240px"></div>
+  <!-- Skip button -->
+  <button onclick="skipFocusedTimer()" style="margin-top:8px;background:none;border:1.5px solid #1A2A40;border-radius:10px;color:#4A5568;font-size:13px;font-weight:700;padding:10px 28px;cursor:pointer">Saltar descanso →</button>
 </div>
 
 <!-- Offline banner -->
@@ -8620,6 +8684,406 @@ function setRPE(rowId, diaType, ejNom, diaIdx, ei, si, val){
 // ── MARCAR SERIE COMPLETADA (fitness) ─────────────────────────────
 var _timerInterval=null;
 
+// ═══════════════════════════════════════
+// AUDIO – Web Audio API beep
+// ═══════════════════════════════════════
+var _audioCtx=null;
+function getAudioCtx(){
+  if(!_audioCtx) try{_audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  return _audioCtx;
+}
+function playBeep(freq,dur,vol,type){
+  var ctx=getAudioCtx();if(!ctx) return;
+  try{
+    var osc=ctx.createOscillator();
+    var gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.type=type||'sine';
+    osc.frequency.value=freq||880;
+    gain.gain.setValueAtTime(vol||0.25,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+(dur||0.15));
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime+(dur||0.15));
+  }catch(e){}
+}
+function playTimerDone(){
+  // 3 ascending beeps = ¡listo!
+  playBeep(660,0.12,0.3,'sine');
+  setTimeout(function(){playBeep(880,0.12,0.3,'sine');},140);
+  setTimeout(function(){playBeep(1100,0.25,0.35,'sine');},280);
+}
+function playTick(){ playBeep(440,0.06,0.15,'square'); }
+
+// ═══════════════════════════════════════
+// FOCUSED SESSION MODE
+// ═══════════════════════════════════════
+// S._fs = { diaIdx, ejIdx, serieIdx, timerSeg, timerTotal, timerInt }
+
+function iniciarSesionFocused(diaIdx){
+  var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[diaIdx];
+  if(!dia||!dia.ejercicios||!dia.ejercicios.length) return;
+  // Unlock audio on user gesture
+  getAudioCtx();
+  S._fs={diaIdx:diaIdx,ejIdx:0,serieIdx:0,timerInt:null};
+  // Scroll to top of focused view
+  var fsEl=document.getElementById('focused-session');
+  fsEl.classList.add('open');
+  var timerOvl=document.getElementById('fs-timer-overlay');
+  if(timerOvl){timerOvl.style.display='none';}
+  // Make timer overlay a child of focused session so it overlays it
+  if(timerOvl&&timerOvl.parentElement!==fsEl) fsEl.appendChild(timerOvl);
+  renderFocused();
+}
+
+function cerrarFocused(){
+  stopFocusedTimer();
+  var fsEl=document.getElementById('focused-session');
+  fsEl.classList.remove('open');
+  S._fs=null;
+}
+
+function renderFocused(){
+  var fs=S._fs;
+  if(!fs) return;
+  var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[fs.diaIdx];
+  if(!dia) return;
+  var ejercicios=dia.ejercicios||[];
+  var ej=ejercicios[fs.ejIdx];
+  if(!ej){ showFocusedDone(); return; }
+
+  var ejNom=ej.nombre||('Ejercicio '+(fs.ejIdx+1));
+  var ejTotal=parseInt(ej.series)||3;
+  var serieIdx=fs.serieIdx;
+
+  // If we've gone past all series, advance to next exercise
+  if(serieIdx>=ejTotal){ fs.ejIdx++; fs.serieIdx=0; renderFocused(); return; }
+
+  // Progress
+  var totalEjs=ejercicios.length;
+  var totalSeries=ejercicios.reduce(function(t,e){return t+(parseInt(e.series)||3);},0);
+  var doneSeriesCount=0;
+  if(S.re&&S.re.ejercicios){
+    ejercicios.forEach(function(e2){
+      var saved=(S.re.ejercicios[e2.nombre||'']&&S.re.ejercicios[e2.nombre||''].series)||[];
+      doneSeriesCount+=saved.filter(function(s){return s.done;}).length;
+    });
+  }
+  var pct=totalSeries?Math.round(doneSeriesCount/totalSeries*100):0;
+
+  // Progress bar
+  var pb=document.getElementById('fs-progress-bar');
+  var pt=document.getElementById('fs-progress-text');
+  var ec=document.getElementById('fs-ej-counter');
+  if(pb) pb.style.width=pct+'%';
+  if(pt) pt.textContent=doneSeriesCount+' / '+totalSeries+' series completadas';
+  if(ec) ec.textContent='Ej. '+(fs.ejIdx+1)+'/'+totalEjs;
+
+  // Current series data
+  var ejData=S.re&&S.re.ejercicios||{};
+  var savedSeries=(ejData[ejNom]&&ejData[ejNom].series)||[];
+  var reHistory=S.reHistory||[];
+  var prog=calcProgresion(ejNom,reHistory,ej.rir,ej.reps);
+  var curSerie=savedSeries[serieIdx]||{};
+  var kgVal=curSerie.kg||(prog?prog.kg:'');
+  var repsVal=curSerie.reps||(prog?prog.reps:ej.reps||'');
+  var isDone=!!curSerie.done;
+
+  // Body
+  var patron=getPatronFitness(ejNom);
+  var ejBody='';
+
+  // Exercise header
+  ejBody+='<div style="animation:fadeUp .2s ease">';
+  ejBody+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
+  if(patron) ejBody+='<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba('+patron.c+',.12);color:rgba('+patron.c+',1)">'+patron.l+'</span>';
+  ejBody+='</div>';
+  ejBody+='<div style="font-size:26px;font-weight:900;color:#F0F4FF;line-height:1.1;margin-bottom:6px">'+ejNom+'</div>';
+  if(ej.descripcion) ejBody+='<div style="font-size:12px;color:#4A5568;margin-bottom:8px;line-height:1.5">'+ej.descripcion+'</div>';
+  ejBody+='<div style="display:flex;gap:12px;margin-bottom:12px">';
+  ejBody+='<div style="background:#0D1528;border-radius:8px;padding:8px 14px;text-align:center;flex:1">'+
+    '<div style="font-size:22px;font-weight:900;color:#0055FF">'+ej.reps+'</div>'+
+    '<div style="font-size:10px;color:#4A5568;text-transform:uppercase;letter-spacing:.5px">reps</div>'+
+  '</div>';
+  ejBody+='<div style="background:#0D1528;border-radius:8px;padding:8px 14px;text-align:center;flex:1">'+
+    '<div style="font-size:22px;font-weight:900;color:#4A5568">'+ej.series+'</div>'+
+    '<div style="font-size:10px;color:#4A5568;text-transform:uppercase;letter-spacing:.5px">series</div>'+
+  '</div>';
+  if(ej.descanso||ej.desc){
+    ejBody+='<div style="background:#0D1528;border-radius:8px;padding:8px 14px;text-align:center;flex:1">'+
+      '<div style="font-size:22px;font-weight:900;color:#4A5568">'+(ej.descanso||ej.desc)+'</div>'+
+      '<div style="font-size:10px;color:#4A5568;text-transform:uppercase;letter-spacing:.5px">desc.</div>'+
+    '</div>';
+  }
+  ejBody+='</div>';
+
+  // Progression tip
+  if(prog){
+    var pCol=prog.accion==='subir'||prog.accion==='subir_rir'?'0,200,83':prog.accion==='bajar'?'255,107,107':prog.accion==='progresar_reps'?'77,159,255':'255,179,0';
+    ejBody+='<div style="padding:8px 12px;background:rgba('+pCol+',.06);border:1px solid rgba('+pCol+',.2);border-radius:8px;margin-bottom:12px;display:flex;align-items:center;gap:8px">'+
+      '<span style="font-size:16px">'+prog.icon+'</span>'+
+      '<div><div style="font-size:12px;font-weight:700;color:rgba('+pCol+',1)">'+prog.msgCort+'</div>'+
+      (prog.e1rm?'<div style="font-size:10px;color:#4A5568">Est. 1RM: '+prog.e1rm+'kg</div>':'')+
+      '</div>'+
+    '</div>';
+  }
+
+  // Serie indicator
+  ejBody+='<div style="font-size:13px;font-weight:700;color:#4A5568;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">'+
+    'Serie '+( serieIdx+1)+' de '+ejTotal+
+    '<span style="display:inline-flex;gap:4px;margin-left:10px">';
+  for(var _si=0;_si<ejTotal;_si++){
+    var _s=savedSeries[_si]||{};
+    var _done=!!_s.done;
+    var _cur=_si===serieIdx;
+    ejBody+='<span style="width:8px;height:8px;border-radius:50%;display:inline-block;background:'+(_done?'#00C853':_cur?'#0055FF':'#1A2A40')+';'+(_cur?'box-shadow:0 0 6px rgba(0,85,255,.6)':'')+'">';
+    ejBody+='</span>';
+  }
+  ejBody+='</span></div>';
+
+  // Kg / Reps inputs for this series
+  var ejNomEsc=ejNom.replace(/'/g,"\\'");
+  var isSug=!isDone&&!(savedSeries[serieIdx]&&savedSeries[serieIdx].kg);
+  ejBody+='<div style="display:flex;gap:10px;margin-bottom:4px">';
+  ejBody+='<div style="flex:1">';
+  ejBody+='<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Peso</div>';
+  ejBody+='<input type="number" step="0.5" placeholder="kg" value="'+(kgVal||'')+'" id="fs-kg" '+
+    'style="width:100%;padding:14px;background:#0D1528;border:1.5px solid '+(isSug?'rgba(0,85,255,.35)':'#1A2A40')+';'+
+    'border-radius:10px;color:'+(isSug?'#7AB8FF':'#F0F4FF')+';font-size:22px;font-weight:900;text-align:center;outline:none" '+
+    'oninput="updateFocusedInput(\'kg\',this.value)" inputmode="decimal">';
+  ejBody+='</div>';
+  ejBody+='<div style="flex:1">';
+  ejBody+='<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Reps</div>';
+  ejBody+='<input type="number" placeholder="reps" value="'+(repsVal||'')+'" id="fs-reps" '+
+    'style="width:100%;padding:14px;background:#0D1528;border:1.5px solid '+(isSug?'rgba(0,85,255,.35)':'#1A2A40')+';'+
+    'border-radius:10px;color:'+(isSug?'#7AB8FF':'#F0F4FF')+';font-size:22px;font-weight:900;text-align:center;outline:none" '+
+    'oninput="updateFocusedInput(\'reps\',this.value)" inputmode="numeric">';
+  ejBody+='</div>';
+  ejBody+='</div>';
+  ejBody+='</div>';
+
+  // Previous series list (mini)
+  if(savedSeries.length>0){
+    ejBody+='<div style="margin-top:8px">';
+    ejBody+='<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Esta sesión:</div>';
+    ejBody+='<div style="display:flex;gap:5px;flex-wrap:wrap">';
+    savedSeries.forEach(function(s,i){
+      if(!s.done) return;
+      ejBody+='<div style="background:rgba(0,200,83,.08);border:1px solid rgba(0,200,83,.2);border-radius:6px;padding:4px 8px;text-align:center">'+
+        '<div style="font-size:11px;font-weight:700;color:#00C853">S'+(i+1)+'</div>'+
+        '<div style="font-size:11px;color:#4A5568">'+(s.kg||'?')+'kg × '+(s.reps||'?')+'</div>'+
+      '</div>';
+    });
+    ejBody+='</div></div>';
+  }
+
+  document.getElementById('fs-body').innerHTML=ejBody;
+
+  // Bottom button
+  var actionBtn=document.getElementById('fs-action-btn');
+  if(actionBtn){
+    if(isDone){
+      actionBtn.textContent='✓ Ya completada — Continuar →';
+      actionBtn.style.background='rgba(0,200,83,.15)';
+      actionBtn.style.color='#00C853';
+      actionBtn.style.border='1.5px solid rgba(0,200,83,.3)';
+      actionBtn.onclick=function(){avanzarFocused();};
+    } else {
+      actionBtn.textContent='✓  SERIE  HECHA';
+      actionBtn.style.background='#0055FF';
+      actionBtn.style.color='#fff';
+      actionBtn.style.border='none';
+      actionBtn.onclick=function(){serieFocusedHecha();};
+    }
+  }
+}
+
+function updateFocusedInput(campo,val){
+  var fs=S._fs;
+  if(!fs) return;
+  var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[fs.diaIdx];
+  if(!dia) return;
+  var ej=dia.ejercicios&&dia.ejercicios[fs.ejIdx];
+  if(!ej) return;
+  var ejNom=ej.nombre||('Ejercicio '+(fs.ejIdx+1));
+  if(!S.re) S.re={ejercicios:{}};
+  if(!S.re.ejercicios) S.re.ejercicios={};
+  if(!S.re.ejercicios[ejNom]) S.re.ejercicios[ejNom]={series:[]};
+  if(!S.re.ejercicios[ejNom].series[fs.serieIdx]) S.re.ejercicios[ejNom].series[fs.serieIdx]={};
+  S.re.ejercicios[ejNom].series[fs.serieIdx][campo]=val;
+  delete S.re.ejercicios[ejNom].series[fs.serieIdx]._sugerido;
+}
+
+function serieFocusedHecha(){
+  var fs=S._fs;
+  if(!fs) return;
+  var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[fs.diaIdx];
+  if(!dia) return;
+  var ej=dia.ejercicios&&dia.ejercicios[fs.ejIdx];
+  if(!ej) return;
+  var ejNom=ej.nombre||('Ejercicio '+(fs.ejIdx+1));
+  var ejTotal=parseInt(ej.series)||3;
+
+  // Save current input values
+  var kgEl=document.getElementById('fs-kg');
+  var repsEl=document.getElementById('fs-reps');
+  if(!S.re) S.re={ejercicios:{}};
+  if(!S.re.ejercicios) S.re.ejercicios={};
+  if(!S.re.ejercicios[ejNom]) S.re.ejercicios[ejNom]={series:[]};
+  if(!S.re.ejercicios[ejNom].series[fs.serieIdx]) S.re.ejercicios[ejNom].series[fs.serieIdx]={};
+  var serie=S.re.ejercicios[ejNom].series[fs.serieIdx];
+  if(kgEl&&kgEl.value) serie.kg=kgEl.value;
+  if(repsEl&&repsEl.value) serie.reps=repsEl.value;
+  serie.done=true;
+  delete serie._sugerido;
+
+  // Haptic
+  if(navigator.vibrate) navigator.vibrate([30,10,30]);
+
+  // Sync with normal view if open
+  try{
+    var rowId='serie-row-'+fs.diaIdx+'-'+fs.ejIdx+'-'+fs.serieIdx;
+    var row=document.getElementById(rowId);
+    if(row){
+      row.style.background='rgba(0,200,83,.05)';
+      row.style.border='1px solid rgba(0,200,83,.2)';
+      var numEl=row.querySelector('.serie-num');
+      if(numEl) numEl.style.color='#00C853';
+      var btn=document.getElementById('done-btn-'+rowId);
+      if(btn){btn.textContent='✓';btn.style.borderColor='#00C853';btn.style.background='rgba(0,200,83,.15)';btn.style.color='#00C853';}
+    }
+  }catch(e){}
+
+  // Auto-save draft
+  try{
+    var dk='re_draft_'+S.user.id+'_'+(new Date().toISOString().split('T')[0]);
+    localStorage.setItem(dk,JSON.stringify({ej:S.re.ejercicios,ts:Date.now()}));
+  }catch(e){}
+
+  // Determine rest time
+  var descansoSeg=getDescansoFitness(ejNom,ej.rir||'3');
+  var isLastSerie=(fs.serieIdx>=ejTotal-1);
+  var isLastEj=(fs.ejIdx>=dia.ejercicios.length-1);
+
+  if(isLastSerie&&isLastEj){
+    // ALL DONE
+    stopFocusedTimer();
+    showFocusedDone();
+    return;
+  }
+
+  if(descansoSeg>0){
+    // Show timer overlay, then advance
+    var nextMsg='';
+    if(isLastSerie){
+      var nextEj=dia.ejercicios[fs.ejIdx+1];
+      nextMsg=nextEj?'Siguiente: <strong style="color:#F0F4FF">'+nextEj.nombre+'</strong>':'Último ejercicio';
+    } else {
+      nextMsg='Serie <strong style="color:#F0F4FF">'+(fs.serieIdx+2)+'</strong> de <strong style="color:#F0F4FF">'+ejTotal+'</strong>';
+    }
+    startFocusedTimer(descansoSeg, nextMsg, function(){
+      fs.serieIdx++;
+      renderFocused();
+    });
+  } else {
+    fs.serieIdx++;
+    renderFocused();
+  }
+}
+
+function avanzarFocused(){
+  var fs=S._fs;
+  if(!fs) return;
+  var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[fs.diaIdx];
+  if(!dia) return;
+  var ej=dia.ejercicios&&dia.ejercicios[fs.ejIdx];
+  var ejTotal=ej?parseInt(ej.series)||3:0;
+  fs.serieIdx++;
+  if(fs.serieIdx>=ejTotal){ fs.ejIdx++; fs.serieIdx=0; }
+  if(fs.ejIdx>=dia.ejercicios.length){ showFocusedDone(); return; }
+  renderFocused();
+}
+
+function startFocusedTimer(seg, nextMsg, onDone){
+  stopFocusedTimer();
+  var ovl=document.getElementById('fs-timer-overlay');
+  var ring=document.getElementById('fs-timer-ring');
+  var numEl=document.getElementById('fs-timer-num');
+  var labelEl=document.getElementById('fs-timer-label');
+  var nextEl=document.getElementById('fs-timer-next');
+  if(!ovl) return;
+  ovl.style.display='flex';
+  if(nextEl) nextEl.innerHTML=nextMsg||'';
+  var total=seg, restante=seg;
+  var circ=440; // 2*π*70 ≈ 440
+  function fmt(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;}
+  function update(){
+    if(numEl) numEl.textContent=fmt(restante);
+    if(labelEl) labelEl.textContent=restante===1?'segundo':'segundos';
+    var offset=circ*(1-(restante/total));
+    if(ring){
+      ring.style.strokeDashoffset=offset;
+      // Color: green → orange (10s) → red (3s)
+      ring.style.stroke=restante<=3?'#FF1744':restante<=10?'#FF6B35':'#00C853';
+    }
+    if(numEl) numEl.style.color=restante<=3?'#FF1744':restante<=10?'#FFB300':'#F0F4FF';
+  }
+  update();
+  S._fs.timerInt=setInterval(function(){
+    restante--;
+    // Countdown ticks last 3s
+    if(restante<=3&&restante>0) playTick();
+    if(restante<=0){
+      stopFocusedTimer();
+      playTimerDone();
+      if(navigator.vibrate) navigator.vibrate([200,100,200]);
+      ovl.style.display='none';
+      if(onDone) onDone();
+      return;
+    }
+    update();
+  },1000);
+}
+
+function stopFocusedTimer(){
+  if(S._fs&&S._fs.timerInt){clearInterval(S._fs.timerInt);S._fs.timerInt=null;}
+  var ovl=document.getElementById('fs-timer-overlay');
+  if(ovl) ovl.style.display='none';
+}
+
+function skipFocusedTimer(){
+  stopFocusedTimer();
+  // Re-render current state
+  renderFocused();
+}
+
+function showFocusedDone(){
+  var fsEl=document.getElementById('focused-session');
+  var body=document.getElementById('fs-body');
+  var foot=document.getElementById('fs-foot');
+  playTimerDone();
+  if(body) body.innerHTML=
+    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;padding:2rem;animation:fadeUp .4s ease">'+
+      '<div style="font-size:72px;margin-bottom:1rem">🏆</div>'+
+      '<div style="font-size:28px;font-weight:900;color:#F0F4FF;margin-bottom:.5rem">¡Sesión Completada!</div>'+
+      '<div style="font-size:14px;color:#4A5568;margin-bottom:2rem">Ahora guarda tu entrenamiento de hoy.</div>'+
+      '<button onclick="cerrarFocused();completarSesion();" '+
+        'style="padding:16px 32px;background:#0055FF;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:900;cursor:pointer;letter-spacing:.5px">'+
+        '💾 Guardar sesión'+
+      '</button>'+
+      '<button onclick="cerrarFocused()" '+
+        'style="margin-top:10px;padding:10px 24px;background:none;border:1.5px solid #1A2A40;border-radius:10px;color:#4A5568;font-size:13px;cursor:pointer">'+
+        'Cerrar sin guardar'+
+      '</button>'+
+    '</div>';
+  if(foot) foot.style.display='none';
+}
+
+// Expose completarSesion alias so focused done button works
+function completarSesion(){
+  var btn=document.getElementById('btn-ecompleto');
+  if(btn) btn.click();
+}
+
 function marcarSerieFit(diaIdx, ei, si, ejNom, descansoSeg){
   if(!S.re) S.re={ejercicios:{}};
   if(!S.re.ejercicios) S.re.ejercicios={};
@@ -8694,31 +9158,54 @@ function marcarSerieFit(diaIdx, ei, si, ejNom, descansoSeg){
 }
 
 function lanzarTimerDescanso(seg){
+  // If in focused mode, use the focused timer instead
+  if(S._fs){ return; }
   ocultarTimerDescanso();
+  // Unlock audio
+  getAudioCtx();
   var banner=document.createElement('div');
   banner.id='rest-timer-banner';
   banner.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);'+
-    'background:#0D1528;border:1.5px solid rgba(0,200,83,.4);border-radius:12px;'+
-    'padding:10px 18px;display:flex;align-items:center;gap:12px;z-index:9999;'+
-    'box-shadow:0 8px 30px rgba(0,0,0,.5);min-width:220px;justify-content:space-between;'+
+    'background:#0D1528;border:1.5px solid rgba(0,200,83,.4);border-radius:14px;'+
+    'padding:12px 18px;display:flex;align-items:center;gap:14px;z-index:9999;'+
+    'box-shadow:0 8px 30px rgba(0,0,0,.6);min-width:240px;justify-content:space-between;'+
     'animation:fadeUp .25s ease';
-  var restante=seg;
+  var restante=seg, total=seg;
   function fmt(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;}
+  // Mini SVG ring
+  var circ=2*Math.PI*18; // r=18
   banner.innerHTML=
-    '<div style="font-size:13px;font-weight:700;color:#00C853">⏱ Descanso</div>'+
-    '<div id="rest-timer-count" style="font-size:22px;font-weight:900;color:#F0F4FF;font-family:monospace">'+fmt(restante)+'</div>'+
-    '<button onclick="ocultarTimerDescanso()" style="background:none;border:1px solid #1A2A40;border-radius:6px;color:#4A5568;font-size:11px;padding:4px 8px;cursor:pointer">Saltar</button>';
+    '<div>'+
+      '<div style="font-size:11px;font-weight:700;color:#00C853;text-transform:uppercase;letter-spacing:.5px">⏱ Descanso</div>'+
+      '<div id="rest-timer-count" style="font-size:26px;font-weight:900;color:#F0F4FF;font-family:monospace;line-height:1.1">'+fmt(restante)+'</div>'+
+    '</div>'+
+    '<svg width="44" height="44" viewBox="0 0 44 44" style="transform:rotate(-90deg)">'+
+      '<circle cx="22" cy="22" r="18" fill="none" stroke="#1A2A40" stroke-width="4"/>'+
+      '<circle id="rest-ring" cx="22" cy="22" r="18" fill="none" stroke="#00C853" stroke-width="4"'+
+        ' stroke-dasharray="'+circ.toFixed(1)+'" stroke-dashoffset="0" stroke-linecap="round"'+
+        ' style="transition:stroke-dashoffset .9s linear,stroke .3s"/>'+
+    '</svg>'+
+    '<button onclick="ocultarTimerDescanso()" style="background:none;border:1px solid #1A2A40;border-radius:8px;color:#4A5568;font-size:11px;padding:6px 10px;cursor:pointer;font-weight:700">Saltar</button>';
   document.body.appendChild(banner);
   _timerInterval=setInterval(function(){
     restante--;
     var el=document.getElementById('rest-timer-count');
-    if(el) el.textContent=fmt(restante);
+    var ring=document.getElementById('rest-ring');
+    var offset=circ*(1-(restante/total));
+    if(ring){
+      ring.style.strokeDashoffset=offset;
+      ring.style.stroke=restante<=3?'#FF1744':restante<=10?'#FF6B35':'#00C853';
+    }
+    if(el){
+      el.textContent=fmt(restante);
+      el.style.color=restante<=3?'#FF1744':restante<=10?'#FFB300':'#F0F4FF';
+    }
+    if(restante<=3&&restante>0) playTick();
     if(restante<=0){
       ocultarTimerDescanso();
-      // Vibrar si disponible
+      playTimerDone();
       if(navigator.vibrate) navigator.vibrate([200,100,200]);
-      // Toast
-      toast('✅ ¡Descanso terminado! Siguiente serie.','ok');
+      toast('✅ ¡A por la siguiente serie!','ok');
     }
   },1000);
 }
@@ -8777,6 +9264,12 @@ function renderDiaEntreno(dia, diaIdx, ejData, ejDataLast){
         '<span style="font-size:11px;font-weight:700;color:'+(pct===100?'#00C853':pct>0?'#FFB300':'#4A5568')+'">'+
           (pct===100?'✅ Completo':doneSeries+'/'+totalSeries+' series')+
         '</span>'+
+        '<button onclick="iniciarSesionFocused('+diaIdx+')" '+
+          'style="font-size:11px;font-weight:800;padding:5px 12px;border-radius:8px;border:none;'+
+          'background:'+(pct===100?'#00C853':'#0055FF')+';color:#fff;cursor:pointer;'+
+          'white-space:nowrap;-webkit-tap-highlight-color:transparent;letter-spacing:.5px">'+
+          (pct===100?'🔁 Repetir':'▶ Empezar')+
+        '</button>'+
       '</span>'+
     '</div>'+
     '<div class="cb">';
