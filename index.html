@@ -4468,14 +4468,38 @@ async function enviarCuestionario(){
     S.user.cuestionario_completado = true;
     S.user.cuestionario_datos = datos;
     okSav();
-    toast('✅ Cuestionario enviado. ¡Sergio se pondrá en contacto contigo pronto!','ok');
+    toast('✅ Cuestionario guardado. Generando tu plan...','ok');
     // Keep on cuestionario tab, show success
     document.querySelector('#sec-cuestionario .btn.bp').textContent='✅ Cuestionario enviado';
     document.querySelector('#sec-cuestionario .btn.bp').style.background='#00C853';
     buildTabs();
+    // AUTO-GENERATE PLAN
+    try{ await generarPlanAutomatico(S.user, datos); }catch(pe){console.warn('plan gen:',pe);}
   }catch(e){
     toast('Error al enviar: '+e.message,'err');
   }
+}
+
+async function generarPlanAutomatico(c, datos){
+  var esCombate=c.tipo_cliente==='combate';
+  if(esCombate){
+    // Combat: training is generated dynamically — just confirm
+    toast('💪 Plan de combate configurado según tu perfil','ok');
+    return;
+  }
+  // FITNESS: auto-assign plan from RUTINAS based on dias_entreno
+  var diasEntreno=parseInt(datos.dias_entreno)||parseInt(c.dias_entreno)||3;
+  // Find closest rutina by ndias
+  var rutina=RUTINAS.reduce(function(best,r){
+    return(!best||Math.abs(r.ndias-diasEntreno)<Math.abs(best.ndias-diasEntreno))?r:best;
+  },null);
+  if(!rutina) return;
+  var contenido={dias:rutina.plan.map(function(d){return{nombre:d.nombre,ejercicios:d.ejercicios};})};
+  // Disable existing plan and create new one
+  await db.patch('planes','cliente_id=eq.'+c.id+'&tipo=eq.entreno',{activo:false}).catch(function(){});
+  await db.post('planes',{cliente_id:c.id,tipo:'entreno',contenido:contenido,activo:true,semana_inicio:hoy()});
+  S.pe={contenido:contenido};
+  toast('✅ Plan «'+rutina.nombre+'» asignado automáticamente ('+diasEntreno+' días/sem)','ok');
 }
 
 
@@ -4996,6 +5020,77 @@ async function loadCamp(){
   var hasPlanner=c&&c.tipo_plan&&c.tipo_plan.includes('combate')&&c.inicio_protocolo&&c.semanas_protocolo;
 
   var html='';
+
+  // ── FASE ACTUAL (siempre visible) ────────────────────────────
+  var fase=getFaseCombate(c);
+  var faseP=FASE_COMBATE_PARAMS[fase];
+  var faseCol=faseP?faseP.color:'163,155,139';
+  var diasFight=null, semFight=null;
+  if(c.fecha_pelea){
+    var fp=new Date(c.fecha_pelea),hoyD=new Date();hoyD.setHours(0,0,0,0);
+    diasFight=Math.max(0,Math.ceil((fp-hoyD)/(24*3600*1000)));
+    semFight=Math.floor(diasFight/7);
+  }
+  // Focus points per phase
+  var focusPts={
+    base:['Construye tu base de fuerza','Volumen alto, intensidad moderada','Técnica limpia en todos los movimientos','Mantén el peso / pequeño superávit'],
+    especial:['Transfiere la fuerza al ring','Potencia explosiva — calidad > cantidad','Sparring aumenta, gym baja','Peso estable o pequeño déficit'],
+    competicion:['Mantén lo ganado, nada nuevo','Reducir volumen al 50%','Activación neurológica diaria','Corte de peso si aplica'],
+    transicion:['Recuperación activa','Nada intenso','Recomponer con buena nutrición','Planifica la siguiente temporada']
+  };
+  var fps=focusPts[fase]||[];
+  // Weekly template based on dias_fuerza
+  var diasFuerza=c.dias_prep_fisica||3;
+  var DIAS_KEY='d'+Math.min(4,Math.max(2,diasFuerza));
+  var diasMap=COMBATE_DIAS_MAP[DIAS_KEY]||COMBATE_DIAS_MAP.d3;
+  var DIAS_ES=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  var fasSMult=faseP?faseP.s_mult:1;
+  var volPct=faseP?faseP.vol:'100%';
+
+  // Phase countdown banner
+  html+='<div style="border-radius:14px;border:2px solid rgba('+faseCol+',.35);background:rgba('+faseCol+',.07);padding:16px;margin-bottom:.75rem">';
+  // Top row: phase label + days
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  html+='<div>';
+  html+='<div style="font-size:10px;font-weight:700;color:rgba('+faseCol+',.8);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px">Fase actual</div>';
+  html+='<div style="font-size:22px;font-weight:900;color:rgba('+faseCol+',1)">'+faseP.label+'</div>';
+  html+='<div style="font-size:11px;color:var(--text-3);margin-top:2px">Vol: '+volPct+' · '+faseP.rir+'</div>';
+  html+='</div>';
+  if(diasFight!==null){
+    html+='<div style="text-align:center;background:rgba('+faseCol+',.1);border:1px solid rgba('+faseCol+',.2);border-radius:10px;padding:10px 16px">';
+    html+=diasFight===0?
+      '<div style="font-size:26px;font-weight:900;color:rgba('+faseCol+',1)">HOY</div>':
+      '<div style="font-size:34px;font-weight:900;color:rgba('+faseCol+',1);line-height:1">'+diasFight+'</div>';
+    html+='<div style="font-size:10px;color:rgba('+faseCol+',.7);font-weight:700;text-transform:uppercase">'+
+      (diasFight===0?'¡PELEA!':diasFight===1?'día':'días')+'</div>';
+    if(semFight>0) html+='<div style="font-size:9px;color:var(--text-4);margin-top:2px">'+semFight+' sem restantes</div>';
+    html+='</div>';
+  }
+  html+='</div>';
+
+  // Focus points
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px">';
+  fps.forEach(function(pt){
+    html+='<div style="display:flex;align-items:flex-start;gap:5px;font-size:11px;color:var(--text-2)">'+
+      '<span style="color:rgba('+faseCol+',1);font-weight:900;flex-shrink:0">✦</span>'+pt+'</div>';
+  });
+  html+='</div>';
+
+  // Weekly training template
+  html+='<div style="border-top:1px solid rgba('+faseCol+',.15);padding-top:8px">';
+  html+='<div style="font-size:10px;font-weight:700;color:rgba('+faseCol+',.7);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Plantilla semanal ('+diasFuerza+' días gym)</div>';
+  html+='<div style="display:flex;gap:4px">';
+  DIAS_ES.forEach(function(d,dow){
+    var sesLetter=diasMap[dow+1]||null; // diasMap uses 1-7
+    var hasSes=!!sesLetter;
+    html+='<div style="flex:1;text-align:center;background:'+(hasSes?'rgba('+faseCol+',.12)':'rgba(0,0,0,.2)')+';border:1px solid '+(hasSes?'rgba('+faseCol+',.3)':'#1A2A40')+';border-radius:6px;padding:4px 2px">';
+    html+='<div style="font-size:9px;color:'+(hasSes?'rgba('+faseCol+',.8)':'#2A3A50')+';font-weight:700">'+d+'</div>';
+    html+='<div style="font-size:11px;font-weight:900;color:'+(hasSes?'rgba('+faseCol+',1)':'#1A2A40')+'">'+
+      (hasSes?sesLetter:'🛌')+'</div>';
+    html+='</div>';
+  });
+  html+='</div></div>';
+  html+='</div>'; // end phase card
 
   // Header
   html+='<div style="margin-bottom:1.25rem">'+
