@@ -3142,7 +3142,7 @@ const db={
   get:(t,q)=>api(t+(q?'?'+q:'')),
   post:(t,d)=>api(t,{method:'POST',body:JSON.stringify(d)}),
   patch:(t,q,d)=>api(t+'?'+q,{method:'PATCH',body:JSON.stringify(d)}),
-  upsert:(t,d)=>api(t,{method:'POST',body:JSON.stringify(d),prefer:'resolution=merge-duplicates,return=representation'}),
+  upsert:(t,d,conflict)=>api(t+(conflict?'?on_conflict='+conflict:''),{method:'POST',body:JSON.stringify(d),prefer:'resolution=merge-duplicates,return=representation'}),
 };
 
 function sem(fi){if(!fi)return 1;return Math.max(1,Math.ceil((Date.now()-new Date(fi))/(864e5*7)));}
@@ -3465,12 +3465,22 @@ async function loadAdmin(){
 
     var hace7d=new Date(); hace7d.setDate(hace7d.getDate()-7);
     var hace7dias=hace7d.toISOString().split('T')[0];
-    var [clientes, regNutri, regEntreno, regWellness] = await Promise.all([
+    // Cargar datos base y wellness por separado (wellness puede fallar si faltan columnas)
+    var [clientes, regNutri, regEntreno] = await Promise.all([
       db.get('clientes','order=created_at.desc'),
       db.get('registros_nutricion','fecha=eq.'+hoy),
       db.get('registros_entreno','fecha=eq.'+hoy),
-      db.get('registros_entreno','fecha=gte.'+hace7dias+'&completado=eq.true&select=cliente_id,fecha,sensaciones,sueno,fatiga_percibida,estres&order=fecha.desc&limit=300'),
     ]);
+    // Wellness: separado para que un fallo no rompa el dashboard entero
+    var regWellness=[];
+    try{
+      regWellness=await db.get('registros_entreno','fecha=gte.'+hace7dias+'&completado=eq.true&select=cliente_id,fecha,sensaciones,sueno,fatiga_percibida,estres&order=fecha.desc&limit=300')||[];
+    }catch(we){
+      // Intentar sin las columnas nuevas si fallan
+      try{
+        regWellness=await db.get('registros_entreno','fecha=gte.'+hace7dias+'&completado=eq.true&select=cliente_id,fecha,sensaciones&order=fecha.desc&limit=300')||[];
+      }catch(we2){regWellness=[];}
+    }
 
     S.todos = clientes||[];
     var activos = S.todos.filter(function(c){return c.activo;});
@@ -3610,6 +3620,7 @@ function renderAdminGrid(){
   }
 
   document.getElementById('clientes-grid').innerHTML = lista.map(function(c){
+    try{
       var nHoy = nutriHoy[c.id];
       var eHoy = entrenoHoy[c.id];
       var kcalPct = c.kcal_objetivo>0&&nHoy ? Math.min(100,Math.round((nHoy.kcal_real||0)/c.kcal_objetivo*100)) : 0;
@@ -3683,6 +3694,9 @@ function renderAdminGrid(){
           '</div>':'<div style="font-size:11px;color:#2A3A50;border-top:1px solid #1A2A40;padding-top:5px">Sin datos de bienestar aún</div>')+
         '</div>'+
       '</div>';
+    }catch(cardErr){
+      return '<div class="card"><div class="cb" style="color:#FF6B35;font-size:12px">⚠️ Error mostrando cliente: '+c.nombre+'</div></div>';
+    }
     }).join('');
 }
 
@@ -6517,7 +6531,7 @@ async function toggleComCliente(idx){
   }
   try{
     showSav();
-    var res=await db.upsert('registros_nutricion',{cliente_id:c.id,fecha:f,comidas:comidas});
+    var res=await db.upsert('registros_nutricion',{cliente_id:c.id,fecha:f,comidas:comidas},'cliente_id,fecha');
     S.rn=res&&res[0]||S.rn;
     okSav();
     renderNutriCliente();
@@ -6654,7 +6668,7 @@ document.getElementById('btn-ecompleto').onclick=async function(){
     if(S.eSueno) payload.sueno=S.eSueno;
     if(S.eFatiga) payload.fatiga_percibida=S.eFatiga;
     if(S.eEstres) payload.estres=S.eEstres;
-    await db.upsert('registros_entreno',payload);
+    await db.upsert('registros_entreno',payload,'cliente_id,fecha');
     okSav();
     // Borrar borrador local al guardar
     try{localStorage.removeItem('re_draft_'+c.id+'_'+f);}catch(e){}
@@ -7120,7 +7134,7 @@ async function guardarEntrenoCombate(){
     if(S.eSueno) payload.sueno=S.eSueno;
     if(S.eFatiga) payload.fatiga_percibida=S.eFatiga;
     if(S.eEstres) payload.estres=S.eEstres;
-    await db.upsert('registros_entreno',payload);
+    await db.upsert('registros_entreno',payload,'cliente_id,fecha');
     okSav();
     S.eSueno=null;S.eFatiga=null;S.eEstres=null;renderEncuesta();
     toast('✅ '+diaNom+' guardada','ok');
@@ -8253,53 +8267,106 @@ function renderCalorieAdjustment(checkins,c){
 // ═══════════════════════════════════════════════════════════
 // PROGRESIÓN AUTOMÁTICA DE CARGA (sección 11.1 del documento)
 // ═══════════════════════════════════════════════════════════
-function calcProgresion(ejNom, reHistory, rirObjetivo){
-  // Obtener últimas sesiones que tengan datos para este ejercicio
+// ═══════════════════════════════════════════════════════════════
+// SISTEMA DE PROGRESIÓN INTELIGENTE v2
+// Doble progresión: reps primero → peso cuando reps están completas
+// ═══════════════════════════════════════════════════════════════
+function calcProgresion(ejNom, reHistory, rirStr, repsStr){
+  // ── Parsear objetivos ──────────────────────────────────────
+  var rirNums=(rirStr||'2').toString().match(/\d+/g)||['2'];
+  var rirMin=parseInt(rirNums[0]), rirMax=parseInt(rirNums[rirNums.length-1]);
+  var repsMatch=(repsStr||'8').toString().match(/(\d+)(?:[–\-x×](\d+))?/);
+  var repsMin=repsMatch?parseInt(repsMatch[1]):8;
+  var repsMax=repsMatch&&repsMatch[2]?parseInt(repsMatch[2]):repsMin;
+
+  // ── Historial del ejercicio ────────────────────────────────
   var histEj=reHistory
     .map(function(r){return r.ejercicios&&r.ejercicios[ejNom];})
     .filter(function(e){return e&&e.series&&e.series.length;});
-  if(histEj.length<2) return null; // Sin suficiente historial
+  if(!histEj.length) return null;
 
-  // Comprobar si las últimas 2 sesiones completaron reps con RIR holgado
-  var ultimas2=histEj.slice(0,2);
-  var rir=parseInt(rirObjetivo)||2;
-  var rpeMax=10-rir; // RPE máximo para considerar que "sobró"
+  // ── Datos de la última sesión ──────────────────────────────
+  var ultimasSeries=(histEj[0].series||[]).filter(function(s){return parseFloat(s.kg)>0;});
+  if(!ultimasSeries.length) return null;
 
-  var puedeSubir=ultimas2.every(function(ejSes){
-    var series=ejSes.series||[];
-    if(!series.length) return false;
-    return series.every(function(s){
-      var rpeReal=parseInt(s.rpe)||7;
-      var repsOk=parseFloat(s.reps)>0;
-      return repsOk&&rpeReal<=rpeMax;
-    });
-  });
-
-  var debajaBajar=ultimas2.every(function(ejSes){
-    var series=ejSes.series||[];
-    return series.some(function(s){
-      return parseInt(s.rpe)>=9;
-    });
-  });
-
-  // Es ejercicio de pierna? → incremento mayor
-  var espierna=/sentadilla|prensa|rdl|peso muerto|femoral|glúteo|gluteo|zancada|búlgara|bulgara|hip thrust|extensión|extension/i.test(ejNom);
-  var incremento=espierna?2.5:1.25;
-
-  // Carga de referencia = máximo kg de la última sesión
-  var ultimasSeries=histEj[0]&&histEj[0].series||[];
+  // Peso de trabajo (max kg de la sesión)
   var kgRef=ultimasSeries.reduce(function(mx,s){return Math.max(mx,parseFloat(s.kg)||0);},0);
+  // Series de trabajo (solo las que usaron kgRef o cerca)
+  var workSets=ultimasSeries.filter(function(s){return parseFloat(s.kg)>=(kgRef*0.95);});
 
-  if(puedeSubir&&kgRef>0){
-    return {accion:'subir',kg:Math.round((kgRef+incremento)*2)/2,diff:'+'+incremento+'kg',color:'#00C853',icon:'📈'};
+  // RPE promedio de las series de trabajo
+  var rpeVals=workSets.map(function(s){return parseInt(s.rpe)||0;}).filter(function(r){return r>0;});
+  var avgRPE=rpeVals.length?rpeVals.reduce(function(a,b){return a+b;})/rpeVals.length:0;
+  var rirReal=avgRPE>0?10-avgRPE:null;
+
+  // Reps promedio de las series de trabajo
+  var repsVals=workSets.map(function(s){return parseInt(s.reps)||0;}).filter(function(r){return r>0;});
+  var avgReps=repsVals.length?repsVals.reduce(function(a,b){return a+b;})/repsVals.length:0;
+  var minRepsHechos=repsVals.length?Math.min.apply(null,repsVals):0;
+
+  // ── 1RM estimado (fórmula Epley) ───────────────────────────
+  var e1rm=kgRef>0&&avgReps>0?Math.round(kgRef*(1+avgReps/30)*10)/10:null;
+
+  // ── Incremento por tipo de ejercicio ──────────────────────
+  var esGrande=/sentadilla|press banca|bench|peso muerto|deadlift|prensa|military|overhead|remo|jalón|jalon|pull|dominada/i.test(ejNom);
+  var esPierna=/sentadilla|squat|prensa|rdl|peso muerto|femoral|glúteo|gluteo|zancada|búlgara|bulgara|hip thrust/i.test(ejNom);
+  var incremento=esPierna?2.5:esGrande?2.5:1.25;
+
+  // ── Lógica de DOBLE PROGRESIÓN ─────────────────────────────
+  // 1. ¿Todas las series completaron reps máximas del rango?
+  var repsMáxCompletas=avgReps>=repsMax&&minRepsHechos>=repsMax;
+  // 2. ¿RIR fue suficiente (al menos en el mínimo objetivo)?
+  var rirOk=rirReal!==null?rirReal>=rirMin-0.5:true; // si no hay RPE, damos beneficio de la duda
+  // 3. ¿Fue demasiado fácil? (RIR muy por encima del objetivo)
+  var muyfacil=rirReal!==null&&rirReal>rirMax+1;
+  // 4. ¿Fue demasiado duro? (RIR por debajo del mínimo)
+  var muyDuro=rirReal!==null&&rirReal<rirMin-1.5;
+
+  var kgSug, repsSug, accion, icon, msgCort, msgDet;
+
+  if(muyDuro){
+    // Bajar peso ~5-10%
+    var kgBaj=Math.round((kgRef-incremento)*2)/2;
+    kgSug=Math.max(incremento,kgBaj);
+    repsSug=repsMin;
+    accion='bajar'; icon='📉';
+    msgCort='Baja a '+kgSug+'kg';
+    msgDet='RIR real '+Math.round(rirReal*10)/10+' — demasiado duro. Reduce '+incremento+'kg y recupera técnica.';
+  } else if(repsMáxCompletas&&rirOk){
+    // Subir peso, volver a reps mínimas
+    kgSug=Math.round((kgRef+incremento)*2)/2;
+    repsSug=repsMin;
+    accion='subir'; icon='📈';
+    msgCort='Sube a '+kgSug+'kg × '+repsMin+'rep';
+    msgDet='✅ Completaste '+Math.round(avgReps)+'rep × '+kgRef+'kg'+(rirReal!==null?' (RIR '+Math.round(rirReal*10)/10+')')+'.<br>'+
+           '<strong>Doble progresión: +'+incremento+'kg → objetivo '+repsMin+' reps</strong>';
+  } else if(muyfacil&&!repsMáxCompletas){
+    // RIR muy por encima: subir peso aunque no se completaron reps máximas
+    kgSug=Math.round((kgRef+incremento)*2)/2;
+    repsSug=repsMin;
+    accion='subir_rir'; icon='⚡';
+    msgCort='Sube a '+kgSug+'kg (demasiado fácil)';
+    msgDet='RIR real '+Math.round(rirReal*10)/10+' — muy por encima del objetivo. Sube peso.';
+  } else {
+    // Mismo peso, avanzar reps dentro del rango
+    var nextReps=Math.min(repsMax, Math.round(avgReps)+1);
+    kgSug=kgRef;
+    repsSug=nextReps;
+    accion=avgReps<repsMin?'progresar_reps':'mantener'; icon=avgReps<repsMin?'🔁':'➡️';
+    msgCort=kgRef+'kg × objetivo '+nextReps+' reps';
+    msgDet=(avgReps<repsMin?
+      'Aún no alcanzas las reps mínimas ('+Math.round(avgReps)+'/'+repsMin+'). Mantén peso.':
+      'Última: '+Math.round(avgReps)+'rep. Busca '+nextReps+' rep para desbloquear subida de peso.')+
+      (rirReal!==null?' RIR real: '+Math.round(rirReal*10)/10+'.':'');
   }
-  if(debajaBajar&&kgRef>0){
-    return {accion:'bajar',kg:Math.round((kgRef-2.5)*2)/2,diff:'-2.5kg',color:'#FF6B6B',icon:'📉'};
-  }
-  if(kgRef>0){
-    return {accion:'mantener',kg:kgRef,diff:'='+kgRef+'kg',color:'#FFB300',icon:'➡️'};
-  }
-  return null;
+
+  return {
+    accion:accion, kg:kgSug, reps:repsSug, diff:'',
+    icon:icon, msgCort:msgCort, msgDet:msgDet, e1rm:e1rm,
+    rirReal:rirReal, kgRef:kgRef, avgReps:Math.round(avgReps*10)/10,
+    incremento:incremento,
+    color:accion==='subir'||accion==='subir_rir'?'#00C853':accion==='bajar'?'#FF6B6B':accion==='progresar_reps'?'#4D9FFF':'#FFB300'
+  };
 }
 
 function renderSerieRow(diaIdx, ei, si, s, lastMax, diaType, ejNom, ejRir){
@@ -8560,7 +8627,7 @@ function renderDiaEntreno(dia, diaIdx, ejData, ejDataLast){
       return (!best||((parseFloat(s.kg)||0)>(parseFloat(best.kg)||0)))?s:best;
     },null):null;
 
-    var prog=calcProgresion(ejNom,reHistory,ej.rir);
+    var prog=calcProgresion(ejNom,reHistory,ej.rir,ej.reps);
     var patron=getPatronFitness(ejNom);
 
     // Cuántas series completadas de este ejercicio
@@ -8572,36 +8639,61 @@ function renderDiaEntreno(dia, diaIdx, ejData, ejDataLast){
 
     // Cabecera ejercicio
     html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">';
-    html+='<div style="font-size:13px;font-weight:800;color:'+(ejCompleto?'#00C853':'#F0F4FF')+'">'+
-      (ejCompleto?'✅ ':'')+ejNom+
+    html+='<div style="flex:1;min-width:0">'+
+      '<div style="font-size:13px;font-weight:800;color:'+(ejCompleto?'#00C853':'#F0F4FF')+'">'+
+        (ejCompleto?'✅ ':'')+ejNom+
+      '</div>'+
+      // 1RM estimado
+      (prog&&prog.e1rm?'<div style="font-size:10px;color:#7986CB;margin-top:1px">Est. 1RM: <strong>'+prog.e1rm+'kg</strong></div>':'')+
     '</div>';
-    html+='<div style="text-align:right">';
+    html+='<div style="text-align:right;flex-shrink:0;margin-left:8px">';
     if(patron) html+='<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba('+patron.c+',.1);color:rgba('+patron.c+',1);display:inline-block;margin-bottom:2px">'+patron.l+'</span><br>';
     html+='<span style="font-size:10px;color:#4A5568">'+ej.series+'×'+ej.reps+(ej.rir?' · RIR '+ej.rir:'')+'</span>';
     html+='</div></div>';
 
-    // Progresión / última sesión
+    // ── Tarjeta de progresión inteligente ──────────────────────
     if(prog){
-      html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:5px 8px;background:rgba('+
-        (prog.accion==='subir'?'0,200,83':prog.accion==='bajar'?'255,107,107':'255,179,0')+
-        ',.07);border-radius:6px;border:1px solid rgba('+
-        (prog.accion==='subir'?'0,200,83':prog.accion==='bajar'?'255,107,107':'255,179,0')+
-        ',.2)">'+
-        '<span style="font-size:12px">'+prog.icon+'</span>'+
-        '<span style="font-size:11px;font-weight:700;color:'+(prog.accion==='subir'?'#00C853':prog.accion==='bajar'?'#FF6B6B':'#FFB300')+'">'+
-          (prog.accion==='subir'?'Hoy: '+prog.kg+'kg ('+prog.diff+')':
-           prog.accion==='bajar'?'Ajusta: '+prog.kg+'kg ('+prog.diff+')':
-           'Mantén: '+prog.kg+'kg')+
-        '</span>'+
+      var progCol=prog.accion==='subir'||prog.accion==='subir_rir'?'0,200,83':prog.accion==='bajar'?'255,107,107':prog.accion==='progresar_reps'?'77,159,255':'255,179,0';
+      var ejNomEscProg=ejNom.replace(/'/g,"\\'");
+      html+='<div style="margin-bottom:8px;padding:7px 10px;background:rgba('+progCol+',.05);border-radius:8px;border:1px solid rgba('+progCol+',.2)">';
+      html+='<div style="display:flex;align-items:center;gap:6px">'+
+        '<span style="font-size:14px">'+prog.icon+'</span>'+
+        '<span style="font-size:12px;font-weight:700;color:rgba('+progCol+',1)">'+prog.msgCort+'</span>'+
+        // Botón "Aplicar a todas las series"
+        (savedSeries.length===0?
+          '<button onclick="aplicarProgresion('+diaIdx+','+ei+','+prog.kg+',\''+prog.reps+'\')" '+
+            'style="margin-left:auto;font-size:10px;padding:3px 8px;border-radius:5px;border:1px solid rgba('+progCol+',.4);'+
+            'background:rgba('+progCol+',.1);color:rgba('+progCol+',1);cursor:pointer;font-weight:700;'+
+            'white-space:nowrap;-webkit-tap-highlight-color:transparent">✦ Aplicar</button>':'')+
       '</div>';
+      // Detalles en pequeño
+      if(prog.msgDet){
+        html+='<div style="font-size:10px;color:#4A5568;margin-top:3px">'+prog.msgDet+'</div>';
+      }
+      html+='</div>';
     } else if(lastBest){
-      html+='<div style="font-size:11px;color:#4A5568;margin-bottom:6px">'+
+      html+='<div style="font-size:11px;color:#4A5568;margin-bottom:8px">'+
         'Última: <span style="color:#7986CB;font-weight:700">'+lastBest.kg+'kg × '+lastBest.reps+'rep</span>'+
+        (lastBest.rpe?'<span style="color:#4A5568"> · RPE '+lastBest.rpe+'</span>':'')+
       '</div>';
+    } else {
+      html+='<div style="font-size:10px;color:#2A3A50;margin-bottom:6px;font-style:italic">Primera sesión — empieza con un peso cómodo a las reps indicadas</div>';
     }
 
-    // Series
-    var seriesArr=savedSeries.length?savedSeries:Array.from({length:ejTotal},function(){return {kg:'',reps:ej.reps||''};});
+    // Series: pre-rellenar con sugerencia si están vacías
+    var seriesArr;
+    if(savedSeries.length){
+      seriesArr=savedSeries;
+    } else {
+      seriesArr=[];
+      for(var _si=0;_si<ejTotal;_si++){
+        seriesArr.push({
+          kg: prog?String(prog.kg):'',
+          reps: prog?String(prog.reps):(ej.reps||''),
+          rpe:0, done:false, _sugerido:true
+        });
+      }
+    }
     html+='<div id="series-list-'+diaIdx+'-'+ei+'">';
     seriesArr.forEach(function(s,si){
       html+=renderSerieRow(diaIdx,ei,si,s,lastMax,'fitness',ejNom,ej.rir||'3');
@@ -8651,6 +8743,40 @@ function addSerie(diaIdx,ejIdx){
   var div=document.createElement('div');
   div.innerHTML=renderSerieRow(diaIdx,ejIdx,si,newSerie,0,'fitness',ejNom,ej.rir);
   container.appendChild(div.firstChild);
+}
+
+// Aplica la sugerencia de progresión a todas las series de un ejercicio
+function aplicarProgresion(diaIdx, ejIdx, kg, reps){
+  var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[diaIdx];
+  if(!dia) return;
+  var ej=dia.ejercicios&&dia.ejercicios[ejIdx];
+  if(!ej) return;
+  var ejNom=ej.nombre||('Ejercicio '+(ejIdx+1));
+  var ejTotal=parseInt(ej.series)||3;
+  if(!S.re) S.re={ejercicios:{}};
+  if(!S.re.ejercicios) S.re.ejercicios={};
+  if(!S.re.ejercicios[ejNom]) S.re.ejercicios[ejNom]={series:[]};
+  // Rellenar todas las series con el peso/reps sugeridos
+  for(var i=0;i<ejTotal;i++){
+    if(!S.re.ejercicios[ejNom].series[i]) S.re.ejercicios[ejNom].series[i]={};
+    S.re.ejercicios[ejNom].series[i].kg=String(kg);
+    S.re.ejercicios[ejNom].series[i].reps=String(reps);
+  }
+  // Re-render el bloque de series
+  var container=document.getElementById('series-list-'+diaIdx+'-'+ejIdx);
+  if(container){
+    var lastEjData=S.reLast&&S.reLast.ejercicios||{};
+    var lastSeries=(lastEjData[ejNom]&&lastEjData[ejNom].series)||[];
+    var lastMax=lastSeries.reduce(function(mx,s){return Math.max(mx,parseFloat(s.kg)||0);},0);
+    var newHtml='';
+    S.re.ejercicios[ejNom].series.slice(0,ejTotal).forEach(function(s,si){
+      newHtml+=renderSerieRow(diaIdx,ejIdx,si,s,lastMax,'fitness',ejNom,ej.rir||'3');
+    });
+    container.innerHTML=newHtml;
+  }
+  // Auto-save
+  if(S.user){try{var dk='re_draft_'+S.user.id+'_'+(new Date().toISOString().split('T')[0]);localStorage.setItem(dk,JSON.stringify({ej:S.re.ejercicios,ts:Date.now()}));}catch(e){}}
+  toast('✦ '+kg+'kg × '+reps+' rep aplicado a todas las series','ok');
 }
 
 // ═══════════════════════════════════════
