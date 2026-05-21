@@ -6858,8 +6858,8 @@ async function loadEntrenoCombate(){
       var seriesA=buildSeriesArr(nomA,sAdj,dA.r);
       var seriesB=buildSeriesArr(nomB,sAdj,dB.r);
       var ssId='ss-'+ejGlobal; ejGlobal+=2;
-      var progA=calcProgresion(nomA,reCombateHistory||[],dA.rir);
-      var progB=calcProgresion(nomB,reCombateHistory||[],dB.rir);
+      var progA=calcProgresion(nomA,reCombateHistory||[],dA.rir,dA.r);
+      var progB=calcProgresion(nomB,reCombateHistory||[],dB.rir,dB.r);
 
       html+='<div style="background:rgba(255,179,0,.04);border:1.5px solid rgba(255,179,0,.2);border-radius:10px;padding:10px 12px;margin-bottom:8px">'+
         // Cabecera superserie
@@ -6962,7 +6962,7 @@ async function loadEntrenoCombate(){
         var sAdj=adjSeries(d);
         var rirAdj=adjRIR(d);
         var seriesArr=buildSeriesArr(ejNom,sAdj,d.r);
-        var progC=calcProgresion(ejNom,reCombateHistory||[],d.rir);
+        var progC=calcProgresion(ejNom,reCombateHistory||[],d.rir,d.r);
 
         html+='<div style="background:var(--surface-2);border-radius:8px;padding:10px 12px;margin-bottom:8px" id="'+ejId+'-block">'+
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'+
@@ -8378,22 +8378,26 @@ function renderSerieRow(diaIdx, ei, si, s, lastMax, diaType, ejNom, ejRir){
   var rowId=diaType==='combate'?('cej-'+ei+'-s'+si):('serie-row-'+diaIdx+'-'+ei+'-'+si);
   var ejNomEsc=(ejNom||'').replace(/'/g,"\\'");
   var isDone=!!s.done;
+  var isSug=!!s._sugerido&&!isDone;
 
   var html='<div style="margin-bottom:5px;border-radius:6px;padding:4px 6px;transition:all .2s;'+
-    (isDone?'background:rgba(0,200,83,.05);border:1px solid rgba(0,200,83,.2)':'background:transparent;border:1px solid transparent')+
+    (isDone?'background:rgba(0,200,83,.05);border:1px solid rgba(0,200,83,.2)':
+     isSug?'background:rgba(0,85,255,.03);border:1px solid rgba(0,85,255,.15)':
+     'background:transparent;border:1px solid transparent')+
   '" id="'+rowId+'">';
 
   // Fila principal: S# / kg / reps / ✓
   html+='<div style="display:flex;gap:5px;align-items:center">'+
-    '<div style="font-size:11px;font-weight:700;color:'+(isDone?'#00C853':'#4A5568')+';min-width:22px">S'+(si+1)+'</div>'+
+    '<div class="serie-num" style="font-size:11px;font-weight:700;color:'+(isDone?'#00C853':isSug?'#4D9FFF':'#4A5568')+';min-width:22px">S'+(si+1)+'</div>'+
     '<input type="number" step="0.5" placeholder="kg" value="'+(s.kg||'')+'" '+
-      'style="width:60px;padding:5px 6px;background:#0D1528;border:1px solid #1A2A40;border-radius:6px;color:#F0F4FF;font-size:13px;font-weight:700;text-align:center" '+
+      'style="width:60px;padding:5px 6px;background:#0D1528;border:1px solid '+(isSug?'rgba(0,85,255,.35)':'#1A2A40')+';border-radius:6px;color:'+(isSug?'#7AB8FF':'#F0F4FF')+';font-size:13px;font-weight:700;text-align:center" '+
       'oninput="'+(diaType==='combate'?'updateSerieCombate(\''+ejNomEsc+'\','+si+',\'kg\',this.value)':'updateSerie('+diaIdx+','+ei+','+si+',\'kg\',this.value)')+'">'+
     '<span style="color:#4A5568;font-size:11px">kg</span>'+
     '<input type="number" placeholder="reps" value="'+(s.reps||'')+'" '+
-      'style="width:48px;padding:5px 6px;background:#0D1528;border:1px solid #1A2A40;border-radius:6px;color:#F0F4FF;font-size:13px;font-weight:700;text-align:center" '+
+      'style="width:48px;padding:5px 6px;background:#0D1528;border:1px solid '+(isSug?'rgba(0,85,255,.35)':'#1A2A40')+';border-radius:6px;color:'+(isSug?'#7AB8FF':'#F0F4FF')+';font-size:13px;font-weight:700;text-align:center" '+
       'oninput="'+(diaType==='combate'?'updateSerieCombate(\''+ejNomEsc+'\','+si+',\'reps\',this.value)':'updateSerie('+diaIdx+','+ei+','+si+',\'reps\',this.value)')+'">'+
     '<span style="color:#4A5568;font-size:11px">rep</span>'+
+    (isSug?'<span class="sug-badge" title="Sugerencia automática" style="font-size:9px;color:#4D9FFF;background:rgba(0,85,255,.12);border:1px solid rgba(0,85,255,.25);border-radius:4px;padding:1px 4px;white-space:nowrap;flex-shrink:0">✦ sug</span>':'')+
     (mejora?'<span style="font-size:12px">🔥</span>':(igualAnterior?'<span style="font-size:11px">➡️</span>':''))+
     // ── Botón ✓ para fitness ─────────────────────────────────────
     (diaType==='fitness'?
@@ -8716,6 +8720,24 @@ function updateSerie(diaIdx,ejIdx,serieIdx,campo,val){
   if(!S.re.ejercicios[ejNom]) S.re.ejercicios[ejNom]={series:[]};
   if(!S.re.ejercicios[ejNom].series[serieIdx]) S.re.ejercicios[ejNom].series[serieIdx]={};
   S.re.ejercicios[ejNom].series[serieIdx][campo]=val;
+  // Al editar un valor sugerido, quitar la marca de sugerencia
+  if(S.re.ejercicios[ejNom].series[serieIdx]._sugerido){
+    delete S.re.ejercicios[ejNom].series[serieIdx]._sugerido;
+    // Actualizar el estilo de la fila visualmente sin re-render completo
+    var rowEl=document.getElementById('serie-row-'+diaIdx+'-'+ejIdx+'-'+serieIdx);
+    if(rowEl){
+      rowEl.style.background='transparent';
+      rowEl.style.border='1px solid transparent';
+      rowEl.querySelectorAll('input').forEach(function(inp){
+        inp.style.border='1px solid #1A2A40';
+        inp.style.color='#F0F4FF';
+      });
+      var sugBadge=rowEl.querySelector('.sug-badge');
+      if(sugBadge) sugBadge.remove();
+      var numEl=rowEl.querySelector('.serie-num');
+      if(numEl) numEl.style.color='#4A5568';
+    }
+  }
   // Auto-save borrador local (evita perder datos al cambiar pestaña)
   if(S.user){
     try{
