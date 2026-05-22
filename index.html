@@ -326,6 +326,107 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
       <div id="vc-content"></div>
     </div>
 
+  <!-- ADMIN: GESTIÓN DE RECETAS -->
+  <div class="sec" id="sec-recetas">
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <button class="btn bg bsm" onclick="document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.textContent.includes('Clientes')));showSec('admin');">← Volver</button>
+      <div style="font-size:20px;font-weight:900;letter-spacing:2px">🍽️ RECETAS</div>
+    </div>
+    <!-- Formulario nueva receta -->
+    <div class="card" style="margin-bottom:1rem">
+      <div class="ch">➕ Nueva receta</div>
+      <div class="cb">
+        <!-- Datalist para autocompletar ingredientes desde AL -->
+        <datalist id="al-datalist"></datalist>
+        <div class="g2" style="margin-bottom:.75rem">
+          <div class="field"><label>Emoji + Nombre del plato</label>
+            <input type="text" id="r-nombre" placeholder="🍗 Pollo con arroz y aguacate" style="font-size:14px">
+          </div>
+          <div class="field"><label>Categoría</label>
+            <select id="r-cat" class="isml">
+              <option value="Desayuno">🌅 Desayuno</option>
+              <option value="Merienda">🍎 Merienda</option>
+              <option value="Pre Entreno">⚡ Pre Entreno</option>
+              <option value="Post Entreno">💪 Post Entreno</option>
+              <option value="Alta Proteína">🥩 Alta Proteína</option>
+              <option value="Comida" selected>🍽️ Comida</option>
+              <option value="Cena">🌙 Cena</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:.75rem"><label>Descripción / preparación (opcional)</label>
+          <textarea id="r-desc" rows="2" style="width:100%;background:#0D1528;border:1px solid #2A3A50;border-radius:8px;color:#F0F4FF;padding:9px 12px;font-size:13px;resize:vertical;font-family:inherit" placeholder="Breve descripción de cómo prepararlo..."></textarea>
+        </div>
+        <!-- Ingredientes -->
+        <div style="display:grid;gap:10px;margin-bottom:.75rem">
+          <!-- PROTEÍNA -->
+          <div style="background:#0D1528;border:1px solid rgba(0,229,255,0.2);border-radius:10px;padding:12px">
+            <div style="font-size:10px;font-weight:700;color:#00E5FF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🥩 Fuente de Proteína</div>
+            <div class="g2">
+              <div class="field" style="margin:0"><label style="font-size:10px">Ingrediente</label>
+                <input type="text" id="r-prot-ing" list="al-datalist" placeholder="ej. Pollo a la plancha" oninput="rcAutoFill('prot')" style="font-size:13px">
+              </div>
+              <div class="field" style="margin:0"><label style="font-size:10px">P / C / G por 100g</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+                  <input type="number" id="r-prot-p" placeholder="Prot" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
+                  <input type="number" id="r-prot-c" placeholder="Carb" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
+                  <input type="number" id="r-prot-g" placeholder="Gras" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- CARBOHIDRATOS -->
+          <div style="background:#0D1528;border:1px solid rgba(255,179,0,0.2);border-radius:10px;padding:12px">
+            <div style="font-size:10px;font-weight:700;color:#FFB300;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🌾 Fuente de Carbohidratos</div>
+            <div class="g2">
+              <div class="field" style="margin:0"><label style="font-size:10px">Ingrediente</label>
+                <input type="text" id="r-carb-ing" list="al-datalist" placeholder="ej. Arroz integral cocido" oninput="rcAutoFill('carb')" style="font-size:13px">
+              </div>
+              <div class="field" style="margin:0"><label style="font-size:10px">P / C / G por 100g</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+                  <input type="number" id="r-carb-p" placeholder="Prot" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
+                  <input type="number" id="r-carb-c" placeholder="Carb" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
+                  <input type="number" id="r-carb-g" placeholder="Gras" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- GRASAS -->
+          <div style="background:#0D1528;border:1px solid rgba(244,143,177,0.2);border-radius:10px;padding:12px">
+            <div style="font-size:10px;font-weight:700;color:#F48FB1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🥑 Fuente de Grasas</div>
+            <div class="g2">
+              <div class="field" style="margin:0"><label style="font-size:10px">Ingrediente</label>
+                <input type="text" id="r-gras-ing" list="al-datalist" placeholder="ej. Aguacate" oninput="rcAutoFill('gras')" style="font-size:13px">
+              </div>
+              <div class="field" style="margin:0"><label style="font-size:10px">P / C / G por 100g</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+                  <input type="number" id="r-gras-p" placeholder="Prot" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
+                  <input type="number" id="r-gras-c" placeholder="Carb" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
+                  <input type="number" id="r-gras-g" placeholder="Gras" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- LIBRE (opcional) -->
+          <div style="background:#0D1528;border:1px dashed #2A3A50;border-radius:10px;padding:12px">
+            <div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">➕ Ingrediente Extra (opcional)</div>
+            <div class="field" style="margin:0"><label style="font-size:10px">Nombre (se sirve en cantidad fija automática)</label>
+              <input type="text" id="r-libre" list="al-datalist" placeholder="ej. Frutos rojos" style="font-size:13px">
+            </div>
+          </div>
+        </div>
+        <button onclick="guardarRecetaCustom()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0055FF,#003DB5);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer">💾 Guardar receta</button>
+      </div>
+    </div>
+    <!-- Lista recetas -->
+    <div class="card">
+      <div class="ch">📋 Recetas personalizadas <span id="r-count" style="margin-left:6px;font-size:11px;color:#4A5568"></span></div>
+      <div class="cb" id="lista-recetas" style="min-height:60px">
+        <div style="color:#4A5568;font-size:13px;text-align:center;padding:20px">Cargando...</div>
+      </div>
+    </div>
+  </div>
+
     <!-- CLIENTE: CUESTIONARIO INICIAL -->
   <div class="sec" id="sec-cuestionario">
     <div id="perfil-area"></div>
@@ -3826,6 +3927,7 @@ function initApp(){
     var salirBtn=document.getElementById('tbtn-salir');
     if(salirBtn) salirBtn.onclick=logout;
     buildTabs();
+    loadPlatosCustom();
     if(S.isAdmin){loadAdmin();showSec('admin');}
     else{loadInicio();showSec('inicio');}
   }catch(e){
@@ -3843,7 +3945,7 @@ function logout(){
 function buildTabs(){
   var tabs, mobTabs;
   if(S.isAdmin){
-    tabs=[['admin','👥 Clientes'],['vc','👤 Ver Cliente']];
+    tabs=[['admin','👥 Clientes'],['vc','👤 Ver Cliente'],['recetas','🍽️ Recetas']];
     mobTabs=null; // hide mob-nav for admin
   } else if(S.user&&S.user.tipo_cliente==='combate'){
     tabs=[['inicio','🏠 Inicio'],['camp','🥊 Camp'],['entreno','🏋️ Entreno'],['nutri','🥗 Nutrición'],['prog','📈 Progreso'],['cuestionario','👤 Perfil']];
@@ -3874,6 +3976,7 @@ function onTab(id,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   showSec(id);
+  if(id==='recetas')loadRecetasAdmin();
   if(id==='camp')loadCamp();
   if(id==='nutri')loadNutri();
   if(id==='entreno')loadEntreno();
@@ -4430,6 +4533,181 @@ async function verCliente(id){
   document.getElementById('btn-volver').onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.textContent.includes('Clientes')));showSec('admin');};
   document.getElementById('btn-plan').onclick=()=>{showM('m-plan');renderPlanForm();};
   adminTab('hoy',document.getElementById('at-hoy'));
+}
+
+// ══════════════════════════════════════════════════════
+// RECETAS PERSONALIZADAS
+// ══════════════════════════════════════════════════════
+
+async function loadPlatosCustom(){
+  try{
+    var res=await fetch(SB+'/rest/v1/platos_custom?activo=eq.true&select=*',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    if(!res.ok) return;
+    var data=await res.json();
+    if(!Array.isArray(data)) return;
+    data.forEach(function(r){
+      PLATOS[r.nombre]={
+        cat:r.cat||'Comida',
+        desc:r.descripcion||'',
+        prot:r.prot_ing?{ing:r.prot_ing,p:parseFloat(r.prot_p)||0,c:parseFloat(r.prot_c)||0,g:parseFloat(r.prot_g)||0}:null,
+        carb:r.carb_ing?{ing:r.carb_ing,p:parseFloat(r.carb_p)||0,c:parseFloat(r.carb_c)||0,g:parseFloat(r.carb_g)||0}:null,
+        gras:r.gras_ing?{ing:r.gras_ing,p:parseFloat(r.gras_p)||0,c:parseFloat(r.gras_c)||0,g:parseFloat(r.gras_g)||0}:null,
+        libre:r.libre||null,
+        _custom:true,
+        _id:r.id
+      };
+    });
+  }catch(e){}
+}
+
+async function loadRecetasAdmin(){
+  showSec('recetas');
+  // Poblar datalist con ingredientes de AL
+  var dl=document.getElementById('al-datalist');
+  if(dl&&!dl.children.length){
+    dl.innerHTML=Object.keys(AL).sort(function(a,b){return a.localeCompare(b,'es');}).map(function(k){return '<option value="'+k+'">';}).join('');
+  }
+  var cont=document.getElementById('lista-recetas');
+  var cntEl=document.getElementById('r-count');
+  if(!cont) return;
+  cont.innerHTML='<div style="color:#4A5568;font-size:13px;text-align:center;padding:20px">Cargando...</div>';
+  try{
+    var res=await fetch(SB+'/rest/v1/platos_custom?select=*&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    if(!res.ok){
+      var err=await res.json();
+      if(err&&err.code==='42P01'){
+        cont.innerHTML='<div style="background:rgba(255,179,0,0.07);border:1px solid rgba(255,179,0,0.3);border-radius:8px;padding:14px;font-size:12px;color:#FFB300">'+
+          '<div style="font-weight:700;margin-bottom:8px">⚠️ La tabla aún no existe en Supabase</div>'+
+          '<div style="margin-bottom:8px;color:#F0F4FF">Ejecuta este SQL en el editor de Supabase (supabase.com → tu proyecto → SQL Editor):</div>'+
+          '<div style="background:#070E1A;border-radius:6px;padding:10px;font-family:monospace;font-size:11px;color:#00E5FF;white-space:pre;overflow-x:auto;user-select:all">'+
+'create table if not exists platos_custom (\n  id bigserial primary key,\n  nombre text not null unique,\n  cat text not null default \'Comida\',\n  descripcion text default \'\',\n  prot_ing text default \'\',\n  prot_p numeric default 0,\n  prot_c numeric default 0,\n  prot_g numeric default 0,\n  carb_ing text default \'\',\n  carb_p numeric default 0,\n  carb_c numeric default 0,\n  carb_g numeric default 0,\n  gras_ing text default \'\',\n  gras_p numeric default 0,\n  gras_c numeric default 0,\n  gras_g numeric default 0,\n  libre text default \'\',\n  activo boolean default true,\n  created_at timestamptz default now()\n);\nalter table platos_custom enable row level security;\ncreate policy "allow_all" on platos_custom for all using (true) with check (true);'+
+          '</div>'+
+          '<button onclick="loadRecetasAdmin()" style="margin-top:10px;padding:8px 16px;background:#0055FF;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">🔄 Reintentar</button>'+
+        '</div>';
+        return;
+      }
+      cont.innerHTML='<div style="color:#FF1744;font-size:13px;padding:10px">Error: '+JSON.stringify(err)+'</div>';
+      return;
+    }
+    var data=await res.json();
+    if(cntEl) cntEl.textContent='('+data.length+' recetas)';
+    if(!data.length){
+      cont.innerHTML='<div style="color:#4A5568;font-size:13px;text-align:center;padding:30px">Aún no hay recetas personalizadas.<br>Añade la primera con el formulario de arriba.</div>';
+      return;
+    }
+    var cats={'Desayuno':'🌅','Merienda':'🍎','Pre Entreno':'⚡','Post Entreno':'💪','Alta Proteína':'🥩','Comida':'🍽️','Cena':'🌙'};
+    cont.innerHTML=data.map(function(r){
+      var ings=[];
+      if(r.prot_ing) ings.push('<span style="color:#00E5FF">'+r.prot_ing+'</span>');
+      if(r.carb_ing) ings.push('<span style="color:#FFB300">'+r.carb_ing+'</span>');
+      if(r.gras_ing) ings.push('<span style="color:#F48FB1">'+r.gras_ing+'</span>');
+      if(r.libre)    ings.push('<span style="color:#4A5568">'+r.libre+'</span>');
+      var catIcon=cats[r.cat]||'🍽️';
+      return '<div style="background:#0D1528;border:1px solid '+(r.activo?'#1A2A40':'rgba(255,23,68,0.2)')+';border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start">'+
+        '<div style="font-size:22px;flex-shrink:0">'+catIcon+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:14px;font-weight:800;color:#F0F4FF;margin-bottom:3px">'+r.nombre+'</div>'+
+          '<div style="font-size:11px;color:#4A5568;margin-bottom:5px">'+catIcon+' '+r.cat+(r.descripcion?' · <em style="color:#7986CB">'+r.descripcion.substring(0,60)+(r.descripcion.length>60?'…':'')+'</em>':'')+'</div>'+
+          '<div style="font-size:11px;font-weight:700;display:flex;flex-wrap:wrap;gap:6px">'+ings.join(' + ')+'</div>'+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">'+
+          '<button onclick="toggleRecetaActivo('+r.id+','+r.activo+')" style="padding:5px 10px;background:rgba('+(r.activo?'0,200,83':'255,23,68')+',0.1);border:1px solid rgba('+(r.activo?'0,200,83':'255,23,68')+',0.3);color:'+(r.activo?'#00C853':'#FF1744')+';border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">'+(r.activo?'✅ Activa':'❌ Oculta')+'</button>'+
+          '<button onclick="eliminarRecetaCustom('+r.id+',\''+r.nombre.replace(/'/g,"\\'")+'\')" style="padding:5px 10px;background:rgba(255,23,68,0.06);border:1px solid rgba(255,23,68,0.2);color:#FF1744;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🗑️ Borrar</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }catch(e){
+    cont.innerHTML='<div style="color:#FF1744;font-size:13px;padding:10px">Error al cargar: '+e.message+'</div>';
+  }
+}
+
+function rcAutoFill(tipo){
+  var nom=document.getElementById('r-'+tipo+'-ing').value;
+  var al=AL[nom];
+  if(!al) return;
+  document.getElementById('r-'+tipo+'-p').value=al[0];
+  document.getElementById('r-'+tipo+'-c').value=al[1];
+  document.getElementById('r-'+tipo+'-g').value=al[2];
+}
+
+async function guardarRecetaCustom(){
+  var nom=(document.getElementById('r-nombre').value||'').trim();
+  if(!nom){ toast('El nombre es obligatorio','err'); return; }
+  var cat=document.getElementById('r-cat').value;
+  var desc=(document.getElementById('r-desc').value||'').trim();
+  var protIng=(document.getElementById('r-prot-ing').value||'').trim();
+  var carbIng=(document.getElementById('r-carb-ing').value||'').trim();
+  var grasIng=(document.getElementById('r-gras-ing').value||'').trim();
+  var libre=(document.getElementById('r-libre').value||'').trim();
+  if(!protIng&&!carbIng&&!grasIng){ toast('Añade al menos un ingrediente','err'); return; }
+  var body={
+    nombre:nom, cat:cat, descripcion:desc,
+    prot_ing:protIng, prot_p:parseFloat(document.getElementById('r-prot-p').value)||0,
+    prot_c:parseFloat(document.getElementById('r-prot-c').value)||0,
+    prot_g:parseFloat(document.getElementById('r-prot-g').value)||0,
+    carb_ing:carbIng, carb_p:parseFloat(document.getElementById('r-carb-p').value)||0,
+    carb_c:parseFloat(document.getElementById('r-carb-c').value)||0,
+    carb_g:parseFloat(document.getElementById('r-carb-g').value)||0,
+    gras_ing:grasIng, gras_p:parseFloat(document.getElementById('r-gras-p').value)||0,
+    gras_c:parseFloat(document.getElementById('r-gras-c').value)||0,
+    gras_g:parseFloat(document.getElementById('r-gras-g').value)||0,
+    libre:libre, activo:true
+  };
+  try{
+    var res=await fetch(SB+'/rest/v1/platos_custom',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(!res.ok){ var e=await res.json(); toast(e.message||'Error al guardar','err'); return; }
+    // Merge into PLATOS immediately
+    PLATOS[nom]={
+      cat:cat,desc:desc,
+      prot:protIng?{ing:protIng,p:body.prot_p,c:body.prot_c,g:body.prot_g}:null,
+      carb:carbIng?{ing:carbIng,p:body.carb_p,c:body.carb_c,g:body.carb_g}:null,
+      gras:grasIng?{ing:grasIng,p:body.gras_p,c:body.gras_c,g:body.gras_g}:null,
+      libre:libre||null,_custom:true
+    };
+    // Clear form
+    ['r-nombre','r-desc','r-prot-ing','r-prot-p','r-prot-c','r-prot-g',
+     'r-carb-ing','r-carb-p','r-carb-c','r-carb-g',
+     'r-gras-ing','r-gras-p','r-gras-c','r-gras-g','r-libre'].forEach(function(id){
+      var el=document.getElementById(id); if(el) el.value='';
+    });
+    toast('✅ Receta guardada: '+nom,'ok');
+    loadRecetasAdmin();
+  }catch(e){ toast('Error: '+e.message,'err'); }
+}
+
+async function eliminarRecetaCustom(id, nombre){
+  if(!confirm('¿Borrar la receta "'+nombre+'"? Esta acción no se puede deshacer.')) return;
+  try{
+    var res=await fetch(SB+'/rest/v1/platos_custom?id=eq.'+id,{
+      method:'DELETE',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    if(!res.ok){ toast('Error al borrar','err'); return; }
+    delete PLATOS[nombre];
+    toast('🗑️ Receta eliminada','ok');
+    loadRecetasAdmin();
+  }catch(e){ toast('Error: '+e.message,'err'); }
+}
+
+async function toggleRecetaActivo(id, activo){
+  try{
+    var res=await fetch(SB+'/rest/v1/platos_custom?id=eq.'+id,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({activo:!activo})
+    });
+    if(!res.ok){ toast('Error','err'); return; }
+    toast(activo?'Receta oculta a clientes':'Receta activada','ok');
+    loadRecetasAdmin();
+  }catch(e){ toast('Error: '+e.message,'err'); }
 }
 
 async function adminTab(tab,btn){
