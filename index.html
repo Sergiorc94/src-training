@@ -1353,6 +1353,16 @@ const AL = {
   "Bebida soja sin azúcar":             [3, 0, 1.8, 33],
   "Bebida almendra sin azúcar":         [0.4, 0, 1.1, 13],
   "Gelatina 0%":                        [1, 1, 0, 10],
+  // COMBATE / TIMING
+  "Dátiles":                            [2,   75, 0.4, 277],
+  "Miel":                               [0.3, 82, 0,   304],
+  "Mermelada":                          [0.5, 65, 0.1, 263],
+  "Gominolas":                          [6,   77, 0.1, 330],
+  "Isotónica":                          [0,   6,  0,   26 ],
+  "Gel carbohidratos":                  [0,   55, 0,   222],
+  "Compota manzana":                    [0.2, 16, 0.1, 67 ],
+  "Zumo de fruta":                      [0.5, 10, 0.1, 44 ],
+  "Crema de arroz":                     [3,   82, 1,   350],
 };
 
 // ═══════════════════════════════════════════
@@ -2190,6 +2200,383 @@ const PLATOS = {
     carb:null,
     gras:{ing:"QUESO COTTAGE",          p:12, c:4,  g:3  },
     libre:"Espárragos"
+  },
+
+  // ════════════════════════════════════════════════════
+  // 🥊 PRE-ENTRENO COMBATE (2-3h antes)
+  // Carbos + proteína magra, fácil digestión
+  // ════════════════════════════════════════════════════
+  "⚡ Arroz + pollo + verduras (2-3h pre)": {
+    cat:"Pre Entreno",
+    desc:"Come 2-3h antes. Buena carga de carbos con proteína magra y digestión fácil. Referencia combate.",
+    prot:{ing:"Pollo pechuga",          p:25, c:0,  g:3.6},
+    carb:{ing:"Arroz cocido",           p:2.7,c:28, g:0.3},
+    gras:null,
+    libre:"Verduras variadas"
+  },
+  "⚡ Pasta blanca + atún + tomate (2-3h pre)": {
+    cat:"Pre Entreno",
+    desc:"Pasta de digestión rápida con atún y tomate ligero. Come 2h antes del entrenamiento.",
+    prot:{ing:"Atún al natural",        p:24, c:0,  g:1  },
+    carb:{ing:"Pasta cocida",           p:5,  c:30, g:1.1},
+    gras:{ing:"Aceite de oliva",        p:0,  c:0,  g:100},
+    libre:"Tomate"
+  },
+  "⚡ Pan blanco + pavo + plátano (2-3h pre)": {
+    cat:"Pre Entreno",
+    desc:"Sándwich rápido y digestivo. El plátano da carbos extras para la sesión.",
+    prot:{ing:"Pavo pechuga",           p:25, c:0,  g:1  },
+    carb:{ing:"Pan molde blanco",       p:8,  c:48, g:3  },
+    gras:null,
+    libre:"Plátano maduro"
+  },
+  "⚡ Tortitas avena + huevo + miel (2-3h pre)": {
+    cat:"Pre Entreno",
+    desc:"Tortitas de avena con huevo y un toque de miel. Carbos de liberación media con buena proteína.",
+    prot:{ing:"Huevos enteros",         p:13, c:1.1,g:10.6},
+    carb:{ing:"Harina de avena",        p:13, c:60, g:7  },
+    gras:null,
+    libre:null
+  },
+  "⚡ Whey + leche + cereales (2-3h pre)": {
+    cat:"Pre Entreno",
+    desc:"Proteína fácil y cereales de absorción rápida. Ideal si no tienes mucho tiempo para cocinar.",
+    prot:{ing:"Proteína whey",          p:80, c:8,  g:7  },
+    carb:{ing:"Corn flakes",            p:7,  c:84, g:1  },
+    gras:null,
+    libre:null
+  },
+  "⚡ Bagel + pechuga + miel (2-3h pre)": {
+    cat:"Pre Entreno",
+    desc:"Bagel blanco con pechuga fina y miel. Carga de carbos rápidos con proteína de calidad.",
+    prot:{ing:"Pechuga pollo Hacendado",p:22, c:0,  g:2  },
+    carb:{ing:"Bagel",                  p:10, c:55, g:1  },
+    gras:null,
+    libre:null
+  },
+  "⚡ Patata asada + merluza + calabacín (2-3h pre)": {
+    cat:"Pre Entreno",
+    desc:"Fuente de carbos de calidad con proteína blanca muy digestiva. Sin grasas innecesarias.",
+    prot:{ing:"Merluza",                p:18, c:0,  g:2  },
+    carb:{ing:"Patata cocida",          p:2,  c:17, g:0.1},
+    gras:null,
+    libre:"Calabacín"
+  },
+  "⚡ Crema de arroz + whey + fruta (2-3h pre)": {
+    cat:"Pre Entreno",
+    desc:"Crema de arroz licuada con whey. Absorción ultra-rápida. Corona con plátano o fruta madura.",
+    prot:{ing:"Proteína whey",          p:80, c:8,  g:7  },
+    carb:{ing:"Crema de arroz",         p:3,  c:82, g:1  },
+    gras:null,
+    libre:"Plátano maduro"
+  },
+  "⚡ Wrap pavo + arroz + queso ligero (2-3h pre)": {
+    cat:"Pre Entreno",
+    desc:"Wrap cargado con arroz, pavo y queso light. Carbos + proteína en formato portátil.",
+    prot:{ing:"Pavo pechuga",           p:25, c:0,  g:1  },
+    carb:{ing:"Arroz cocido",           p:2.7,c:28, g:0.3},
+    gras:{ing:"Queso Havarti light",    p:27, c:1,  g:17 },
+    libre:null
+  },
+  "⚡ Sushi casero salmón + arroz (2-3h pre)": {
+    cat:"Pre Entreno",
+    desc:"Arroz de sushi con salmón. Digestión fácil, carbos perfectos y omega-3 antiinflamatorio.",
+    prot:{ing:"Salmón",                 p:20, c:0,  g:13 },
+    carb:{ing:"Arroz jazmín cocido",    p:2.7,c:28, g:0.3},
+    gras:null,
+    libre:null
+  },
+
+  // ════════════════════════════════════════════════════
+  // ⚡ PRE-ENTRENO RÁPIDO COMBATE (1h antes)
+  // Solo carbohidratos rápidos, poca cantidad
+  // ════════════════════════════════════════════════════
+  "⚡ Plátano maduro + miel (pre rápido)": {
+    cat:"Pre Entreno",
+    desc:"1h antes. Carbos rápidos puros. El plátano maduro tiene mayor índice glucémico. Sin grasa ni proteína.",
+    prot:null,
+    carb:{ing:"Plátano maduro",         p:1,  c:25, g:0.3},
+    gras:null,
+    libre:null
+  },
+  "⚡ Tortitas de arroz + mermelada (pre rápido)": {
+    cat:"Pre Entreno",
+    desc:"1h antes. Tortitas de arroz con mermelada — carbos de absorción rápida sin fibra ni grasa.",
+    prot:null,
+    carb:{ing:"Tortitas de arroz",      p:8,  c:81, g:3  },
+    gras:null,
+    libre:null
+  },
+  "⚡ Dátiles con miel (pre rápido)": {
+    cat:"Pre Entreno",
+    desc:"1h antes. Los dátiles son una de las mejores fuentes de carbos pre-entreno. Portátiles y naturales.",
+    prot:null,
+    carb:{ing:"Dátiles",                p:2,  c:75, g:0.4},
+    gras:null,
+    libre:null
+  },
+  "⚡ Pan blanco + miel (pre rápido)": {
+    cat:"Pre Entreno",
+    desc:"1h antes. Carbos simples de rápida absorción. Clásico y digestivo. Sin fibra, sin grasa.",
+    prot:null,
+    carb:{ing:"Pan molde blanco",       p:8,  c:48, g:3  },
+    gras:null,
+    libre:null
+  },
+
+  // ════════════════════════════════════════════════════
+  // 💪 POST-ENTRENO COMBATE
+  // Carbos rápidos + proteína magra + hidratación
+  // ════════════════════════════════════════════════════
+  "💪 Arroz jazmín + pollo crispy airfryer (post)": {
+    cat:"Post Entreno",
+    desc:"Post-entreno de combate: arroz jazmín de absorción rápida con pollo crujiente. Clásico y efectivo.",
+    prot:{ing:"Pollo pechuga",          p:25, c:0,  g:3.6},
+    carb:{ing:"Arroz jazmín cocido",    p:2.7,c:28, g:0.3},
+    gras:null,
+    libre:null
+  },
+  "💪 Pasta blanca + carne magra + queso (post)": {
+    cat:"Post Entreno",
+    desc:"Pasta blanca con ternera magra y un toque de queso. Carbos + proteína + placer garantizado.",
+    prot:{ing:"Carne picada magra",     p:20, c:0,  g:10 },
+    carb:{ing:"Pasta cocida",           p:5,  c:30, g:1.1},
+    gras:{ing:"Queso rallado light",    p:30, c:3,  g:17 },
+    libre:null
+  },
+  "💪 Crema de arroz + whey + plátano (post)": {
+    cat:"Post Entreno",
+    desc:"Recuperación express. Proteína de absorción rápida + carbos simples + plátano para reponer glucógeno.",
+    prot:{ing:"Proteína whey",          p:80, c:8,  g:7  },
+    carb:{ing:"Crema de arroz",         p:3,  c:82, g:1  },
+    gras:null,
+    libre:"Plátano maduro"
+  },
+  "💪 Bowl arroz + ternera + piña (post)": {
+    cat:"Post Entreno",
+    desc:"Bowl de recuperación con ternera magra, arroz y piña natural. La piña ayuda a reducir inflamación.",
+    prot:{ing:"Ternera magra",          p:26, c:0,  g:10 },
+    carb:{ing:"Arroz cocido",           p:2.7,c:28, g:0.3},
+    gras:null,
+    libre:"Piña natural"
+  },
+  "💪 Patata cocida + huevos + fruta (post)": {
+    cat:"Post Entreno",
+    desc:"Patata con huevos. Carbos de calidad + proteína completa. Añade fruta para carbos rápidos extra.",
+    prot:{ing:"Huevos enteros",         p:13, c:1.1,g:10.6},
+    carb:{ing:"Patata cocida",          p:2,  c:17, g:0.1},
+    gras:null,
+    libre:"Plátano maduro"
+  },
+  "💪 Yogur griego + cereales + miel (post)": {
+    cat:"Post Entreno",
+    desc:"Yogur griego con cereales crujientes y miel. Rápido, digestivo y con proteína de calidad.",
+    prot:{ing:"Yogur griego Hacendado", p:9,  c:3,  g:8  },
+    carb:{ing:"Corn flakes",            p:7,  c:84, g:1  },
+    gras:null,
+    libre:null
+  },
+  "💪 Burrito arroz + pollo + salsa ligera (post)": {
+    cat:"Post Entreno",
+    desc:"Burrito post-entreno: arroz, pollo y salsa ligera. Portátil y completo para recuperar bien.",
+    prot:{ing:"Pollo pechuga",          p:25, c:0,  g:3.6},
+    carb:{ing:"Arroz cocido",           p:2.7,c:28, g:0.3},
+    gras:null,
+    libre:null
+  },
+  "💪 Salmón + arroz blanco + mango (post)": {
+    cat:"Post Entreno",
+    desc:"Salmón con arroz y mango. Omega-3 para recuperación muscular + carbos simples del mango.",
+    prot:{ing:"Salmón",                 p:20, c:0,  g:13 },
+    carb:{ing:"Arroz jazmín cocido",    p:2.7,c:28, g:0.3},
+    gras:null,
+    libre:"Mango"
+  },
+  "💪 Corn flakes + proteína whey (post)": {
+    cat:"Post Entreno",
+    desc:"Recuperación express cuando no hay tiempo. Corn flakes + shake de whey. Listo en 1 minuto.",
+    prot:{ing:"Proteína whey",          p:80, c:8,  g:7  },
+    carb:{ing:"Corn flakes",            p:7,  c:84, g:1  },
+    gras:null,
+    libre:null
+  },
+  "💪 Tortilla francesa + pan blanco + mermelada (post)": {
+    cat:"Post Entreno",
+    desc:"Huevos revueltos con pan blanco y mermelada. Proteína + carbos simples. Rápido y sabroso.",
+    prot:{ing:"Huevos enteros",         p:13, c:1.1,g:10.6},
+    carb:{ing:"Pan molde blanco",       p:8,  c:48, g:3  },
+    gras:null,
+    libre:null
+  },
+
+  // ════════════════════════════════════════════════════
+  // 🔥 DÍAS DE ENTRENAMIENTO DURO (combate)
+  // Más carbohidrato y energía disponible
+  // ════════════════════════════════════════════════════
+  "🔥 Pasta cremosa ligera con pollo (día duro)": {
+    cat:"Comida",
+    desc:"Día de entreno doble o intenso. Pasta con pollo y parmesano. Máximo glucógeno para aguantar.",
+    prot:{ing:"Pollo pechuga",          p:25, c:0,  g:3.6},
+    carb:{ing:"Pasta cocida",           p:5,  c:30, g:1.1},
+    gras:{ing:"Queso parmesano",        p:36, c:4,  g:29 },
+    libre:null
+  },
+  "🔥 Arroz poke con salmón (día duro)": {
+    cat:"Comida",
+    desc:"Bowl poke estilo combate. Arroz + salmón + aguacate. Rico en carbos y grasas antiinflamatorias.",
+    prot:{ing:"Salmón",                 p:20, c:0,  g:13 },
+    carb:{ing:"Arroz jazmín cocido",    p:2.7,c:28, g:0.3},
+    gras:{ing:"Aguacate",               p:2,  c:9,  g:15 },
+    libre:null
+  },
+  "🔥 Hamburguesa casera + patatas horno (día duro)": {
+    cat:"Comida",
+    desc:"Hamburguesa de pollo/pavo con patatas al horno. Día duro de sparring o gym pesado.",
+    prot:{ing:"Hamburguesa pollo casera",p:20,c:2,  g:10 },
+    carb:{ing:"Patata cocida",          p:2,  c:17, g:0.1},
+    gras:{ing:"Aceite de oliva",        p:0,  c:0,  g:100},
+    libre:null
+  },
+  "🔥 Burrito XXL arroz + carne (día duro)": {
+    cat:"Comida",
+    desc:"Burrito grande con carne picada y arroz. Para los días que más entrenas — no escatimes carbos.",
+    prot:{ing:"Carne picada magra",     p:20, c:0,  g:10 },
+    carb:{ing:"Arroz cocido",           p:2.7,c:28, g:0.3},
+    gras:{ing:"Queso rallado light",    p:30, c:3,  g:17 },
+    libre:null
+  },
+  "🔥 Gnocchi + pollo + parmesano (día duro)": {
+    cat:"Comida",
+    desc:"Gnocchi con pollo y parmesano. Alta densidad de carbos con buena palatabilidad.",
+    prot:{ing:"Pollo pechuga",          p:25, c:0,  g:3.6},
+    carb:{ing:"Gnocchi",               p:3,  c:30, g:1  },
+    gras:{ing:"Queso parmesano",        p:36, c:4,  g:29 },
+    libre:null
+  },
+  "🔥 Risotto ligero de pollo (día duro)": {
+    cat:"Comida",
+    desc:"Risotto de pollo cocinado con caldo y parmesano ligero. Carbos + proteína en formato reconfortante.",
+    prot:{ing:"Pollo pechuga",          p:25, c:0,  g:3.6},
+    carb:{ing:"Arroz cocido",           p:2.7,c:28, g:0.3},
+    gras:{ing:"Queso parmesano",        p:36, c:4,  g:29 },
+    libre:null
+  },
+  "🔥 Pizza casera alta en carbos (día duro)": {
+    cat:"Comida",
+    desc:"Pizza casera con masa de pan, pollo y mozzarella. Alta en carbos para cargar glucógeno.",
+    prot:{ing:"Pechuga pollo Hacendado",p:22, c:0,  g:2  },
+    carb:{ing:"Pan molde blanco",       p:8,  c:48, g:3  },
+    gras:{ing:"Mozzarella fresca",      p:18, c:2,  g:22 },
+    libre:null
+  },
+  "🔥 Fideos chinos + pollo + verduras (día duro)": {
+    cat:"Comida",
+    desc:"Fideos de arroz con pollo salteado y verduras. Rápido, ligero y lleno de energía para el entreno.",
+    prot:{ing:"Pollo pechuga",          p:25, c:0,  g:3.6},
+    carb:{ing:"Fideos de arroz",        p:5,  c:30, g:0.5},
+    gras:{ing:"Aceite de oliva",        p:0,  c:0,  g:100},
+    libre:"Verduras variadas"
+  },
+  "🔥 Sushi bowl (día duro)": {
+    cat:"Comida",
+    desc:"Bowl estilo sushi con salmón y aguacate. Carbos del arroz + proteína + grasas sanas.",
+    prot:{ing:"Salmón",                 p:20, c:0,  g:13 },
+    carb:{ing:"Arroz jazmín cocido",    p:2.7,c:28, g:0.3},
+    gras:{ing:"Aguacate",               p:2,  c:9,  g:15 },
+    libre:null
+  },
+  "🔥 Tacos arroz + ternera (día duro)": {
+    cat:"Comida",
+    desc:"Tacos con ternera magra y arroz. Alta densidad calórica para los días de mayor desgaste.",
+    prot:{ing:"Ternera magra",          p:26, c:0,  g:10 },
+    carb:{ing:"Arroz cocido",           p:2.7,c:28, g:0.3},
+    gras:{ing:"Aceite de oliva",        p:0,  c:0,  g:100},
+    libre:null
+  },
+
+  // ════════════════════════════════════════════════════
+  // 🌿 DÍAS SUAVES O DESCANSO (combate)
+  // Menos carbohidrato, más saciedad
+  // ════════════════════════════════════════════════════
+  "🌿 Salmón + aguacate + patata (día suave)": {
+    cat:"Cena",
+    desc:"Día suave o descanso. Grasas sanas del salmón y aguacate. Carbos moderados de la patata.",
+    prot:{ing:"Salmón",                 p:20, c:0,  g:13 },
+    carb:{ing:"Patata cocida",          p:2,  c:17, g:0.1},
+    gras:{ing:"Aguacate",               p:2,  c:9,  g:15 },
+    libre:null
+  },
+  "🌿 Huevos + verduras + queso fresco (día suave)": {
+    cat:"Cena",
+    desc:"Tortilla de verduras con queso fresco. Sin carbos pesados. Ideal para la noche de descanso.",
+    prot:{ing:"Huevos enteros",         p:13, c:1.1,g:10.6},
+    carb:null,
+    gras:{ing:"Queso fresco batido 0%", p:8,  c:4,  g:0.2},
+    libre:"Verduras variadas"
+  },
+  "🌿 Pollo al horno + boniato (día suave)": {
+    cat:"Cena",
+    desc:"Pollo asado con boniato. Carbos de absorción lenta para no sobrecargar el sistema digestivo.",
+    prot:{ing:"Pollo pechuga",          p:25, c:0,  g:3.6},
+    carb:{ing:"Boniato cocido",         p:1.6,c:20, g:0.1},
+    gras:{ing:"Aceite de oliva",        p:0,  c:0,  g:100},
+    libre:null
+  },
+  "🌿 Ensalada potente atún + huevo (día suave)": {
+    cat:"Cena",
+    desc:"Ensalada saciante con atún y huevo. Máxima proteína, mínimos carbos. Para días de recuperación.",
+    prot:{ing:"Atún al natural",        p:24, c:0,  g:1  },
+    carb:null,
+    gras:{ing:"Aceite de oliva",        p:0,  c:0,  g:100},
+    libre:"Ensalada"
+  },
+  "🌿 Ternera magra + verduras salteadas (día suave)": {
+    cat:"Cena",
+    desc:"Ternera a la plancha con verduras. Proteína densa, sin carbos. Para respetar el descanso.",
+    prot:{ing:"Ternera magra",          p:26, c:0,  g:10 },
+    carb:null,
+    gras:{ing:"Aceite de oliva",        p:0,  c:0,  g:100},
+    libre:"Verduras variadas"
+  },
+  "🌿 Yogur griego + frutos rojos + nueces (día suave)": {
+    cat:"Cena",
+    desc:"Bowl de yogur con frutos rojos y nueces. Proteína + grasas antiinflamatorias. Ligero y saciante.",
+    prot:{ing:"Yogur griego Hacendado", p:9,  c:3,  g:8  },
+    carb:{ing:"Frutos rojos",           p:1,  c:12, g:0.3},
+    gras:{ing:"Frutos secos",           p:20, c:20, g:50 },
+    libre:null
+  },
+  "🌿 Tortilla de verduras (día suave)": {
+    cat:"Cena",
+    desc:"Tortilla española ligera con verduras. Sin carbos pesados. Proteína de huevo + saciedad.",
+    prot:{ing:"Huevos enteros",         p:13, c:1.1,g:10.6},
+    carb:null,
+    gras:{ing:"Aceite de oliva",        p:0,  c:0,  g:100},
+    libre:"Verduras variadas"
+  },
+  "🌿 Merluza + arroz moderado (día suave)": {
+    cat:"Cena",
+    desc:"Pescado blanco muy digestivo con arroz moderado. Proteína magra y carbos ajustados al descanso.",
+    prot:{ing:"Merluza",                p:18, c:0,  g:2  },
+    carb:{ing:"Arroz cocido",           p:2.7,c:28, g:0.3},
+    gras:{ing:"Aceite de oliva",        p:0,  c:0,  g:100},
+    libre:null
+  },
+  "🌿 Bowl mediterráneo con pollo (día suave)": {
+    cat:"Cena",
+    desc:"Pollo, aguacate y verduras estilo mediterráneo. Grasas sanas, proteína y sin carga de carbos.",
+    prot:{ing:"Pollo pechuga",          p:25, c:0,  g:3.6},
+    carb:null,
+    gras:{ing:"Aguacate",               p:2,  c:9,  g:15 },
+    libre:"Verduras variadas"
+  },
+  "🌿 Crema de verduras + proteína (día suave)": {
+    cat:"Cena",
+    desc:"Crema de verduras caliente con una medida de whey. Saciante, muy digestiva, ideal para la noche.",
+    prot:{ing:"Proteína whey",          p:80, c:8,  g:7  },
+    carb:null,
+    gras:null,
+    libre:"Verduras variadas"
   },
 };
 
@@ -6443,7 +6830,7 @@ function buildFightWeekRef(c){
   var items=[
     {d:'D-7/6','t':'Come normal','desc':'Glucógeno cargado al máximo. Sin cambiar nada todavía. Guarda los recursos.'},
     {d:'D-5/4','t':'Reduce carbos','desc':'80-150g carbos/día. Sube grasas para compensar calorías. Inicio carga de agua: '+Math.round(peso*100/1000*10)/10+'L/día.'},
-    {d:'D-3/2','t':'Fibra mínima','desc':'Menos de 10g de fibra. Solo arroz blanco, pollo, huevo, aguacate, miel. Sin sodio. Carga agua continúa.'},
+    {d:'D-3/2','t':'Fibra mínima','desc':'Menos de 10g de fibra. Opciones: arroz blanco + pollo simple · pasta blanca + pavo · pan blanco + miel · crema de arroz · tortitas arroz + mermelada · plátano maduro · merluza + patata cocida. Sin sodio extra. Evita: fibra alta, fritos, salsas, comidas pesadas.'},
     {d:'D-1','t':'Restricción agua','desc':'SOLO '+Math.round(peso*15)+'ml todo el día (15ml/kg). El cuerpo está en modo alta diuresis — funciona.'},
     {d:'D-0 pesaje','t':'Post-pesaje','desc':'Suero hipotónico a sorbos → carbos simples → proteína magra. Ver protocolo post-pesaje arriba.'}
   ];
@@ -6609,20 +6996,60 @@ function renderTimingNutri(c,diaTipo){
   if(isStr) supl+=' · Cafeína 3-6mg/kg 60min antes · Beta-alanina 3.2g con comida';
   else if(isGrp) supl+=' · HMB 3g/día en campamento · Omega3 2-3g · Vitamina D3 1000-2000UI';
   else supl+=' · Cafeína 3-6mg/kg 60min antes · Omega3 2-3g · Vitamina D3 1000-2000UI';
+  // Opciones concretas por slot
+  var ops2_3h=[
+    '⚡ Arroz + pollo + verduras (2-3h pre)',
+    '⚡ Pasta blanca + atún + tomate (2-3h pre)',
+    '⚡ Pan blanco + pavo + plátano (2-3h pre)',
+    '⚡ Bagel + pechuga + miel (2-3h pre)',
+    '⚡ Patata asada + merluza + calabacín (2-3h pre)',
+    '⚡ Crema de arroz + whey + fruta (2-3h pre)',
+    '⚡ Wrap pavo + arroz + queso ligero (2-3h pre)',
+    '⚡ Sushi casero salmón + arroz (2-3h pre)',
+    '⚡ Tortitas avena + huevo + miel (2-3h pre)',
+    '⚡ Whey + leche + cereales (2-3h pre)'
+  ];
+  var ops1h=[
+    '⚡ Plátano maduro + miel (pre rápido)',
+    '⚡ Tortitas de arroz + mermelada (pre rápido)',
+    '⚡ Dátiles con miel (pre rápido)',
+    '⚡ Pan blanco + miel (pre rápido)',
+    'Gominolas / Haribo','Isotónica','Gel carbohidratos','Compota manzana','Zumo de fruta'
+  ];
+  var opsPost=[
+    '💪 Arroz jazmín + pollo crispy airfryer (post)',
+    '💪 Crema de arroz + whey + plátano (post)',
+    '💪 Bowl arroz + ternera + piña (post)',
+    '💪 Salmón + arroz blanco + mango (post)',
+    '💪 Corn flakes + proteína whey (post)',
+    '💪 Burrito arroz + pollo + salsa ligera (post)',
+    '💪 Pasta blanca + carne magra + queso (post)',
+    '💪 Yogur griego + cereales + miel (post)'
+  ];
+  function mealChips(arr,col){
+    return '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">'+
+      arr.map(function(n){
+        return '<span style="background:rgba('+col+',.08);border:1px solid rgba('+col+',.2);color:rgba('+col+',1);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;white-space:nowrap">'+n.replace(/^[⚡💪🔥🌿]/,'').trim().split(' (')[0]+'</span>';
+      }).join('')+
+    '</div>';
+  }
   var items=[
-    ['🕐 2-3h antes',pre3,'#FFB300'],
-    ['⚡ 1h antes',pre1,'#FF6B35'],
-    ['🏃 Intra',intra,'#4D9FFF'],
-    ['🔄 Post (inmediato)',post,'#00C853'],
-    ['💊 Suplementos',supl,'#AB47BC']
+    ['🕐 2-3h antes',pre3,'#FFB300',mealChips(ops2_3h,'255,179,0')],
+    ['⚡ 1h antes',pre1,'#FF6B35',mealChips(ops1h,'255,107,53')],
+    ['🏃 Intra',intra,'#4D9FFF',null],
+    ['🔄 Post (inmediato)',post,'#00C853',mealChips(opsPost,'0,200,83')],
+    ['💊 Suplementos',supl,'#AB47BC',null]
   ];
   var html='<div style="margin-top:10px;padding:10px 12px;background:#070E1A;border:1px solid #1A2A40;border-radius:10px">';
   html+='<div style="font-size:11px;font-weight:900;color:#00E5FF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">⏱️ Timing nutricional hoy</div>';
-  html+='<div style="display:flex;flex-direction:column;gap:7px">';
+  html+='<div style="display:flex;flex-direction:column;gap:9px">';
   items.forEach(function(x){
+    html+='<div>';
     html+='<div style="display:flex;gap:8px;align-items:flex-start">';
     html+='<div style="font-size:10px;font-weight:700;color:'+x[2]+';min-width:95px;padding-top:1px;flex-shrink:0">'+x[0]+'</div>';
     html+='<div style="font-size:11px;color:#A0B0C0;line-height:1.4">'+x[1]+'</div></div>';
+    if(x[3]) html+=x[3];
+    html+='</div>';
   });
   return html+'</div></div>';
 }
@@ -6683,7 +7110,7 @@ function renderTorneoStrategy(c){
   if(!/bjj|judo|karate|taekwon|grappl|lucha/i.test(dep)) return '';
   var items=[
     {ico:'⚡',t:'Nunca solo agua entre peleas',d:'Siempre carbos rápidos. Quien come carbos entre peleas llega a la final con ventaja energética real — el glucógeno se vacía en cada combate.'},
-    {ico:'🍬',t:'Qué comer entre peleas',d:'Isotónica · gel de carbos · ositos Haribo · medio plátano · barrita de carbos. Poco volumen, absorción rápida.'},
+    {ico:'🍬',t:'Qué comer entre peleas',d:'Haribo · geles de carbohidratos · dátiles · rice cakes con miel · isotónica · barritas simples · pan blanco con mermelada · plátano maduro · mini sandwiches de pavo. Poco volumen, absorción rápida.'},
     {ico:'👄',t:'Enjuague bucal con carbos',d:'Si no puedes comer por nervios: isotónica en boca 5-10s y escupe. Activa el circuito de recompensa cerebral y reduce percepción de fatiga. Evidencia sólida del mundo del ciclismo.'},
     {ico:'💧',t:'Rehidratación entre peleas',d:'Sorbos pequeños. Máx 200-300ml entre pelea y pelea. Con sodio — el agua sola no se retiene bien.'},
     {ico:'🚫',t:'Nunca nada nuevo',d:'Todo lo que comas en competición debe haberse probado antes en sparring. Una digestión mal gestionada puede costarte la final.'}
