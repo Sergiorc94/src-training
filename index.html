@@ -3032,6 +3032,188 @@ var E={
   }
 };
 
+// ═══════════════════════════════════════════
+// GUÍA DE EJERCICIOS — descripciones y puntos clave
+// Extraído de SRC_GUIA_COMPLETA ENTRENOS.docx
+// ═══════════════════════════════════════════
+const EJERCICIOS_GUIA=[
+  {keys:['goblet','goblet squat'],
+   titulo:'Sentadilla goblet',
+   desc:'Sostienes la pesa al pecho con las dos manos. Bajas hasta que los muslos estén paralelos al suelo o más. Pecho arriba en todo momento.',
+   puntos:['Si redondeas la espalda: baja el peso','Las rodillas van hacia los dedos gordos, no dejes que caigan hacia dentro','RIR 3: terminas la serie y podrías hacer 3 más']},
+  {keys:['búlgara','bulgara','bulgarian'],
+   titulo:'Sentadilla búlgara',
+   desc:'Pie trasero apoyado en un banco detrás de ti. Pie delantero al frente. Bajas en línea recta. Ideal para detectar y corregir diferencias entre piernas.',
+   puntos:['Rodilla de la pierna delantera detrás de la cadera','Pecho arriba en todo momento','Si pierdes el equilibrio: reduce el peso o usa solo tu cuerpo']},
+  {keys:['rdl','rumano','romanian'],
+   titulo:'RDL — Peso muerto rumano',
+   desc:'Sostienes mancuernas o barra delante de las piernas. Bisagra de cadera con piernas casi extendidas. Sientes los isquiotibiales cargarse.',
+   puntos:['La barra pegada a los muslos y espinillas en todo momento','Para antes de que la espalda redondee','Caderas atrás, no hacia abajo']},
+  {keys:['peso muerto','deadlift','trap bar','bisagra'],
+   titulo:'Peso muerto / Bisagra de cadera',
+   desc:'Bisagra de cadera. La barra sube pegada a las piernas. No es una sentadilla. Puede hacerse con barra hexagonal, kettlebell o barra recta.',
+   puntos:['Empuja el suelo hacia abajo, no levantes el peso hacia arriba','Espalda neutra en todo momento','Caderas y hombros suben a la vez — si las caderas suben primero: el peso es demasiado']},
+  {keys:['hip thrust','empuje de cadera'],
+   titulo:'Hip thrust — Empuje de cadera',
+   desc:'Hombros apoyados en banco. Kettlebell o mancuerna sobre la cadera. Empujas las caderas hacia arriba explosivamente.',
+   puntos:['Glúteo apretado arriba al máximo','No hiperlordosis lumbar: no exageres el arco en la zona lumbar','Empuja con los talones, no con la punta del pie']},
+  {keys:['swing','kb swing','kettlebell swing'],
+   titulo:'Swing de kettlebell',
+   desc:'Bisagra de cadera explosiva. La pesa sube impulsada por las caderas, no por los brazos. Los brazos son solo la guía.',
+   puntos:['Caderas atrás (NO es una sentadilla — las rodillas casi no se doblan)','Explosión de cadera arriba: glúteo apretado en la cima','La pesa llega a la altura de los hombros por la inercia de las caderas, no por los brazos']},
+  {keys:['farmer carry','caminata cargada'],
+   titulo:'Farmer carry — Caminata cargada',
+   desc:'Caminar con mancuernas o kettlebells pesadas a los lados durante 25 metros (ida y vuelta). Uno de los mejores ejercicios para peleadores.',
+   puntos:['Hombros empaquetados hacia atrás y abajo','Pecho arriba, mirada al frente','Pasos cortos y controlados — no apresures']},
+  {keys:['flexiones','push-up','pushup'],
+   titulo:'Flexiones de brazos',
+   desc:'Cuerpo recto de cabeza a talones. Manos a la anchura de los hombros. Codos a 45° del cuerpo (no perpendiculares al tronco).',
+   puntos:['Si no llegas al suelo con buena técnica: eleva las manos en un banco','Primero la técnica, luego el volumen','Pecho toca el suelo en cada repetición']},
+  {keys:['press banca','press de banca','bench'],
+   titulo:'Press de banca pesado',
+   desc:'Tumbado en banco, barra o mancuernas. Semana 1: press de banca. Semana 2: press inclinado. Semana 3: agarre estrecho. Rotar tipo cada semana para no estancarse.',
+   puntos:['Escápulas apretadas hacia atrás y abajo durante toda la serie','Empuja el suelo con los pies: crea tensión en todo el cuerpo','RIR 1 en series pesadas al 85-90%']},
+  {keys:['press mancuernas','press hombro','press de hombros','press con mancuernas'],
+   titulo:'Press con mancuernas',
+   desc:'Sentado o de pie. Mancuernas a la altura de los hombros, empujas hacia arriba. Más difícil para el core cuando es de pie.',
+   puntos:['Muñecas neutras en todo momento','No arquear la espalda para terminar la repetición','Control total en la bajada: 2-3 segundos bajando']},
+  {keys:['press militar','push press'],
+   titulo:'Press militar / Push press',
+   desc:'De pie. Barra o mancuernas desde los hombros hacia arriba. El push press usa un impulso de piernas al inicio para manejar más peso.',
+   puntos:['Glúteo apretado para proteger la lumbar','Cabeza hacia atrás cuando pasa la barra, luego bajo la barra de nuevo','Si es push press: el impulso de piernas solo al inicio, el resto es presión']},
+  {keys:['remo mancuerna','remo unilateral','remo con mancuerna','remo a una mano'],
+   titulo:'Remo con mancuerna',
+   desc:'Apoya una rodilla y mano en el banco. La otra mano tira de la mancuerna hacia la cadera. Tirón horizontal unilateral.',
+   puntos:['Tira el codo hacia atrás, no la mano hacia arriba','No rotar la cadera — espalda recta y paralela al suelo','Siempre más tirón que empuje: ratio 3:1']},
+  {keys:['dominadas','jalón','pull-up','pullup','negativas'],
+   titulo:'Dominadas / Jalón al pecho',
+   desc:'Si puedes hacer dominadas: bien. Si no: usa una banda de asistencia o máquina de jalón al pecho. Tirón vertical fundamental para el clínch y los derribos.',
+   puntos:['Tira los codos hacia los bolsillos, no solo hacia abajo','No balancear el cuerpo — movimiento limpio','Si haces más de 10: añade peso o quita la banda']},
+  {keys:['plancha','plank','plancha frontal','plank frontal'],
+   titulo:'Plancha frontal',
+   desc:'Apoyado en codos y puntillas. Cuerpo recto de cabeza a talones. Glúteo apretado. Core activo.',
+   puntos:['Si cae la cadera: para. La calidad importa más que el tiempo','Progresión: cuando llegues a 40 seg, añade peso','Glúteo activo — imagina que intentas juntar los codos con los pies sin moverlos']},
+  {keys:['side plank','plancha lateral','plank lateral'],
+   titulo:'Plancha lateral',
+   desc:'Apoyado en un codo. Cuerpo recto en posición lateral. Cadera arriba y activa. Resistir que te "doblen" lateralmente.',
+   puntos:['Si falla antes de tiempo: apoya la rodilla de abajo','Progresión cuando llegues a 35 seg: levanta el pie de arriba','Fundamental para resistir derribos laterales']},
+  {keys:['pallof','anti-rotac','anti rotac','antirotac'],
+   titulo:'Press de Pallof — Anti-rotación',
+   desc:'Con banda o cable lateral a ti. Empujas al frente y resistes que la banda te gire. El core trabaja para NO moverse.',
+   puntos:['Empuja lento y controlado','Resiste la rotación: ese es el objetivo del ejercicio','Pies separados a la anchura de hombros, rodillas ligeramente flexionadas']},
+  {keys:['landmine','rotacional'],
+   titulo:'Press de landmine rotacional',
+   desc:'La barra fija en una esquina. En posición de guardia. Cargas la cadera trasera y empujas rotando. La fuerza va de pie a mano.',
+   puntos:['La cadena cinética: pie trasero → extensión de cadera → rotación → mano','Máxima velocidad en el empuje — específico para golpeo y grappling','Carga moderada: lo que importa es la velocidad, no el peso']},
+  {keys:['salto al cajón','box jump','salto al cajon'],
+   titulo:'Salto al cajón',
+   desc:'Saltar a un cajón de 30-40 cm de altura. Solo cuando el aterrizaje bilateral es limpio y silencioso.',
+   puntos:['Aterrizaje silencioso con los dos pies a la vez','Bajar del cajón caminando, NUNCA saltando hacia abajo','Si hace ruido al aterrizar: reduce la altura o vuelve al aterrizaje bilateral']},
+  {keys:['aterrizaje','landing'],
+   titulo:'Aterrizaje bilateral',
+   desc:'Desde puntillas, caer y aguantar 2-3 segundos en posición de sentadilla parcial. Base para todos los ejercicios pliométricos.',
+   puntos:['El aterrizaje tiene que ser SILENCIOSO','Si hace ruido: rodillas que colapsan o exceso de rigidez','Domina esto antes de pasar al salto al cajón']},
+  {keys:['balón medicinal','balon medicinal','medicine ball','slam'],
+   titulo:'Lanzamiento / Slam de balón medicinal',
+   desc:'Slam: extensión hacia arriba → slam hacia abajo → recoger rebote → empujar al frente. Lanzamiento frontal: pequeña bisagra + empuje explosivo con brazos.',
+   puntos:['Potencia igual en el slam y en el empuje','La posición de aterrizaje del slam = posición de lanzamiento','No caer hacia delante al lanzar']},
+  {keys:['half kneeling','push throw','derribo'],
+   titulo:'Half kneeling lateral push throw',
+   desc:'De rodillas con una rodilla en el suelo. Empujas hacia el lado + giras los oblicuos + lanzas el balón medicinal. Reproduce el motor del derribo.',
+   puntos:['El empuje lateral + la rotación de caderas = el motor del double leg','Transferir este patrón directamente al tatami','4×5 por lado']},
+  {keys:['swing con banda','swing kettlebell con banda'],
+   titulo:'Swing kettlebell con banda',
+   desc:'Swing normal pero con una banda elástica anclada detrás que aumenta la resistencia al subir. Elimina la fase de desaceleración.',
+   puntos:['Carga moderada + 25% de tensión de banda','Máxima intención en cada swing — elimina la desaceleración','Extensión total de rodilla en la cima']},
+  {keys:['jefferson','flexión de columna'],
+   titulo:'Jefferson curl',
+   desc:'De pie sobre un escalón o step. Con pesas muy ligeras en las manos. Bajas la cabeza, luego el cuello, luego la espalda vértebra a vértebra, lentísimo.',
+   puntos:['Carga muy ligera — el objetivo es la movilidad, no la fuerza','Muy lento: como pelar una naranja de arriba a abajo','2×6 — no más. Acumular tensión es contraproducente']},
+  {keys:['método de contraste','contraste','sentadilla pesada.*salto','sentadilla.*cajón'],
+   titulo:'Método de contraste',
+   desc:'Haces 2-3 sentadillas pesadas → inmediatamente saltas 3 veces al cajón sin descanso. El SNC activado por la carga potencia la explosividad del salto.',
+   puntos:['El sistema nervioso activado por la sentadilla pesada mejora el salto inmediato','Ventana óptima de 8-12 minutos tras el ejercicio pesado','No descansar entre el ejercicio pesado y el explosivo']},
+  {keys:['vaciado de lactato','lactic drain','lactato'],
+   titulo:'Vaciado de lactato',
+   desc:'Bicicleta de asalto: 4 × 15 segundos al máximo absoluto / 90 segundos de descanso completo. Siempre al final de la sesión.',
+   puntos:['No es cardio extra: es limpiar el ácido láctico acumulado en la sesión','Máximo esfuerzo en los 15 segundos — si no duele, no cuenta','Recupera completamente entre intervalos: 90 segundos completos']},
+  {keys:['emom'],
+   titulo:'EMOM — Cada Minuto En El Minuto',
+   desc:'Cada minuto, durante 12 minutos: swing de kettlebell × 10. Descansas el tiempo que sobre del minuto.',
+   puntos:['Combina potencia y resistencia en un solo formato','Recuperación activa entre minutos con sombra suave','Si no descansas nada entre minutos: el peso es demasiado']},
+  {keys:['turkish','tgu'],
+   titulo:'Turkish get-up',
+   desc:'Movimiento complejo de suelo a posición de pie sujetando una kettlebell con un brazo extendido. Fundamental para grappling.',
+   puntos:['Cada fase del movimiento es un ejercicio en sí mismo','Carga ligera: el objetivo es el control motor, no el peso','3 repeticiones por lado — calidad total']},
+  {keys:['bird.dog','bird dog'],
+   titulo:'Bird-dog',
+   desc:'En posición de cuadrupedia. Extiendes el brazo opuesto a la pierna opuesta. Mantienes la columna neutra sin rotarla.',
+   puntos:['La columna no se rota — ese es el objetivo','Movimiento lento y controlado','Aprieta el glúteo de la pierna extendida']},
+  {keys:['remo barra','remo con barra','remo en polea','remo KB','remo con KB'],
+   titulo:'Remo horizontal',
+   desc:'Tirón horizontal: con barra, polea o kettlebell. Trabaja la cadena posterior del tren superior complementando las dominadas.',
+   puntos:['Hombros hacia atrás en cada repetición','Siempre más tirón que empuje: ratio 3:1','RIR 2 en el trabajo de volumen']},
+  {keys:['isométrico','isometrico','plank con carga'],
+   titulo:'Trabajo isométrico',
+   desc:'Contracciones musculares mantenidas sin movimiento. Isométrico máximo (3-6s): fuerza máxima como empuje contra pared. Isométrico sub-máximo (30-60s): para salud tendinosa.',
+   puntos:['Isométrico máximo: 100% de fuerza durante 3-6 segundos','Isométrico sub-máximo: construye resistencia tendinosa para clínch y agarre','Fundamental para prevenir lesiones en peleadores']},
+  {keys:['rueda abdominal','ab wheel'],
+   titulo:'Rueda abdominal',
+   desc:'Arrodillado, ruedas hacia delante extendiendo los brazos y el cuerpo. Resistes la extensión con el core.',
+   puntos:['Desde rodillas hasta dominar el movimiento','Core completamente activo — no dejes caer la cadera','Llega solo hasta donde puedas volver con control']},
+  {keys:['woodchop','wood chop','rotación','rotacion'],
+   titulo:'Woodchop — Rotación de core',
+   desc:'Con mancuerna o cable. Llevas el peso en diagonal, de abajo-afuera a arriba-adentro (o al revés). Rotación de tronco con carga.',
+   puntos:['La rotación viene de las caderas, no solo de los brazos','Controla la vuelta — no la dejes caer','10 por lado con descanso entre series']},
+  {keys:['copenhagen','cph plank'],
+   titulo:'Copenhagen plank',
+   desc:'Plancha lateral con el pie de arriba apoyado en un banco. Mucho más demandante que la plancha lateral normal. Fortalece el abductor y el core lateral.',
+   puntos:['30 segundos por lado — progresión desde la plancha lateral normal','Rodilla de abajo levantada también si puedes','Fundamental para derribos y clinch']},
+  {keys:['progresión aláctico','alactico','progresion alactico'],
+   titulo:'Progresión aláctico-láctico',
+   desc:'Cuatro bloques comprimiendo el descanso: 10s/60s → 15s/45s → 20s/30s → 30s/20s. Replica la transición de sistemas energéticos del combate.',
+   puntos:['El esfuerzo va aumentando mientras el descanso disminuye','Reproduce exactamente la transición de sistemas del combate','Máxima intensidad en cada bloque: si no duele, no cuenta']}
+];
+
+function getGuiaEj(nom){
+  if(!nom) return null;
+  var n=nom.toLowerCase();
+  for(var i=0;i<EJERCICIOS_GUIA.length;i++){
+    var g=EJERCICIOS_GUIA[i];
+    for(var j=0;j<g.keys.length;j++){
+      try{
+        if(new RegExp(g.keys[j],'i').test(n)) return g;
+      }catch(e){
+        if(n.indexOf(g.keys[j])!==-1) return g;
+      }
+    }
+  }
+  return null;
+}
+
+function renderGuiaEjHTML(nom,id){
+  var g=getGuiaEj(nom);
+  if(!g) return '';
+  return '<div id="guia-ej-'+id+'" style="display:none;margin-top:8px;padding:10px 12px;background:rgba(77,159,255,.05);border:1px solid rgba(77,159,255,.2);border-radius:8px;animation:fadeUp .2s ease">'+
+    '<div style="font-size:11px;font-weight:800;color:#4D9FFF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">📖 '+g.titulo+'</div>'+
+    '<div style="font-size:12px;color:#A0B0C0;line-height:1.55;margin-bottom:7px">'+g.desc+'</div>'+
+    '<div style="font-size:11px;font-weight:700;color:#4D9FFF;margin-bottom:4px">✅ Puntos clave:</div>'+
+    '<ul style="margin:0;padding-left:16px;list-style-type:disc">'+
+      g.puntos.map(function(p){return '<li style="font-size:12px;color:#A0B0C0;line-height:1.5;margin-bottom:2px">'+p+'</li>';}).join('')+
+    '</ul>'+
+  '</div>';
+}
+
+function toggleGuiaEj(id){
+  var el=document.getElementById('guia-ej-'+id);
+  if(!el) return;
+  var btn=document.getElementById('guia-btn-'+id);
+  var open=el.style.display==='none'||el.style.display==='';
+  el.style.display=open?'block':'none';
+  if(btn) btn.style.background=open?'rgba(77,159,255,.15)':'transparent';
+  if(btn) btn.style.color=open?'#4D9FFF':'#4A5568';
+}
+
 const RUTINAS_COMBATE={
   d2:[
     {id:'A',nombre:'Fuerza + Potencia',emoji:'⚡',bloques:[
@@ -7048,6 +7230,7 @@ async function loadEntrenoCombate(){
       var ssId='ss-'+ejGlobal; ejGlobal+=2;
       var progA=calcProgresion(nomA,reCombateHistory||[],dA.rir,dA.r);
       var progB=calcProgresion(nomB,reCombateHistory||[],dB.rir,dB.r);
+      var _guiaIdA='ss-'+ssId+'-a', _guiaIdB='ss-'+ssId+'-b';
 
       html+='<div style="background:rgba(255,179,0,.04);border:1.5px solid rgba(255,179,0,.2);border-radius:10px;padding:10px 12px;margin-bottom:8px">'+
         // Cabecera superserie
@@ -7059,17 +7242,25 @@ async function loadEntrenoCombate(){
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'+
           '<div style="background:#0D1528;border-radius:8px;padding:8px">'+
             '<div style="font-size:10px;font-weight:900;color:#FFB300;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">A</div>'+
-            '<div style="font-size:12px;font-weight:700;color:#F0F4FF;margin-bottom:4px">'+nomA+'</div>'+
+            '<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">'+
+              '<div style="font-size:12px;font-weight:700;color:#F0F4FF">'+nomA+'</div>'+
+              (getGuiaEj(nomA)?'<button id="guia-btn-'+_guiaIdA+'" onclick="toggleGuiaEj(\''+_guiaIdA+'\')" style="background:transparent;border:1px solid rgba(77,159,255,.25);border-radius:10px;padding:1px 5px;font-size:9px;font-weight:700;color:#4A5568;cursor:pointer;transition:all .2s">ℹ️</button>':'')+
+            '</div>'+
             (dA.nota?'<div style="font-size:10px;color:var(--gold);margin-bottom:3px">⚡ '+dA.nota+'</div>':'')+
             '<div style="display:flex;gap:3px;flex-wrap:wrap">'+tagBadges(dA,rirA)+'</div>'+
             (progA?'<div style="margin-top:4px;font-size:10px;font-weight:700;color:'+(progA.accion==='subir'?'#00C853':progA.accion==='bajar'?'#FF6B6B':'#FFB300')+'">'+progA.icon+' '+progA.diff+'</div>':'')+
+            renderGuiaEjHTML(nomA,_guiaIdA)+
           '</div>'+
           '<div style="background:#0D1528;border-radius:8px;padding:8px">'+
             '<div style="font-size:10px;font-weight:900;color:#4D9FFF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">B</div>'+
-            '<div style="font-size:12px;font-weight:700;color:#F0F4FF;margin-bottom:4px">'+nomB+'</div>'+
+            '<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">'+
+              '<div style="font-size:12px;font-weight:700;color:#F0F4FF">'+nomB+'</div>'+
+              (getGuiaEj(nomB)?'<button id="guia-btn-'+_guiaIdB+'" onclick="toggleGuiaEj(\''+_guiaIdB+'\')" style="background:transparent;border:1px solid rgba(77,159,255,.25);border-radius:10px;padding:1px 5px;font-size:9px;font-weight:700;color:#4A5568;cursor:pointer;transition:all .2s">ℹ️</button>':'')+
+            '</div>'+
             (dB.nota?'<div style="font-size:10px;color:var(--gold);margin-bottom:3px">⚡ '+dB.nota+'</div>':'')+
             '<div style="display:flex;gap:3px;flex-wrap:wrap">'+tagBadges(dB,rirB)+'</div>'+
             (progB?'<div style="margin-top:4px;font-size:10px;font-weight:700;color:'+(progB.accion==='subir'?'#00C853':progB.accion==='bajar'?'#FF6B6B':'#FFB300')+'">'+progB.icon+' '+progB.diff+'</div>':'')+
+            renderGuiaEjHTML(nomB,_guiaIdB)+
           '</div>'+
         '</div>'+
         // Rondas
@@ -7152,14 +7343,19 @@ async function loadEntrenoCombate(){
         var seriesArr=buildSeriesArr(ejNom,sAdj,d.r);
         var progC=calcProgresion(ejNom,reCombateHistory||[],d.rir,d.r);
 
+        var _guiaId='comb-'+ejGlobal;
         html+='<div style="background:var(--surface-2);border-radius:8px;padding:10px 12px;margin-bottom:8px" id="'+ejId+'-block">'+
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'+
-            '<div>'+
-              '<div style="font-size:13px;font-weight:700;color:var(--text)">'+ejNom+'</div>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="display:flex;align-items:center;gap:6px">'+
+                '<div style="font-size:13px;font-weight:700;color:var(--text)">'+ejNom+'</div>'+
+                (getGuiaEj(ejNom)?'<button id="guia-btn-'+_guiaId+'" onclick="toggleGuiaEj(\''+_guiaId+'\')" style="flex-shrink:0;background:transparent;border:1px solid rgba(77,159,255,.25);border-radius:12px;padding:2px 7px;font-size:10px;font-weight:700;color:#4A5568;cursor:pointer;transition:all .2s" title="Cómo hacerlo">ℹ️</button>':'')+
+              '</div>'+
               (d.nota?'<div style="font-size:11px;color:var(--gold);margin-top:2px">⚡ '+d.nota+'</div>':'')+
             '</div>'+
-            '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">'+tagBadges(d,rirAdj)+'</div>'+
-          '</div>';
+            '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0;margin-left:6px">'+tagBadges(d,rirAdj)+'</div>'+
+          '</div>'+
+          renderGuiaEjHTML(ejNom,_guiaId);
 
         if(progC){
           html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:5px 8px;background:rgba('+
@@ -9397,13 +9593,19 @@ function renderDiaEntreno(dia, diaIdx, ejData, ejDataLast){
     html+='<div style="margin-bottom:1rem;padding:10px;border-radius:8px;border:1px solid '+(ejCompleto?'rgba(0,200,83,.25)':'#1A2A40')+';background:'+(ejCompleto?'rgba(0,200,83,.03)':'transparent')+';transition:all .3s" id="ej-block-'+diaIdx+'-'+ei+'">';
 
     // Cabecera ejercicio
+    var _fitGuiaId='fit-'+diaIdx+'-'+ei;
     html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">';
     html+='<div style="flex:1;min-width:0">'+
-      '<div style="font-size:13px;font-weight:800;color:'+(ejCompleto?'#00C853':'#F0F4FF')+'">'+
-        (ejCompleto?'✅ ':'')+ejNom+
+      '<div style="display:flex;align-items:center;gap:6px">'+
+        '<div style="font-size:13px;font-weight:800;color:'+(ejCompleto?'#00C853':'#F0F4FF')+'">'+
+          (ejCompleto?'✅ ':'')+ejNom+
+        '</div>'+
+        (getGuiaEj(ejNom)?'<button id="guia-btn-'+_fitGuiaId+'" onclick="toggleGuiaEj(\''+_fitGuiaId+'\')" style="flex-shrink:0;background:transparent;border:1px solid rgba(77,159,255,.25);border-radius:12px;padding:2px 7px;font-size:10px;font-weight:700;color:#4A5568;cursor:pointer;transition:all .2s" title="Cómo hacerlo">ℹ️</button>':'')+
       '</div>'+
       // 1RM estimado
       (prog&&prog.e1rm?'<div style="font-size:10px;color:#7986CB;margin-top:1px">Est. 1RM: <strong>'+prog.e1rm+'kg</strong></div>':'')+
+      // Panel guía expandible
+      renderGuiaEjHTML(ejNom,_fitGuiaId)+
     '</div>';
     html+='<div style="text-align:right;flex-shrink:0;margin-left:8px">';
     if(patron) html+='<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba('+patron.c+',.1);color:rgba('+patron.c+',1);display:inline-block;margin-bottom:2px">'+patron.l+'</span><br>';
