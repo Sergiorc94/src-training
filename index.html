@@ -671,6 +671,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
   <!-- CLIENTE: INICIO -->
     <div class="sec" id="sec-inicio">
       <div id="cuest-banner"></div>
+      <div id="readiness-widget" style="margin-bottom:.75rem"></div>
       <div id="peso-widget" style="margin-bottom:.75rem"></div>
       <div id="plan-banner" style="margin-bottom:.75rem"></div>
 
@@ -871,25 +872,10 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         <div class="cb">
           <!-- Sensaciones generales -->
           <div class="field">
-            <label>Sensaciones generales <span id="e-sens-v" style="color:#FFB300;font-weight:900">7</span>/10</label>
+            <label>Sensaciones del entreno <span id="e-sens-v" style="color:#FFB300;font-weight:900">7</span>/10</label>
             <div class="sw">
               <input type="range" min="1" max="10" value="7" id="e-sens" oninput="document.getElementById('e-sens-v').textContent=this.value">
             </div>
-          </div>
-          <!-- Sueño anoche -->
-          <div class="field">
-            <label>Sueño anoche</label>
-            <div id="e-sueno-btns" style="display:flex;gap:5px"></div>
-          </div>
-          <!-- Fatiga percibida -->
-          <div class="field">
-            <label>¿Cómo de fresco/a llegas?</label>
-            <div id="e-fatiga-btns" style="display:flex;gap:5px"></div>
-          </div>
-          <!-- Estrés -->
-          <div class="field">
-            <label>Nivel de estrés</label>
-            <div id="e-estres-btns" style="display:flex;gap:5px"></div>
           </div>
           <!-- Notas -->
           <div class="field"><textarea id="e-notas" placeholder="Cargas, ajustes, observaciones..."></textarea></div>
@@ -5898,6 +5884,7 @@ async function loadInicio(){
     }
   }
 
+  renderReadinessWidget();
   var planBanner=document.getElementById('plan-banner');
   if(planBanner) planBanner.innerHTML=renderPlanificador(c,true);
   var iObj=getActiveObjetivos();
@@ -6477,6 +6464,110 @@ function getDistribucion(nc, modo, preIdx, postIdx){
 // ═══════════════════════════════════════════════════════════
 // MACROS COMBATE — AUTO CÁLCULO
 // ═══════════════════════════════════════════════════════════
+// ─── READINESS DIARIO ─────────────────────────────────────────────────────────
+function getReadinessHoy(){
+  try{ return JSON.parse(localStorage.getItem('src_readiness_'+hoy())||'null'); }
+  catch(e){ return null; }
+}
+function setReadinessHoy(data){
+  localStorage.setItem('src_readiness_'+hoy(), JSON.stringify(data));
+}
+function calcReadinessScore(d){
+  return Math.round(((d.sueno*0.30+d.musculos*0.30+d.cabeza*0.20+d.energia*0.20)/5)*100);
+}
+function getReadinessInfo(score){
+  if(score>=80) return {label:'Listo para todo',emoji:'🟢',color:'0,200,83',carga:'ALTA',tip:'Cuerpo al 100%. Día perfecto para exigirte al máximo.'};
+  if(score>=60) return {label:'Buenas sensaciones',emoji:'🟡',color:'255,179,0',carga:'MEDIA',tip:'Entrena con normalidad. Todo en orden.'};
+  if(score>=40) return {label:'Moderado',emoji:'🟠',color:'255,107,53',carga:'MEDIA-BAJA',tip:'No estás al 100%. Ajusta la intensidad, nada de sparring duro.'};
+  return {label:'Necesitas recuperar',emoji:'🔴',color:'226,118,118',carga:'BAJA',tip:'Cuerpo en déficit. Prioriza recuperación o técnica suave.'};
+}
+function getReadinessMacroMult(){
+  var d=getReadinessHoy(); if(!d) return 1.0;
+  if(d.score>=80) return 1.05;
+  if(d.score>=60) return 1.0;
+  if(d.score>=40) return 0.95;
+  return 0.90;
+}
+function rdChip(icon,label,val){
+  var cols={1:'226,118,118',2:'255,107,53',3:'255,179,0',4:'0,200,83',5:'0,200,83'};
+  var col=cols[val]||'255,179,0';
+  return '<div style="flex:1;text-align:center;background:rgba('+col+',.08);border:1px solid rgba('+col+',.25);border-radius:8px;padding:6px 4px">'+
+    '<div style="font-size:14px">'+icon+'</div>'+
+    '<div style="font-size:16px;font-weight:900;color:rgba('+col+',1)">'+val+'</div>'+
+    '<div style="font-size:9px;color:#4A5568;margin-top:1px">'+label+'</div>'+
+  '</div>';
+}
+function rdSelectBtn(key,val,btn){
+  document.querySelectorAll('[data-rdkey="'+key+'"]').forEach(function(b){
+    b.style.background='#0D1528'; b.style.borderColor='#1A2A40'; b.style.color='#4A5568';
+    delete b.dataset.selected;
+  });
+  btn.style.background='rgba(77,159,255,.18)'; btn.style.borderColor='rgba(77,159,255,.8)'; btn.style.color='#4D9FFF';
+  btn.dataset.selected='1';
+}
+function guardarReadiness(){
+  var keys=['sueno','musculos','cabeza','energia'];
+  var data={};
+  keys.forEach(function(k){
+    var sel=document.querySelector('[data-rdkey="'+k+'"][data-selected="1"]');
+    data[k]=sel?parseInt(sel.dataset.rdval):null;
+  });
+  if(keys.some(function(k){return !data[k];})){toast('Completa los 4 campos','err');return;}
+  data.score=calcReadinessScore(data);
+  setReadinessHoy(data);
+  renderReadinessWidget();
+  if(S.combatMacros) renderTipoDiaCombate();
+  var info=getReadinessInfo(data.score);
+  toast(info.emoji+' Readiness '+data.score+'% — Carga '+info.carga,'ok');
+}
+function renderReadinessWidget(){
+  var el=document.getElementById('readiness-widget');
+  if(!el||!S.user||S.user.tipo_cliente!=='combate') return;
+  var saved=getReadinessHoy();
+  if(saved){
+    var info=getReadinessInfo(saved.score);
+    el.innerHTML='<div class="card" style="border:1px solid rgba('+info.color+',.3);background:rgba('+info.color+',.03)">'+
+      '<div class="ch" style="color:rgba('+info.color+',1)">'+info.emoji+' Check-in — '+saved.score+'%'+
+        '<button onclick="localStorage.removeItem(\'src_readiness_\'+hoy());renderReadinessWidget();if(S.combatMacros)renderTipoDiaCombate();" style="margin-left:auto;background:none;border:none;color:#4A5568;cursor:pointer;font-size:11px;padding:0">↩ Editar</button>'+
+      '</div>'+
+      '<div class="cb" style="padding-top:6px">'+
+        '<div style="display:flex;gap:6px;margin-bottom:8px">'+
+          rdChip('😴','Sueño',saved.sueno)+rdChip('🦵','Músculos',saved.musculos)+rdChip('🧠','Cabeza',saved.cabeza)+rdChip('⚡','Energía',saved.energia)+
+        '</div>'+
+        '<div style="background:rgba('+info.color+',.08);border-radius:8px;padding:8px 12px">'+
+          '<div style="font-size:13px;font-weight:800;color:rgba('+info.color+',1)">'+info.emoji+' Carga '+info.carga+' recomendada</div>'+
+          '<div style="font-size:11px;color:#8892A4;margin-top:3px">'+info.tip+'</div>'+
+        '</div>'+
+      '</div></div>';
+    return;
+  }
+  var qs=[
+    {k:'sueno',  icon:'😴',label:'¿Cómo has dormido?'},
+    {k:'musculos',icon:'🦵',label:'¿Cómo están los músculos?'},
+    {k:'cabeza', icon:'🧠',label:'¿Cómo tienes la cabeza?'},
+    {k:'energia',icon:'⚡',label:'¿Cuánta energía tienes?'},
+  ];
+  var html='<div class="card" style="border:1px solid rgba(77,159,255,.25)">'+
+    '<div class="ch">⚡ Check-in matutino<div style="font-size:10px;color:#4A5568;margin-left:auto;font-weight:400">30 segundos · cada mañana</div></div>'+
+    '<div class="cb">';
+  qs.forEach(function(q){
+    html+='<div style="margin-bottom:10px">'+
+      '<div style="font-size:11px;font-weight:700;color:#8892A4;margin-bottom:5px">'+q.icon+' '+q.label+'</div>'+
+      '<div style="display:flex;gap:5px">';
+    var labs={1:'Mal',2:'Poco',3:'Normal',4:'Bien',5:'Top'};
+    for(var i=1;i<=5;i++){
+      html+='<button onclick="rdSelectBtn(\''+q.k+'\','+i+',this)" data-rdkey="'+q.k+'" data-rdval="'+i+'" style="flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid #1A2A40;background:#0D1528;color:#4A5568;font-size:11px;font-weight:800;cursor:pointer;transition:all .15s">'+
+        '<div style="font-size:15px;margin-bottom:2px">'+i+'</div>'+
+        '<div style="font-size:9px;opacity:.7">'+labs[i]+'</div>'+
+      '</button>';
+    }
+    html+='</div></div>';
+  });
+  html+='<button onclick="guardarReadiness()" style="width:100%;padding:12px;background:linear-gradient(135deg,rgba(77,159,255,.9),rgba(51,120,220,.9));border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;margin-top:2px">✅ Guardar check-in</button>'+
+    '</div></div>';
+  el.innerHTML=html;
+}
+
 function calcMacrosCombate(c){
   var qd=c.cuestionario_datos||{};
   var peso=parseFloat(c.peso_inicial||qd.peso)||75;
@@ -6514,8 +6605,12 @@ function calcMacrosCombate(c){
   }
 
   // Kcal por tipo de día
+  var calSparring=Math.round(peso*1.5*8);  // ~8 kcal/kg/h sparring × 1.5h
+  var calCardio=Math.round(peso*1.0*7);    // ~7 kcal/kg/h cardio × 1h
+  var kSparring=Math.round((tdeeBase+calSparring)*phaseMult);
   var kAmbos=Math.round((tdeeBase+calTec+calGym)*phaseMult);
   var kTec=Math.round((tdeeBase+calTec)*phaseMult);
+  var kCardio=Math.round((tdeeBase+calCardio)*phaseMult);
   var kGym=Math.round((tdeeBase+calGym)*phaseMult);
   var kDesc=Math.round(tdeeBase*phaseMult);
 
@@ -6540,8 +6635,10 @@ function calcMacrosCombate(c){
   }
 
   return {
+    sparring:macros(kSparring,0.65),  // Máximos carbos — alta intensidad
     ambos:   macros(kAmbos,0.60),
     tecnica: macros(kTec,0.58),
+    cardio:  macros(kCardio,0.62),
     gym:     macros(kGym,0.50),
     descanso:macros(kDesc,0.35),
     fase:fase
@@ -6696,21 +6793,32 @@ function renderTipoDiaCombate(){
   }
 
   // ══ BLOQUE 1: TIPO DE DÍA ══════════════════════════════════════
-  // Siempre visible. El cliente elige su tipo de día y ve sus macros.
   var tipos=[
-    {id:'tecnica',icon:'🥋',label:'Técnica',color:'#FFB300'},
-    {id:'gym',icon:'🏋️',label:'Gym',color:'#4D9FFF'},
-    {id:'ambos',icon:'🔥',label:'Ambos',color:'#FF6B35'},
-    {id:'descanso',icon:'🛌',label:'Descanso',color:'#6E8090'}
+    {id:'sparring', icon:'🥊',label:'Sparring',  color:'#FF2D55'},
+    {id:'ambos',    icon:'🔥',label:'Tec+Gym',   color:'#FF6B35'},
+    {id:'tecnica',  icon:'🥋',label:'Técnica',   color:'#FFB300'},
+    {id:'cardio',   icon:'🏃',label:'Cardio',    color:'#00E5FF'},
+    {id:'gym',      icon:'🏋️',label:'Fuerza',   color:'#4D9FFF'},
+    {id:'descanso', icon:'🛌',label:'Descanso',  color:'#6E8090'},
   ];
-  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px">';
+  // Readiness badge
+  var rdData=getReadinessHoy();
+  var rdInfo=rdData?getReadinessInfo(rdData.score):null;
+  if(rdInfo){
+    html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;background:rgba('+rdInfo.color+',.07);border:1px solid rgba('+rdInfo.color+',.2);border-radius:8px;padding:6px 10px">'+
+      '<div style="font-size:16px">'+rdInfo.emoji+'</div>'+
+      '<div style="font-size:11px;font-weight:700;color:rgba('+rdInfo.color+',1)">Readiness '+rdData.score+'% — Carga '+rdInfo.carga+'</div>'+
+      '<div style="font-size:10px;color:#4A5568;margin-left:4px">'+rdInfo.tip+'</div>'+
+    '</div>';
+  }
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px">';
   tipos.forEach(function(t){
     var act=S.combatDiaTipo===t.id;
-    var dm_t=m[t.id];
-    html+='<button onclick="setCombatDiaTipo(\''+t.id+'\')" style="padding:6px 4px;border-radius:8px;border:1.5px solid '+(act?t.color:'#1A2A40')+';background:'+(act?'rgba('+hexToRgb(t.color)+',.12)':'#0D1528')+';color:'+(act?t.color:'#4A5568')+';cursor:pointer;text-align:center;transition:all .15s">'+
-      '<div style="font-size:13px">'+t.icon+'</div>'+
+    var dm_t=m[t.id]||m.tecnica;
+    html+='<button onclick="setCombatDiaTipo(\''+t.id+'\')" style="padding:7px 4px;border-radius:8px;border:1.5px solid '+(act?t.color:'#1A2A40')+';background:'+(act?'rgba('+hexToRgb(t.color)+',.14)':'#0D1528')+';color:'+(act?t.color:'#4A5568')+';cursor:pointer;text-align:center;transition:all .15s">'+
+      '<div style="font-size:14px">'+t.icon+'</div>'+
       '<div style="font-size:10px;font-weight:700;margin-top:2px">'+t.label+'</div>'+
-      '<div style="font-size:10px;opacity:.75;margin-top:1px">'+dm_t.k+'</div>'+
+      '<div style="font-size:10px;opacity:.75;margin-top:1px">'+dm_t.k+'kcal</div>'+
     '</button>';
   });
   html+='</div>';
@@ -7171,7 +7279,7 @@ function getActiveObjetivos(){
   if(c.tipo_cliente==='combate'){
     if(!S.combatMacros) S.combatMacros=calcMacrosCombate(c);
     var tipo=S.combatDiaTipo||'tecnica';
-    var cm=S.combatMacros[tipo];
+    var cm=S.combatMacros[tipo]||S.combatMacros.tecnica;
     // Si el admin configuró macros manuales, tienen preferencia
     if(c.kcal_objetivo&&c.kcal_objetivo>0&&tipo==='gym'){
       return {k:c.kcal_objetivo,p:c.proteina_objetivo||cm.p,c:c.carbos_objetivo||cm.c,g:c.grasas_objetivo||cm.g};
@@ -7179,7 +7287,11 @@ function getActiveObjetivos(){
     if(c.kcal_descanso&&c.kcal_descanso>0&&tipo==='descanso'){
       return {k:c.kcal_descanso,p:c.proteina_descanso||cm.p,c:c.carbos_descanso||cm.c,g:c.grasas_descanso||cm.g};
     }
-    return {k:cm.k,p:cm.p,c:cm.c,g:cm.g};
+    // Aplicar multiplicador de readiness sobre los carbos
+    var rdMult=getReadinessMacroMult();
+    var carbAdj=Math.round(cm.c*rdMult);
+    var kcalAdj=Math.round(cm.k+(carbAdj-cm.c)*4);
+    return {k:kcalAdj,p:cm.p,c:carbAdj,g:cm.g};
   }
   // FITNESS: entreno / descanso
   var btn=document.getElementById('btn-tipo-dia');
