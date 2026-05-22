@@ -6546,6 +6546,117 @@ function onConfigDiaChange(){
   renderNutriCliente();
 }
 
+// ── Helpers de nutrición inteligente ────────────────────────────
+
+// Dificultad de preparación 1=fácil 2=media 3=elaborada
+function getPlatoDif(k,v){
+  var d=(v.desc||'').toLowerCase(), n=k.toLowerCase();
+  if(/curry|guiso|estofado|lasaña|pizza|paella|risotto|wok.*elabora|batch.*cook|horno.*elabora|espagueti.*salsa/i.test(d+n)) return 3;
+  if(/bowl|batido|shake|yogur|skyr|parfait|atún.*lata|lata.*atún|barritas|frutos.*sec|fruta|tosta|wrap rápid/i.test(n)||
+     (d.split('.').length<=2 && d.length<100)) return 1;
+  return 2;
+}
+
+// Qué categorías de PLATOS son más apropiadas según el slot de comida
+var MEAL_CATS_MAP={
+  0:['Desayuno','Alta Proteína'],                          // Desayuno
+  1:['Merienda','Pre Entreno','Post Entreno','Desayuno'],  // Media Mañana → pequeña
+  2:['Comida','Alta Proteína','Cena'],                     // Comida → grande
+  3:['Merienda','Post Entreno','Pre Entreno'],             // Merienda → pequeña
+  4:['Cena','Alta Proteína','Comida'],                     // Cena → grande
+  5:['Post Entreno','Merienda','Pre Entreno']              // Post Entreno → pequeña
+};
+
+// Genera las opciones <option> del select ordenadas por comida y dificultad
+function getPlatoOptsParaComida(mealIdx, misPlatos){
+  var priCats=MEAL_CATS_MAP[mealIdx]||Object.keys({Desayuno:1,Comida:1,Cena:1});
+  // Agrupar platos: primero los de categoría prioritaria, luego el resto
+  var pri=[], resto=[];
+  Object.keys(PLATOS).forEach(function(k){
+    var v=PLATOS[k]; if(!v) return;
+    var cat=v.cat||'Otros';
+    var dif=getPlatoDif(k,v);
+    var entry={k:k,v:v,cat:cat,dif:dif};
+    if(priCats.indexOf(cat)!==-1) pri.push(entry);
+    else resto.push(entry);
+  });
+  // Ordenar por dificultad dentro de cada grupo
+  function byDif(a,b){return a.dif-b.dif;}
+  pri.sort(byDif); resto.sort(byDif);
+  // Construir HTML de opciones
+  var html='<option value="">🍽 Toca aquí para elegir tu plato...</option>';
+  // Mis Platos primero
+  if(misPlatos&&misPlatos.length){
+    html+='<optgroup label="⭐ Mis Platos">';
+    misPlatos.forEach(function(p,pi){
+      html+='<option value="__miplato__'+pi+'">⭐ '+p.nombre+'</option>';
+    });
+    html+='</optgroup>';
+  }
+  // Grupo prioritario para esta comida
+  if(pri.length){
+    var difLabel=['','🟢 Fácil','🟡 Media','🔴 Elaborado'];
+    var lastDif=0;
+    pri.forEach(function(e){
+      if(e.dif!==lastDif){
+        if(lastDif!==0) html+='</optgroup>';
+        html+='<optgroup label="── '+(difLabel[e.dif]||'')+'  · '+e.cat.toUpperCase()+' ──">';
+        lastDif=e.dif;
+      }
+      html+='<option value="'+e.k+'">'+e.k+'</option>';
+    });
+    if(lastDif) html+='</optgroup>';
+  }
+  // Resto (otras categorías, ordenado por dificultad)
+  if(resto.length){
+    var lastCat='', lastDif2=0;
+    html+='<optgroup label="── OTRAS OPCIONES ──" disabled></optgroup>';
+    resto.forEach(function(e){
+      if(e.cat!==lastCat||e.dif!==lastDif2){
+        if(lastCat) html+='</optgroup>';
+        html+='<optgroup label="── '+e.cat+' · '+(['','Fácil','Media','Elaborado'][e.dif]||'')+'──">';
+        lastCat=e.cat; lastDif2=e.dif;
+      }
+      html+='<option value="'+e.k+'">'+e.k+'</option>';
+    });
+    if(lastCat) html+='</optgroup>';
+  }
+  return html;
+}
+
+// Sugerencias de días anteriores para un slot de comida
+function getSugerenciasComida(mealIdx){
+  var hist=S._semNutri||[];
+  var hoy=S.fecha;
+  var vistas={}, sugs=[];
+  for(var i=hist.length-1;i>=0;i--){
+    var rn=hist[i];
+    if(!rn||!rn.comidas||rn.fecha===hoy) continue;
+    var com=rn.comidas.find(function(c){return c.idx===mealIdx;});
+    if(com&&com.plato&&!vistas[com.plato]&&PLATOS[com.plato]){
+      vistas[com.plato]=true;
+      sugs.push({plato:com.plato, fecha:rn.fecha, alimentos:com.alimentos||[]});
+      if(sugs.length>=3) break;
+    }
+  }
+  return sugs;
+}
+
+function repetirComidaAnterior(mealIdx, platoNombre){
+  if(!PLATOS[platoNombre]){ toast('Plato no encontrado','err'); return; }
+  // Set the dropdown to the plato
+  var sel=document.getElementById('plato-sel-'+mealIdx);
+  if(sel) sel.value=platoNombre;
+  // Get current meal targets
+  var targets=getMealTargets();
+  var nc=parseInt(document.getElementById('n-ncom-hoy')&&document.getElementById('n-ncom-hoy').value)||S.user.n_comidas||5;
+  var _ao=getActiveObjetivos();
+  var mt=targets[mealIdx]||{p:Math.round(_ao.p/nc),c:Math.round(_ao.c/nc),g:Math.round(_ao.g/nc),k:Math.round(_ao.k/nc)};
+  // Apply plato with current targets (same as manual select)
+  onClientePlatoSelect(mealIdx, platoNombre, mt.p, mt.c, mt.g);
+  toast('↩ '+platoNombre.substring(0,25)+'… repetido','ok');
+}
+
 function renderNutriCliente(){
   var c=S.user;
   var rn=S.rn;
@@ -6568,29 +6679,8 @@ function renderNutriCliente(){
   var _ao=getActiveObjetivos();
   var objK=_ao.k,objP=_ao.p,objC=_ao.c,objG=_ao.g;
 
-  // Build plato options grouped by category
-  var platoCats={};
-  Object.keys(PLATOS).forEach(function(k){
-    var v=PLATOS[k];if(!v)return;
-    var cat=v.cat||'Otros';
-    if(!platoCats[cat])platoCats[cat]=[];
-    platoCats[cat].push(k);
-  });
-  // Add Mis Platos at top
+  // Mis Platos (shared)
   var misPlatos=getMisPlatos();
-  var platoOpts='<option value="">🍽 Toca aquí para elegir tu plato...</option>';
-  if(misPlatos.length){
-    platoOpts+='<optgroup label="⭐ Mis Platos">';
-    misPlatos.forEach(function(p,pi){
-      platoOpts+='<option value="__miplato__'+pi+'">⭐ '+p.nombre+'</option>';
-    });
-    platoOpts+='</optgroup>';
-  }
-  Object.keys(platoCats).forEach(function(cat){
-    platoOpts+='<optgroup label="── '+cat.toUpperCase()+' ──">';
-    platoCats[cat].forEach(function(p){platoOpts+='<option value="'+p+'">'+p+'</option>';});
-    platoOpts+='</optgroup>';
-  });
 
   var colors=['#0055FF','#0D47A1','#1565C0','#1976D2','#2196F3','#42A5F5'];
   var cont=document.getElementById('n-comidas');
@@ -6649,18 +6739,40 @@ function renderNutriCliente(){
         '</div>'+
       '</div>'+
       // Body
-      '<div class="cbkb">'+
-        // Plato selector
-        '<div style="margin-bottom:.75rem">'+
-          '<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Elige tu plato</div>'+
-          '<div style="position:relative">'+
-          '<select id="plato-sel-'+i+'" class="isml" style="width:100%;padding:12px 36px 12px 14px;font-size:14px;border-radius:10px;border:1.5px solid #2A3A50;appearance:none;-webkit-appearance:none;cursor:pointer" '+
-            'onchange="onClientePlatoSelect('+i+',this.value,'+tP+','+tC+','+tG+')">'+
-            platoOpts+
-          '</select>'+
-          '<div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#4A5568;pointer-events:none;font-size:16px">▾</div>'+
-          '</div>'+
-        '</div>'+
+      (function(){
+        // Build per-meal plato options (sorted by relevance + difficulty)
+        var _platoOpts=getPlatoOptsParaComida(i,misPlatos);
+        // Suggestions from previous days
+        var _sugs=getSugerenciasComida(i);
+        var _sugsHtml='';
+        if(_sugs.length){
+          _sugsHtml='<div style="margin-bottom:8px">'+
+            '<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">↩ Repetir de días anteriores</div>'+
+            '<div style="display:flex;flex-wrap:wrap;gap:5px">'+
+            _sugs.map(function(s){
+              var fechaStr=new Date(s.fecha+'T12:00:00').toLocaleDateString('es-ES',{weekday:'short',day:'numeric'});
+              var sNom=s.plato.replace(/'/g,"\\'");
+              return '<button onclick="repetirComidaAnterior('+i+',\''+sNom+'\')" '+
+                'style="padding:5px 10px;background:rgba(77,159,255,.08);border:1px solid rgba(77,159,255,.25);border-radius:8px;color:#4D9FFF;font-size:11px;font-weight:700;cursor:pointer;text-align:left;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+s.plato+'">'+
+                '↩ '+fechaStr+' · '+s.plato.substring(0,28)+(s.plato.length>28?'…':'')+
+                '</button>';
+            }).join('')+
+            '</div></div>';
+        }
+        return '<div class="cbkb">'+
+          _sugsHtml+
+          // Plato selector
+          '<div style="margin-bottom:.75rem">'+
+            '<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Elige tu plato</div>'+
+            '<div style="position:relative">'+
+            '<select id="plato-sel-'+i+'" class="isml" style="width:100%;padding:12px 36px 12px 14px;font-size:14px;border-radius:10px;border:1.5px solid #2A3A50;appearance:none;-webkit-appearance:none;cursor:pointer" '+
+              'onchange="onClientePlatoSelect('+i+',this.value,'+tP+','+tC+','+tG+')">'+
+              _platoOpts+
+            '</select>'+
+            '<div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#4A5568;pointer-events:none;font-size:16px">▾</div>'+
+            '</div>'+
+          '</div>';
+      })()+''+
         // Result
         '<div id="plato-result-'+i+'">'+
           (hasCom?renderAlimentosList(com.alimentos||[],i):'')+
