@@ -2890,7 +2890,8 @@ const FASE_COMBATE_PARAMS={
 const COMBATE_DIAS_MAP={
   d2:{1:'A',4:'B'},
   d3:{1:'A',3:'B',5:'C'},
-  d4:{1:'A',2:'B',4:'C',5:'D'}
+  d4:{1:'A',2:'B',4:'C',5:'D'},
+  d5:{1:'A',2:'B',4:'C',5:'D',6:'E'}
 };
 function getFaseCombate(c){
   if(!c.fecha_pelea) return 'base';
@@ -3261,6 +3262,359 @@ const RUTINAS_COMBATE={
     ]}
   ]
 };
+
+// ═══════════════════════════════════════════════════════════════════
+// PLANES GUÍA SRC PERFORMANCE — 3 Perfiles × Fases × Días
+// Fuente: SRC_GUIA_COMPLETA ENTRENOS.docx (Sergio Rodriguez Cudero)
+// ═══════════════════════════════════════════════════════════════════
+const PLANES_GUIA=(function(){
+  // Crea ejercicio compatible con el formato E (basico/cuerpo/completo)
+  function g(nom,s,r,rir,nota,patron){
+    var d={nom:nom,s:s,r:r,rir:rir||'—',nota:nota||'',patron:patron||'Fuerza'};
+    return {patron:d.patron,cuerpo:d,basico:d,completo:d};
+  }
+
+  // ─── BLOQUES COMPARTIDOS ────────────────────────────────────────
+  var core3=[
+    g('Plancha frontal',3,'25-30 seg','—','Glúteo activo. Para si cae la cadera. Calidad sobre tiempo','Core'),
+    g('Press de Pallof — anti-rotación de core',3,'10 c/lado','—','Empuja lento. Resiste que te gire. El core trabaja para NO moverse','Core'),
+    g('Plancha lateral',3,'20-25 seg c/lado','—','Si falla: apoya la rodilla de abajo. Resiste derribos laterales','Core')
+  ];
+  var vaciado=[g('Vaciado de lactato — Bicicleta de asalto',4,'15 seg al máximo','—','90s descanso completo. Elimina el ácido láctico de la sesión. No es cardio extra','Cardio')];
+  var emom=[g('EMOM 12 min — Swing de kettlebell × 10',1,'12 min','—','Cada minuto × 10 swings. Descansa el tiempo que sobre. Potencia de cadera sostenida','Cardio')];
+  var aerobase10=[g('Aeróbico base 10 minutos',1,'10 min','—','Bicicleta, cuerda o trote suave. Ritmo conversacional. Construye la base aeróbica','Cardio')];
+  var aerobase20=[g('Aeróbico base 20 minutos',1,'20 min','—','Bicicleta, trote o cuerda. Ritmo conversacional durante todo el tiempo','Cardio')];
+  var aerobase30=[g('Aeróbico base largo — 25-30 min',1,'25-30 min','—','Motor aeróbico base. Sin él no aguantas los rounds tardíos. Ritmo conversacional','Cardio')];
+  var movil10=[g('Movilidad articular completa 10 min',1,'10 min','—','Círculos lentos: tobillo → rodilla → cadera → hombro. Activo, no pasivo','Movilidad')];
+  var prevencion=[g('Prevención hombro: Y-W-T banda + rotación externa',3,'15 c/ejercicio','—','5 minutos aquí ahorran meses de rehabilitación. No saltarse esto nunca','Prevención')];
+  var landmine=[g('Press de landmine rotacional',6,'3 c/lado','—','Máxima velocidad. Cadena cinética: pie trasero → cadera → rotación → mano. Específico golpeo y grappling','Potencia')];
+  var slamMed=[g('Slam de balón medicinal + empuje al frente',4,'6 reps','—','Potencia igual en el slam y en el empuje. No caer hacia delante. Dos vectores de potencia','Potencia')];
+  var halfKneel=[g('Half kneeling lateral push throw — específico derribo',4,'5 c/lado','—','Empuje lateral + rotación oblicuos = motor del double leg. Transfiere al tatami','Potencia')];
+  var contrasteUniversal=[
+    g('Sentadilla pesada 85-90% → Salto al cajón inmediato',3,'2-3 sentadillas + 3 saltos','—','4 min entre rondas. Sin descanso entre sentadilla y salto. SNC activado = más explosividad','Pliometría'),
+    g('Press de banca pesado → Lanzamiento balón medicinal',3,'2-3 press + 3 lanzamientos','—','4 min entre rondas. Mismo principio para tren superior. El sistema nervioso trabaja a tu favor','Potencia')
+  ];
+  var activacionFinal=[
+    g('Press de Pallof + lanzamiento lateral balón medicinal',2,'10 Pallof + 5 lanzamientos c/lado','—','Solo mantenimiento. Sin fatiga residual. El cuerpo disipa, no acumula','Core'),
+    g('Movilidad articular + respiración abdominal',1,'10 min','—','Respiración abdominal tumbado 5 min al final. Activa el SNC parasimpático','Movilidad')
+  ];
+  var activacionSemanaP=[
+    g('Calentamiento — Movilidad articular suave',1,'10 min','—','Sin apresurarse. El cuerpo tiene que moverse bien el día de la pelea','Movilidad'),
+    g('EMOM 12 min — Activación SNC (sentadillas + swings + suelo)',1,'12 min','—','Cada minuto: 2 sentadillas ligeras + 3 swings KB + 2 movimientos de suelo. Máxima intención, mínimo volumen','Cardio'),
+    g('Activación de saltos suave (5 vert + 3 cajón + 5 broad)',2,'1 serie','—','Pocas reps. Mucha calidad. Aterrizaje perfecto siempre. Mantener el SNC activo','Pliometría'),
+    g('Movilidad + respiración nasal final',1,'20 min','—','15 min movilidad + 5 min respiración nasal tumbado. Mejora el sueño y la calma','Movilidad')
+  ];
+  var recuperacionPost=[g('Movilidad articular suave + caminata',1,'20 min','—','Nada intenso. El cuerpo necesita recuperarse aunque te sientas bien. Mínimo 1 semana de descanso real','Movilidad')];
+
+  // ─── PERFIL 1 — SIN CAMP REAL ─────────────────────────────────
+  var p1_2d=[
+    {id:'A',nombre:'Sesión A — Fuerza Cuerpo Completo',emoji:'💪',bloques:[
+      {nombre:'Fuerza Cuerpo Completo',min:50,ejs:[
+        g('Sentadilla goblet (pesa rusa o mancuerna)',3,'8 reps',3,'RIR 3. Rodillas sobre los dedos gordos. Pecho arriba en todo momento','Sentadilla'),
+        g('Peso muerto con barra hexagonal o kettlebell',3,'6 reps',3,'RIR 3. Caderas y hombros suben juntos. Barra pegada a las piernas','Bisagra'),
+        g('Flexiones de brazos',3,'8-10 reps',3,'RIR 3. Si no llegas al suelo: eleva las manos en un banco. Primero técnica','Empuje'),
+        g('Remo con mancuerna (a una mano)',3,'10 c/lado',3,'Tira el codo hacia atrás, no la mano. No rotar la cadera','Tirón'),
+        g('Plancha frontal',3,'25 seg','—','Si cae la cadera: para. La calidad importa más que el tiempo','Core')
+      ]},
+      {nombre:'Aeróbico Base',min:10,ejs:aerobase10}
+    ]},
+    {id:'B',nombre:'Sesión B — Fuerza + Movilidad',emoji:'🦵',bloques:[
+      {nombre:'Fuerza Cuerpo Completo',min:45,ejs:[
+        g('Sentadilla búlgara (pie trasero en banco)',3,'8 c/lado','3-4','RIR 3-4. Rodilla delantera detrás de la cadera. Detecta diferencias entre piernas','Sentadilla'),
+        g('RDL — Peso muerto rumano (piernas casi rectas)',3,'8 reps',3,'La barra pegada a los muslos. Para antes de que la espalda redondee','Bisagra'),
+        g('Press con mancuernas sentado (empuje de hombros)',3,'10 reps','3-4','RIR 3-4. Muñecas neutras. No arquear la espalda para terminar','Empuje'),
+        g('Dominadas o jalón al pecho',3,'6-8 reps','—','Tira los codos hacia los bolsillos. No balancear el cuerpo','Tirón'),
+        g('Hip thrust (empuje de cadera)',3,'10 reps','—','Glúteo apretado arriba. No hiperlordosis lumbar. Empuja con los talones','Bisagra')
+      ]},
+      {nombre:'Movilidad',min:10,ejs:movil10}
+    ]}
+  ];
+
+  var p1_3d=[
+    {id:'A',nombre:'Sesión 1 — Tren Inferior + Core',emoji:'🦵',bloques:[
+      {nombre:'Fuerza Tren Inferior',min:40,ejs:[
+        g('Sentadilla goblet (con pesa rusa o mancuerna)',3,'8 reps',3,'RIR 3. Rodillas sobre los dedos gordos. Pecho arriba','Sentadilla'),
+        g('Peso muerto con barra hexagonal',3,'6 reps',3,'RIR 3. Caderas y hombros suben juntos. Barra pegada a las piernas','Bisagra'),
+        g('Sentadilla búlgara (pie trasero en banco)',3,'8 c/lado','3-4','RIR 3-4. Detecta si una pierna es más débil. Trabájala igual','Sentadilla'),
+        g('Hip thrust (empuje de cadera)',3,'10 reps','—','Glúteo apretado arriba. Movimiento explosivo subiendo, lento bajando','Bisagra')
+      ]},
+      {nombre:'Core 3 Planos',min:15,ejs:core3}
+    ]},
+    {id:'B',nombre:'Sesión 2 — Tren Superior + Saltos',emoji:'💪',bloques:[
+      {nombre:'Fuerza Tren Superior',min:35,ejs:[
+        g('Flexiones de brazos',3,'8-10 reps',3,'RIR 3. Cuerpo recto. Codos a 45°. Eleva manos si no llegas al suelo con buena técnica','Empuje'),
+        g('Remo con mancuerna (a una mano)',3,'10 c/lado',3,'RIR 3. Tira el codo. Siempre más tirón que empuje (ratio 3:1)','Tirón'),
+        g('Press con mancuernas sentado (empuje de hombros)',3,'10 reps','3-4','Muñecas neutras. No inclinar la espalda hacia atrás','Empuje'),
+        g('Dominadas o jalón al pecho',3,'6-8 reps','—','Codos hacia los bolsillos. Más tirón que empuje siempre','Tirón')
+      ]},
+      {nombre:'Pliometría + Potencia',min:20,ejs:[
+        g('Aterrizaje bilateral — aprender a caer',3,'8 reps','—','El aterrizaje TIENE QUE SER SILENCIOSO. Domina esto antes de saltar','Pliometría'),
+        g('Salto al cajón (solo si dominas el aterrizaje)',3,'5 reps','—','Aterriza con los dos pies a la vez. Silencioso. Bajar del cajón caminando, nunca saltando','Pliometría'),
+        g('Lanzamiento de balón medicinal al frente',3,'8 reps','—','Bisagra de cadera + empuje explosivo con los brazos. Intro a la potencia de tren superior','Potencia')
+      ]}
+    ]},
+    {id:'C',nombre:'Sesión 3 — Fuerza Ligera + Acondicionamiento',emoji:'🔥',bloques:[
+      {nombre:'Fuerza Técnica + Potencia',min:35,ejs:[
+        g('Swing de kettlebell (balanceo de pesa rusa)',4,'10 reps','—','Caderas atrás. Explosión de cadera. Glúteo apretado. Pesa a la altura de los hombros','Bisagra'),
+        g('Sentadilla goblet con pausa (3 segundos abajo)',3,'6 reps','—','La pausa elimina el rebote y obliga a generar más fuerza. Usa menos peso','Sentadilla'),
+        g('Farmer carry — Caminata cargada',4,'25 metros','—','Hombros empaquetados hacia atrás y abajo. Pecho arriba. Pasos cortos y controlados','Control'),
+        g('Press con mancuernas de pie (empuje de hombros)',3,'10 reps',3,'RIR 3. Glúteo apretado. No inclinar el cuerpo hacia atrás','Empuje'),
+        g('Dominadas o jalón al pecho',3,'Máx. buenas','—','Para antes de que la técnica falle. Si llegas a 12: añade peso o quita la banda','Tirón')
+      ]},
+      {nombre:'Aeróbico Base',min:20,ejs:aerobase20}
+    ]}
+  ];
+
+  var p1_4d=[
+    p1_3d[0],
+    p1_3d[1],
+    {id:'C',nombre:'Sesión 3 — Acondicionamiento',emoji:'⚡',bloques:[
+      {nombre:'Elige el protocolo según lo que necesites más',min:30,ejs:[
+        g('A — Aeróbico base (25 min ritmo conversacional)',1,'25 min','—','FC 65-70%. Para los que acaban muy cansados en los últimos rounds. Siempre en las primeras semanas','Cardio'),
+        g('B — Intervalos de potencia (8 × 6-8s máximo / 3min descanso)',1,'8 intervalos','—','La primera explosión del round. El sprint al derribo. Recupera COMPLETO entre sprints','Cardio'),
+        g('C — Intervalos de resistencia (5 × 3min fuerte / 1min activo)',1,'5 rondas','—','FC al 85%. Para aguantar la acidez de los rounds duros. Semanas 8-4 antes de la pelea','Cardio')
+      ]}
+    ]},
+    {id:'D',nombre:'Sesión 4 — Fuerza Ligera + Movilidad',emoji:'🔄',bloques:[
+      {nombre:'Fuerza Técnica',min:35,ejs:[
+        g('Swing de kettlebell',4,'10 reps','—','Técnica perfecta. Este día es de calidad, no de cantidad','Bisagra'),
+        g('Sentadilla goblet con pausa (3 segundos abajo)',3,'6 reps','—','La pausa hace el ejercicio más difícil sin añadir peso. Usa menos carga','Sentadilla'),
+        g('Farmer carry — Caminata cargada',4,'25 metros','—','Hombros hacia atrás. Pecho arriba. Pasos controlados','Control'),
+        g('Remo con mancuerna (a una mano)',3,'10 c/lado','—','Más tirón que empuje siempre. Ratio 3:1','Tirón')
+      ]},
+      {nombre:'Movilidad Profunda',min:20,ejs:[
+        g('Movilidad articular completa 20 minutos',1,'20 min','—','Círculos lentos de abajo a arriba con tensión muscular. Activo, no pasivo','Movilidad'),
+        g('Jefferson curl — Flexión de columna vertebral',2,'6 reps','—','De pie sobre step. Baja vértebra a vértebra muy lento. Carga muy ligera','Movilidad')
+      ]}
+    ]}
+  ];
+
+  // ─── PERFIL 2 — CON CAMP ORGANIZADO ───────────────────────────
+  var p2A_base={id:'A',nombre:'Fuerza Máx. Tren Inferior',emoji:'🏋️',bloques:[
+    {nombre:'Activación SNC',min:10,ejs:[
+      g('Activación SNC — Saltos al cajón',5,'3 reps','—','Máxima intención. Aterrizaje silencioso. Activa el sistema nervioso antes de la fuerza máxima','Pliometría')
+    ]},
+    {nombre:'Fuerza Máxima — Tren Inferior',min:45,ejs:[
+      g('Sentadilla pesada 85-90% (varía cada semana: cajón/frontal/libre)',5,'3 reps',1,'RIR 1. Varía tipo cada semana: misma intensidad, diferente ángulo','Sentadilla'),
+      g('Peso muerto sumo o barra hexagonal 80-85%',4,'3 reps',1,'RIR 1. Saca la holgura de la barra antes de tirar. Barra pegada al cuerpo','Bisagra'),
+      g('Sentadilla búlgara con mancuernas',3,'8 c/lado',2,'RIR 2. Misma carga en ambas piernas. Si una es más débil: dale prioridad','Sentadilla'),
+      g('RDL lento con isométrico final (5s + 20s iso)',3,'5 reps + 20s','—','5 segundos bajando + 20 segundos aguantando. Movilidad y fuerza a la vez','Bisagra')
+    ]},
+    {nombre:'Core 3 Planos',min:15,ejs:core3},
+    {nombre:'Vaciado de Lactato',min:10,ejs:vaciado}
+  ]};
+
+  var p2B_base={id:'B',nombre:'Fuerza Máx. Tren Superior',emoji:'💥',bloques:[
+    {nombre:'Fuerza Máxima — Tren Superior',min:45,ejs:[
+      g('Press banca o mancuernas pesado 85-90% (varía c/semana)',5,'3 reps',1,'RIR 1. Varía: banca / inclinado / agarre estrecho. Escápulas apretadas hacia atrás y abajo','Empuje'),
+      g('Dominadas con peso o remo pesado (varía c/semana)',4,'4-5 reps',1,'RIR 1. Siempre más tirón que empuje. Ratio 3:1 tirón/empuje','Tirón'),
+      g('Press de landmine rotacional',6,'3 c/lado','—','Máxima velocidad. Cadena: pie trasero → cadera → rotación → mano. Específico para golpeo','Potencia'),
+      g('Slam de balón medicinal + empuje al frente',4,'6 reps','—','Potencia igual en el slam y en el empuje. No caer hacia delante','Potencia'),
+      g('Remo con cable o mancuernas',3,'10-12 reps',2,'RIR 2. Hombros hacia atrás en cada rep. Complementa lo que no trabajan las dominadas','Tirón')
+    ]},
+    {nombre:'Prevención de Hombro',min:10,ejs:prevencion},
+    {nombre:'Acondicionamiento Potencia',min:15,ejs:emom}
+  ]};
+
+  var p2C_base={id:'C',nombre:'Potencia-Velocidad + Base Aeróbica',emoji:'⚡',bloques:[
+    {nombre:'Potencia y Velocidad',min:40,ejs:[
+      g('Swing kettlebell con banda (velocidad máxima)',8,'3 reps','—','Carga moderada + banda elástica. Elimina la fase de desaceleración. Máxima intención','Potencia'),
+      g('Press de landmine rotacional (velocidad máxima)',6,'3 c/lado','—','Más ligero que el martes. 0.8-1.5 m/s. Si hay resistencia: baja el peso','Potencia'),
+      g('Sentadilla búlgara + Salto al cajón (método de contraste)',4,'2 búlgaras + 3 saltos','—','Sin descanso entre búlgara y salto. SNC activado = más explosividad inmediata','Pliometría'),
+      g('Half kneeling lateral push throw — específico derribo',4,'5 c/lado','—','Empuje lateral + rotación oblicuos = motor del double leg. Transfiere al tatami','Potencia')
+    ]},
+    {nombre:'Aeróbico Base',min:30,ejs:aerobase30}
+  ]};
+
+  var p2D_base={id:'D',nombre:'Acondicionamiento Dedicado',emoji:'🔥',bloques:[
+    {nombre:'Elige el protocolo según la fase',min:35,ejs:[
+      g('A — Aeróbico base (30 min ritmo conversacional)',1,'30 min','—','FC 65-70%. Fundación aeróbica. Siempre en las primeras semanas de preparación','Cardio'),
+      g('B — Potencia aeróbica VO2max (6 × 3min @90-95% / 3min descanso)',1,'6 rondas','—','Aumenta el VO2max. Después de 3-4 semanas de base aeróbica ya construida','Cardio'),
+      g('C — Resistencia al lactato (5 × 3min fuerte / 1min activo)',1,'5 rondas','—','FC al 85%. El umbral de lactato. Semanas 8-4 antes de la pelea','Cardio'),
+      g('D — EDT 20min (2 ejercicios alternados × 5 reps, 20 min sin parar)',1,'20 min','—','Cuenta el total de reps. La próxima vez supera ese número. Resistencia de potencia','Cardio')
+    ]}
+  ]};
+
+  var p2_peaking_s2=[{id:'A',nombre:'Peaking — Método de Contraste',emoji:'🎯',bloques:[
+    {nombre:'Método de Contraste — 3 rondas cada uno',min:40,ejs:contrasteUniversal},
+    {nombre:'Activación Neural + Movilidad',min:15,ejs:activacionFinal}
+  ]}];
+
+  var p2_peaking_s1=[{id:'A',nombre:'Activación Suave — Semana de Pelea',emoji:'🥊',bloques:[
+    {nombre:'Activación Suave',min:45,ejs:activacionSemanaP}
+  ]}];
+
+  var p2_transicion=[{id:'A',nombre:'Recuperación Post-Pelea',emoji:'🔄',bloques:[
+    {nombre:'Semana 1-2: Descanso y Movilidad',min:20,ejs:recuperacionPost}
+  ]}];
+
+  // ─── PERFIL 3 — PROFESIONAL ────────────────────────────────────
+  var p3A_base={id:'A',nombre:'Fuerza Máx. Tren Inferior (PRO)',emoji:'🏆',bloques:[
+    {nombre:'Activación SNC',min:10,ejs:[
+      g('Activación SNC — Salto al cajón / Drop jump',5,'3 reps','—','Calidad del aterrizaje y reactividad. El objetivo no es la altura: es la explosividad','Pliometría')
+    ]},
+    {nombre:'Fuerza Máxima — Varía CADA semana (Ley de Acomodación)',min:50,ejs:[
+      g('Sentadilla (VARÍA c/sem: cajón/Zercher/frontal/cadenas/bandas)',5,'1-3 reps','0-1','RIR 0-1 al 90-95%. Un ejercicio diferente cada semana. Previene el estancamiento','Sentadilla'),
+      g('Bisagra (VARÍA c/sem: sumo/hex/snatch grip/banda/déficit)',4,'2-3 reps','0-1','RIR 0-1 al 88-92%. Saca la holgura antes de tirar. Barra pegada al cuerpo siempre','Bisagra'),
+      g('Cadena posterior isométrica — RDL iso + Nordic curl',3,'5 reps + 30s iso','—','5s bajando + 30s aguantando en máximo estiramiento. Fuerza y flexibilidad a la vez','Bisagra')
+    ]},
+    {nombre:'Core 3 Planos + Rotación',min:15,ejs:[
+      g('Press de Pallof — anti-rotación de core',3,'10 c/lado','—','El plano rotacional que los peleadores necesitan y la mayoría de programas ignoran','Core'),
+      g('Rotaciones con kettlebell',3,'10 c/lado','—','Rotación de tronco con carga. La rotación viene de las caderas, no solo de los brazos','Core'),
+      g('Plancha lateral',3,'25 seg c/lado','—','Fundamental para resistir derribos laterales','Core')
+    ]},
+    {nombre:'Progresión Aláctico-Láctico (~28 min)',min:28,ejs:[
+      g('Progresión aláctico-láctico — 4 bloques',1,'~28 min total','—','10s/60s → 15s/45s → 20s/30s → 30s/20s. Replica la transición real de sistemas del combate','Cardio')
+    ]},
+    {nombre:'Vaciado de Lactato',min:8,ejs:vaciado}
+  ]};
+
+  var p3B_base={id:'B',nombre:'Fuerza Máx. Tren Superior (PRO)',emoji:'💥',bloques:[
+    {nombre:'Fuerza Máxima — Varía CADA semana',min:50,ejs:[
+      g('Empuje (VARÍA c/sem: banca/inclinado/estrecho/cadenas/floor press)',5,'1-3 reps','0-1','RIR 0-1 al 90-95%. La variación semanal diferencia al profesional del amateur avanzado','Empuje'),
+      g('Tirón (VARÍA c/sem: dominadas peso/anillas/neutro/barra/cadenas)',4,'3-4 reps','0-1','RIR 0-1. Las anillas requieren estabilización activa constante. 3:1 tirón/empuje siempre','Tirón'),
+      g('Press de landmine rotacional',6,'3 c/lado','—','Cadena cinética completa: pie → cadera → pivote → oblicuos → mano. Máxima velocidad','Potencia'),
+      g('Slam de balón medicinal + empuje al frente bidireccional',4,'6 reps','—','Potencia en dos vectores opuestos. Aterrizaje del slam = posición de lanzamiento','Potencia'),
+      g('Remo horizontal (cable o mancuernas)',3,'10-12 reps',2,'RIR 2. Completa la cadena posterior que no cubren las dominadas','Tirón')
+    ]},
+    {nombre:'Prevención Hombro + Cuello',min:12,ejs:[
+      g('Y-W-T banda + puente de lucha isométrico + rotación externa',3,'15 c/ejercicio','—','El puente de lucha fortalece el cuello. Más fuerza de cuello = menor riesgo de conmoción','Prevención')
+    ]},
+    {nombre:'Acondicionamiento Potencia',min:15,ejs:emom}
+  ]};
+
+  var p3C_base={id:'C',nombre:'Potencia-Velocidad + Movilidad Isométrica (PRO)',emoji:'⚡',bloques:[
+    {nombre:'Potencia y Velocidad Máxima',min:45,ejs:[
+      g('Swing kettlebell con banda (velocidad máxima)',8,'3 reps','—','El cuerpo sigue acelerando todo el recorrido. Elimina la fase de desaceleración','Potencia'),
+      g('Press de landmine rotacional (velocidad máxima)',6,'3 c/lado','—','0.8-1.5 m/s. Si hay resistencia excesiva: baja el peso y sube la velocidad','Potencia'),
+      g('Sentadilla búlgara + Salto al cajón (método de contraste)',4,'2 búlgaras + 3 saltos','—','4 min entre rondas. La carga pesada potencia la explosividad del salto inmediatamente','Pliometría'),
+      g('Half kneeling lateral push throw',4,'5 c/lado','—','El motor del derribo. Entrénalo como patrón de movimiento, no como ejercicio aislado','Potencia')
+    ]},
+    {nombre:'Movilidad Isométrica',min:15,ejs:[
+      g('Movilidad isométrica — Jefferson curl + 90/90 + dorsiflexión guardia',2,'Serie completa','—','5s bajando lento + 20-30s aguantando en máximo estiramiento. Mejor con el tejido caliente','Movilidad')
+    ]},
+    {nombre:'Aeróbico Base',min:30,ejs:aerobase30}
+  ]};
+
+  var p3E_sabado={id:'E',nombre:'Recuperación Activa + Prevención',emoji:'🔄',bloques:[
+    {nombre:'Restauración SNC',min:10,ejs:[
+      g('Respiración abdominal y postura (10 min)',1,'10 min','—','Tumbado boca arriba, rodillas a 90°. Inspira expandiendo abdomen + espalda baja. Activa el parasimpático','Movilidad')
+    ]},
+    {nombre:'Movilidad Activa con Tensión',min:20,ejs:[
+      g('Movilidad articular con tensión máxima (20 min)',1,'20 min','—','Círculos lentos de abajo a arriba apretando todo lo que no se mueve. Movilidad activa real, no estiramiento pasivo','Movilidad')
+    ]},
+    {nombre:'Prevención Específica Peleador',min:15,ejs:[
+      g('Y-W-T + puente lucha + hip airplane + VMO',1,'15 min','—','Los 4 eslabones débiles: hombro, cuello, rodilla, cadera. 15 min semanales evitan meses de rehabilitación','Prevención')
+    ]},
+    {nombre:'Aeróbico Regenerativo',min:25,ejs:[
+      g('Aeróbico regenerativo zona 1 (20-25 min)',1,'20-25 min','—','FC < 65%. Caminata, bici suave o natación tranquila. Mejora circulación y elimina residuos metabólicos','Cardio')
+    ]}
+  ]};
+
+  var acond_dia={id:'D',nombre:'Acondicionamiento Dedicado',emoji:'🔥',bloques:[
+    {nombre:'Elige el protocolo según la fase',min:35,ejs:[
+      g('A — Base aeróbica (30 min)',1,'30 min','—','FC 65-70%. Fundación aeróbica. Las primeras semanas de preparación base','Cardio'),
+      g('B — Potencia aeróbica VO2max (6 × 3min @90-95%)',1,'6 rondas','—','VO2max. Después de 3-4 semanas de base aeróbica ya construida','Cardio'),
+      g('C — Resistencia al lactato (5 × 3min / 1min activo)',1,'5 rondas','—','FC al 85%. El umbral de lactato. Semanas 8-4 antes de la pelea','Cardio'),
+      g('D — Progresión aláctico-láctico completa',1,'~28 min','—','10s/60s → 15s/45s → 20s/30s → 30s/20s. La transición de sistemas completa','Cardio')
+    ]}
+  ]};
+
+  var p3_peaking_s2=[{id:'A',nombre:'Peaking — Método de Contraste (PRO)',emoji:'🎯',bloques:[
+    {nombre:'Método de Contraste — 3 rondas',min:40,ejs:contrasteUniversal},
+    {nombre:'Activación Neural + Movilidad',min:15,ejs:activacionFinal}
+  ]}];
+
+  var transicionPro=[p3E_sabado];
+
+  // ─── ESTRUCTURA COMPLETA ────────────────────────────────────────
+  return {
+    p1:{
+      label:'Perfil 1 — Sin Camp Real',
+      emoji:'📅',
+      desc:'Principiante/intermedio. Compite cada 1-3 meses. Plan constante todo el año.',
+      diasMap:{2:{1:'A',4:'B'},3:{1:'A',3:'B',5:'C'},4:{1:'A',3:'B',4:'C',6:'D'}},
+      dias:{2:p1_2d, 3:p1_3d, 4:p1_4d}
+    },
+    p2:{
+      label:'Perfil 2 — Camp Organizado',
+      emoji:'🥊',
+      desc:'Intermedio/avanzado. 8-12 semanas de camp antes de cada pelea.',
+      diasMap:{2:{1:'A',4:'B'},3:{1:'A',3:'B',5:'C'},4:{1:'A',3:'B',4:'D',5:'C'}},
+      fases:{
+        base:{label:'Preparación Base (12+ semanas)',nota:'',
+          dias:{2:[p2A_base,p2B_base],3:[p2A_base,p2B_base,p2C_base],4:[p2A_base,p2B_base,p2D_base,p2C_base]}},
+        especial:{label:'Camp (8-12 semanas antes)',nota:'Camp: -1 serie en ejercicios principales · Acondicionamiento láctico · Vaciado de lactato siempre al final',
+          dias:{2:[p2A_base,p2B_base],3:[p2A_base,p2B_base,p2C_base],4:[p2A_base,p2B_base,p2D_base,p2C_base]}},
+        competicion:{label:'Semana de Activación (-1 sem)',nota:'NO más cardio duro. NO más fuerza máxima. Solo activa el sistema nervioso.',
+          dias:{2:p2_peaking_s1,3:p2_peaking_s1,4:p2_peaking_s1}},
+        transicion:{label:'Post-Pelea — Recuperación',nota:'1-2 semanas de descanso real. El cuerpo viene de un estrés enorme.',
+          dias:{2:p2_transicion,3:p2_transicion,4:p2_transicion}},
+        peaking:{label:'Peaking (-3 a -2 sem)',nota:'Método de contraste: fuerza → explosivo inmediato. Sin acondicionamiento duro.',
+          dias:{2:p2_peaking_s2,3:p2_peaking_s2,4:p2_peaking_s2}}
+      }
+    },
+    p3:{
+      label:'Profesional / Semi-pro',
+      emoji:'🏆',
+      desc:'Ciclos completos. Variación obligatoria del ejercicio principal cada semana (Ley de Acomodación).',
+      diasMap:{3:{1:'A',3:'B',5:'C'},4:{1:'A',3:'B',4:'D',5:'C'},5:{1:'A',3:'B',4:'D',5:'C',6:'E'}},
+      fases:{
+        base:{label:'Preparación Base Larga (16-20 semanas)',nota:'',
+          dias:{3:[p3A_base,p3B_base,p3C_base],4:[p3A_base,p3B_base,acond_dia,p3C_base],5:[p3A_base,p3B_base,acond_dia,p3C_base,p3E_sabado]}},
+        especial:{label:'Camp Profesional',nota:'Variación obligatoria cada semana · Ondas de carga en explosivos (55%→65%→75%) · Monitor FC en sparring',
+          dias:{3:[p3A_base,p3B_base,p3C_base],4:[p3A_base,p3B_base,acond_dia,p3C_base],5:[p3A_base,p3B_base,acond_dia,p3C_base,p3E_sabado]}},
+        competicion:{label:'Activación Final — Semana de Pelea',nota:'Solo activa el SNC. Sin fatiga. Sin nada nuevo. Todo lo que serás ya lo eres.',
+          dias:{3:p2_peaking_s1,4:p2_peaking_s1,5:p2_peaking_s1}},
+        transicion:{label:'Post-Pelea — Recuperación',nota:'2-4 semanas. Recuperación física Y mental. Sin métricas de rendimiento.',
+          dias:{3:transicionPro,4:transicionPro,5:transicionPro}},
+        peaking:{label:'Peaking 3 semanas',nota:'Sem -3: contraste inicial · Sem -2: solo contraste · Sem -1: activación de fibras rápidas',
+          dias:{3:p3_peaking_s2,4:p3_peaking_s2,5:p3_peaking_s2}}
+      }
+    }
+  };
+})();
+
+// Obtiene la sesión guía para hoy
+function getSesionGuia(c){
+  var perfil=localStorage.getItem('pg_'+(c.id||'u'));
+  if(!perfil) return null;
+  var plan=PLANES_GUIA[perfil];
+  if(!plan) return null;
+  var dias=parseInt(c.dias_prep_fisica)||3;
+  var dow=new Date().getDay();
+  var sesiones, faseNota='', faseLabel='';
+  if(perfil==='p1'){
+    var dk=dias<=2?2:dias>=4?4:3;
+    sesiones=plan.dias[dk]||plan.dias[3];
+    var dm=plan.diasMap[dk]||{1:'A',3:'B',5:'C'};
+    var letra=dm[dow];
+    var sesion=letra?sesiones.find(function(s){return s.id===letra;}):null;
+    return {sesion:sesion, sesiones:sesiones, perfil:perfil, plan:plan, faseLabel:'', faseNota:'', dias:dk};
+  } else {
+    var fase=getFaseCombate(c);
+    // Map getFaseCombate result → fases keys
+    var fMap={base:'base',especial:'especial',competicion:'competicion',transicion:'transicion'};
+    var fKey=fMap[fase]||'base';
+    var faseData=plan.fases[fKey]||plan.fases['base'];
+    faseLabel=faseData.label||'';
+    faseNota=faseData.nota||'';
+    var maxDias=perfil==='p3'?5:4;
+    var dk=Math.min(dias,maxDias);
+    if(perfil==='p3') dk=dk<3?3:dk;
+    else dk=dk<2?2:dk;
+    sesiones=faseData.dias[dk]||faseData.dias[Object.keys(faseData.dias)[0]]||[];
+    var dm=plan.diasMap[dk]||plan.diasMap[Object.keys(plan.diasMap)[0]]||{1:'A',3:'B',5:'C'};
+    var letra=dm[dow];
+    var sesion=letra?sesiones.find(function(s){return s.id===letra;}):null;
+    return {sesion:sesion, sesiones:sesiones, perfil:perfil, plan:plan, faseLabel:faseLabel, faseNota:faseNota, dias:dk};
+  }
+}
+function selectPerfilGuia(cid,perfil){
+  if(perfil) localStorage.setItem('pg_'+cid,perfil);
+  else localStorage.removeItem('pg_'+cid);
+  loadEntrenoCombate();
+}
 
 function renderPlanificador(c, compact){
   var tipo=c.tipo_plan||'';
@@ -7056,11 +7410,22 @@ async function loadEntrenoCombate(){
   var fase=getFaseCombate(c);
   var faseP=FASE_COMBATE_PARAMS[fase];
   var dow=new Date().getDay();
-  var sesionLetra=COMBATE_DIAS_MAP[diasKey]?COMBATE_DIAS_MAP[diasKey][dow]:null;
-  var sesiones=RUTINAS_COMBATE[diasKey];
-  var sesion=sesionLetra?sesiones.find(function(s){return s.id===sesionLetra;}):null;
   var cont=document.getElementById('e-rutina');
   if(!cont) return;
+
+  // ── Selección de plan guía ──────────────────────────────────
+  var _guia=getSesionGuia(c);
+  var sesiones, sesion, _diasMapActual;
+  if(_guia){
+    sesiones=_guia.sesiones||[];
+    sesion=_guia.sesion||null;
+    _diasMapActual=(_guia.plan&&_guia.plan.diasMap&&_guia.plan.diasMap[_guia.dias])||COMBATE_DIAS_MAP[diasKey]||{};
+  } else {
+    var sesionLetra=COMBATE_DIAS_MAP[diasKey]?COMBATE_DIAS_MAP[diasKey][dow]:null;
+    sesiones=RUTINAS_COMBATE[diasKey];
+    sesion=sesionLetra?sesiones.find(function(s){return s.id===sesionLetra;}):null;
+    _diasMapActual=COMBATE_DIAS_MAP[diasKey]||{};
+  }
 
   // E1: Calcular días para pelea y detectar peaking
   var dpNum=0;
@@ -7070,9 +7435,30 @@ async function loadEntrenoCombate(){
   }
   var isPeaking=dpNum>0&&dpNum<=7;
 
+  // ── Selector de perfil de la guía ──────────────────────────
+  var _perfilActual=localStorage.getItem('pg_'+(c.id||'u'));
+  var _pgBtns=['p1','p2','p3'].map(function(pk){
+    var pp=PLANES_GUIA[pk];
+    var act=_perfilActual===pk;
+    return '<button onclick="selectPerfilGuia(\''+c.id+'\',\''+(act?'':pk)+'\')" '+
+      'style="flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid '+(act?'#4D9FFF':'#1A2A40')+';background:'+(act?'rgba(77,159,255,.12)':'transparent')+';color:'+(act?'#4D9FFF':'#4A5568')+';font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;line-height:1.3;text-align:center">'+
+      '<div style="font-size:15px">'+pp.emoji+'</div>'+
+      '<div>'+pp.label.split('—')[0].trim()+'</div>'+
+      '</button>';
+  }).join('');
+  var _pgSelector='<div style="margin-bottom:.75rem">'+
+    '<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Selecciona tu perfil SRC:</div>'+
+    '<div style="display:flex;gap:6px">'+_pgBtns+'</div>'+
+    (_perfilActual&&_guia&&_guia.faseLabel?
+      '<div style="margin-top:5px;font-size:10px;color:#4D9FFF;font-weight:700">📍 '+_guia.plan.label+' · '+_guia.faseLabel+'</div>'+
+      (_guia.faseNota?'<div style="font-size:10px;color:#FFB300;margin-top:2px">⚡ '+_guia.faseNota+'</div>':'')
+    :'')+
+  '</div>';
+
   // Banner fase + contador
   var diasPelea=dpNum>0?(dpNum===0?'¡PELEA HOY!':dpNum+'d ⚔️'):'';
-  var html='<div style="background:rgba('+faseP.color+',.08);border:1px solid rgba('+faseP.color+',.25);border-radius:10px;padding:10px 14px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center">'+
+  var html=_pgSelector;
+  html+='<div style="background:rgba('+faseP.color+',.08);border:1px solid rgba('+faseP.color+',.25);border-radius:10px;padding:10px 14px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center">'+
     '<div>'+
       '<div style="font-size:11px;font-weight:800;color:rgba('+faseP.color+',1);text-transform:uppercase;letter-spacing:.5px">'+faseP.label+'</div>'+
       '<div style="font-size:11px;color:var(--text-3)">Vol: '+faseP.vol+' · '+(isPeaking?'RIR 4-5 (peaking)':faseP.rir)+'</div>'+
@@ -7113,14 +7499,14 @@ async function loadEntrenoCombate(){
     var nextLetra='', nextNom='';
     for(var i=1;i<=7;i++){
       var nd=(dow+i)%7;
-      if(COMBATE_DIAS_MAP[diasKey][nd]){nextLetra=COMBATE_DIAS_MAP[diasKey][nd];break;}
+      if(_diasMapActual[nd]){nextLetra=_diasMapActual[nd];break;}
     }
-    if(nextLetra) nextNom=sesiones.find(function(s){return s.id===nextLetra;}).nombre;
+    if(nextLetra){var _ns=sesiones.find(function(s){return s.id===nextLetra;});if(_ns)nextNom=_ns.nombre;}
     html+='<div class="card"><div class="cb" style="text-align:center;padding:1.5rem">'+
       '<div style="font-size:40px;margin-bottom:.5rem">🛌</div>'+
       '<div style="font-size:16px;font-weight:800;margin-bottom:.25rem">Día de descanso</div>'+
       '<div style="font-size:12px;color:var(--text-2);margin-bottom:.75rem">Recuperación activa: movilidad suave, caminata</div>'+
-      (nextLetra?'<div style="font-size:12px;color:var(--gold);font-weight:700">Próxima sesión: '+nextLetra+' — '+nextNom+'</div>':'')+
+      (nextLetra&&nextNom?'<div style="font-size:12px;color:var(--gold);font-weight:700">Próxima sesión: '+nextLetra+' — '+nextNom+'</div>':'')+
     '</div></div>';
     document.getElementById('e-dia').textContent='Descanso';
     cont.innerHTML=html; return;
