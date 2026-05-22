@@ -4897,7 +4897,7 @@ async function verCliente(id){
   // Alerta peso combate
   if(c.tipo_cliente==='combate'&&c.fecha_pelea&&c.peso_categoria){
     try{
-      var rpArr=await db.get('registros_peso','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=1');
+      var rpArr=await db.get('registros_progreso','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=1');
       var rp=rpArr&&rpArr[0];
       if(rp){
         var fp2=new Date(c.fecha_pelea),hoyD2=new Date();hoyD2.setHours(0,0,0,0);
@@ -5862,7 +5862,7 @@ async function loadInicio(){
   if(pesoWidget){
     if(c.tipo_cliente==='combate'){
       try{
-        var rpArr=await db.get('registros_peso','cliente_id=eq.'+c.id+'&fecha=eq.'+hoy());
+        var rpArr=await db.get('registros_progreso','cliente_id=eq.'+c.id+'&fecha=eq.'+hoy());
         var rp=rpArr&&rpArr[0]||null;
         var diasPelea='', kgFaltan='', alertColor='var(--text-2)';
         if(c.fecha_pelea){
@@ -6044,7 +6044,7 @@ async function guardarPeso(){
   var val=parseFloat(document.getElementById('peso-input')&&document.getElementById('peso-input').value);
   if(!val||val<30||val>250){toast('Introduce un peso válido','err');return;}
   try{
-    await api('registros_peso',{method:'POST',
+    await api('registros_progreso',{method:'POST',
       headers:{'Prefer':'resolution=merge-duplicates'},
       body:JSON.stringify({cliente_id:S.user.id,fecha:hoy(),peso:val})});
     toast('⚖️ Peso guardado: '+val+'kg','ok');
@@ -6301,7 +6301,7 @@ async function loadCamp(){
 
   // Gráfica de peso
   try{
-    var pesos=await db.get('registros_peso','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=14');
+    var pesos=await db.get('registros_progreso','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=14');
     if(pesos&&pesos.length){
       pesos=pesos.reverse();
       var vals=pesos.map(function(r){return parseFloat(r.peso);});
@@ -9520,7 +9520,7 @@ async function loadProgCombate(){
 
   try{
     var results=await Promise.all([
-      db.get('registros_peso','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=60'),
+      db.get('registros_progreso','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=60'),
       db.get('registros_entreno','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=60'),
     ]);
     var pesos=results[0]||[], entrenos=results[1]||[];
