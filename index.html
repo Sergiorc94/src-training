@@ -5251,6 +5251,15 @@ async function adminTab(tab,btn){
           '</select></div>'+
           '<div class="field"><label>🏋️ Material disponible</label><select id="e-material">'+
             [['cuerpo','Sin material (casa)'],['basico','Mancuernas / KB'],['completo','Gimnasio completo']].map(function(x){return '<option value="'+x[0]+'"'+((cl.material_disponible||'basico')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
+          '</select></div>'+
+          '<div class="field"><label>🥋 Días técnica / semana</label><select id="e-dias-tec">'+
+            [1,2,3,4,5,6].map(function(d){return '<option value="'+d+'"'+((cl.dias_tecnica||3)===d?' selected':'')+'>'+d+' días</option>';}).join('')+
+          '</select></div>'+
+          '<div class="field"><label>⏱️ Horas técnica / sesión</label><select id="e-horas-tec">'+
+            [[1,'1h'],[1.5,'1h 30min'],[2,'2h'],[2.5,'2h 30min'],[3,'3h']].map(function(x){return '<option value="'+x[0]+'"'+((parseFloat(cl.horas_tecnica)||1.5)===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
+          '</select></div>'+
+          '<div class="field"><label>💼 Tipo de trabajo</label><select id="e-trabajo-tipo">'+
+            [['sedentario','Sedentario (oficina)'],['moderado','Moderado (de pie/activo)'],['activo','Activo (físico/manual)']].map(function(x){return '<option value="'+x[0]+'"'+((cl.trabajo_tipo||'sedentario')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
           '</select></div>'
         :
           '<div id="e-fecha-pelea-ph"></div><div id="e-peso-cat-ph"></div>'+
@@ -5261,7 +5270,8 @@ async function adminTab(tab,btn){
             .map(([v,l])=>'<option value="'+v+'"'+(cl.tipo_plan===v?' selected':'')+'>'+l+'</option>').join('')+
         '</select></div>'+
       '</div>'+
-      '<div style="font-size:11px;font-weight:700;color:#00C853;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px">💪 Día de entreno</div>'+
+      (cl.tipo_cliente==='combate'?renderAdminCombateMacros(cl):'')+
+      '<div style="font-size:11px;font-weight:700;color:#00C853;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px">💪 Día de entreno (override manual — dejar vacío para usar cálculo automático)</div>'+
       '<div class="g2">'+
         '<div class="field"><label>Kcal</label><input type="number" id="e-kcal" value="'+(cl.kcal_objetivo||'')+'"></div>'+
         '<div class="field"><label>Proteína (g)</label><input type="number" id="e-prot" value="'+(cl.proteina_objetivo||'')+'"></div>'+
@@ -5355,6 +5365,47 @@ async function adminTab(tab,btn){
   }
 }
 
+function renderAdminCombateMacros(c){
+  var m=calcMacrosCombate(c);
+  var tipos=[
+    {id:'sparring', icon:'🥊',label:'Sparring',  color:'255,45,85'},
+    {id:'ambos',    icon:'🔥',label:'Tec+Gym',   color:'255,107,53'},
+    {id:'tecnica',  icon:'🥋',label:'Técnica',   color:'255,179,0'},
+    {id:'cardio',   icon:'🏃',label:'Cardio',    color:'0,229,255'},
+    {id:'gym',      icon:'🏋️',label:'Fuerza',   color:'77,159,255'},
+    {id:'descanso', icon:'🛌',label:'Descanso',  color:'110,128,144'},
+  ];
+  var fase=FASE_COMBATE_PARAMS[m.fase]||FASE_COMBATE_PARAMS.base;
+  var html='<div style="margin:12px 0 6px;font-size:11px;font-weight:700;color:rgba('+fase.color+',1);text-transform:uppercase;letter-spacing:.5px">'+fase.icon+' '+fase.label+' — Macros calculados automáticamente</div>';
+  html+='<div style="overflow-x:auto;margin-bottom:8px"><table style="width:100%;border-collapse:collapse;font-size:11px">';
+  html+='<thead><tr style="border-bottom:1px solid #1A2A40">';
+  ['Tipo','Kcal','Prot','Carbos','Grasas'].forEach(function(h){
+    html+='<th style="padding:5px 8px;text-align:'+(h==='Tipo'?'left':'center')+';color:#4A5568;font-size:10px">'+h+'</th>';
+  });
+  html+='</tr></thead><tbody>';
+  tipos.forEach(function(t){
+    var dm=m[t.id]||m.tecnica;
+    html+='<tr style="border-bottom:1px solid rgba('+t.color+',.1)">';
+    html+='<td style="padding:5px 8px;font-weight:700;color:rgba('+t.color+',1)">'+t.icon+' '+t.label+'</td>';
+    [dm.k,dm.p+'g',dm.c+'g',dm.g+'g'].forEach(function(v){
+      html+='<td style="padding:5px 8px;text-align:center;font-weight:700;color:#F0F4FF">'+v+'</td>';
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  var peso=parseFloat(c.peso_inicial||0),edad=parseInt(c.edad||0);
+  html+='<div style="font-size:10px;color:#4A5568;background:#070E1A;border-radius:6px;padding:6px 10px">'+
+    '📊 Basado en: '+peso+'kg · '+(c.altura||'?')+'cm · '+(edad||'?')+'años · '+
+    (c.sexo==='H'?'Hombre':'Mujer')+' · '+
+    (c.dias_prep_fisica||3)+' días gym · '+
+    (c.dias_tecnica||3)+' días técnica · '+
+    (c.horas_tecnica||1.5)+'h/sesión · '+
+    (c.trabajo_tipo||'sedentario')+
+    (!(edad)?' <span style="color:#FFB300">⚠️ Falta edad</span>':'')+
+  '</div>';
+  return html;
+}
+
 async function guardarCfg(){
   const c=S.ca;
   try{
@@ -5390,7 +5441,10 @@ async function guardarCfg(){
       deporte:document.getElementById('e-deporte')?document.getElementById('e-deporte').value||null:null,
       nivel_combate:document.getElementById('e-nivel-combate')?document.getElementById('e-nivel-combate').value||null:null,
       dias_prep_fisica:document.getElementById('e-dias-prep')?parseInt(document.getElementById('e-dias-prep').value)||3:null,
-      material_disponible:document.getElementById('e-material')?document.getElementById('e-material').value||null:null};
+      material_disponible:document.getElementById('e-material')?document.getElementById('e-material').value||null:null,
+      dias_tecnica:document.getElementById('e-dias-tec')?parseInt(document.getElementById('e-dias-tec').value)||3:null,
+      horas_tecnica:document.getElementById('e-horas-tec')?parseFloat(document.getElementById('e-horas-tec').value)||1.5:null,
+      trabajo_tipo:document.getElementById('e-trabajo-tipo')?document.getElementById('e-trabajo-tipo').value||null:null};
     try{
       await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({
         p_id:c.id,
@@ -5407,7 +5461,10 @@ async function guardarCfg(){
         p_deporte:extra.deporte||null,
         p_nivel_combate:extra.nivel_combate||null,
         p_dias_prep_fisica:extra.dias_prep_fisica||null,
-        p_material_disponible:extra.material_disponible||null
+        p_material_disponible:extra.material_disponible||null,
+        p_dias_tecnica:extra.dias_tecnica||null,
+        p_horas_tecnica:extra.horas_tecnica||null,
+        p_trabajo_tipo:extra.trabajo_tipo||null
       })});
       Object.assign(S.ca,extra);
     }catch(e2){console.warn('Error guardando extras:',e2.message);}
@@ -6572,11 +6629,11 @@ function calcMacrosCombate(c){
   var qd=c.cuestionario_datos||{};
   var peso=parseFloat(c.peso_inicial||qd.peso)||75;
   var altura=parseInt(c.altura||qd.altura)||175;
-  var edad=parseInt(qd.edad)||25;
+  var edad=parseInt(c.edad||qd.edad)||25;
   var sexo=(c.sexo||qd.sexo||'H').toUpperCase();
-  var diasTec=parseInt(qd.dias_tecnica)||3;
+  var diasTec=parseInt(c.dias_tecnica||qd.dias_tecnica)||3;
   var diasGym=parseInt(c.dias_prep_fisica)||3;
-  var horasTec=parseFloat(qd.horas_tecnica)||1.5;
+  var horasTec=parseFloat(c.horas_tecnica||qd.horas_tecnica)||1.5;
   var fase=getFaseCombate(c);
 
   // BMR Mifflin-St Jeor
@@ -6585,7 +6642,7 @@ function calcMacrosCombate(c){
     :(10*peso+6.25*altura-5*edad+5);
 
   // NEAT base según tipo de trabajo
-  var trabajoTipo=qd.trabajo_tipo||'sedentario';
+  var trabajoTipo=c.trabajo_tipo||qd.trabajo_tipo||'sedentario';
   var neatMult={sedentario:1.2,moderado:1.35,activo:1.5}[trabajoTipo]||1.25;
   var tdeeBase=Math.round(bmr*neatMult);
 
