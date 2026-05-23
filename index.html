@@ -4094,6 +4094,26 @@ function selectPerfilGuia(cid,perfil){
   loadEntrenoCombate();
 }
 
+// Muestra/oculta el toggle seguidas/separadas cuando cambia la 2ª sesión
+function adminSemToggle(selId){
+  var m=selId.match(/e-sem-(\d+)-2/);
+  if(!m) return;
+  var d=m[1];
+  var e2=document.getElementById('e-sem-'+d+'-2');
+  var wrap=document.getElementById('e-sem-'+d+'-t-wrap');
+  if(wrap) wrap.style.display=(e2&&e2.value)?'flex':'none';
+}
+// Activa seguidas o separadas para un día
+function adminSemTipo(d, tipo){
+  var seg=document.getElementById('e-sem-'+d+'-t-seg');
+  var sep=document.getElementById('e-sem-'+d+'-t-sep');
+  if(seg){seg.style.border='1px solid '+(tipo==='seguidas'?'#00E5FF':'#1A2A40');seg.style.background=tipo==='seguidas'?'rgba(0,229,255,.15)':'transparent';seg.style.color=tipo==='seguidas'?'#00E5FF':'#4A5568';}
+  if(sep){sep.style.border='1px solid '+(tipo==='separadas'?'#FFB300':'#1A2A40');sep.style.background=tipo==='separadas'?'rgba(255,179,0,.15)':'transparent';sep.style.color=tipo==='separadas'?'#FFB300':'#4A5568';}
+  // Guardar valor en data attr
+  var col=document.getElementById('e-sem-col-'+d);
+  if(col) col.dataset.tipo=tipo;
+}
+
 function renderPlanificador(c, compact){
   var tipo=c.tipo_plan||'';
   var cfg=PLANES_CONFIG[tipo];
@@ -4228,6 +4248,73 @@ function renderPlanificador(c, compact){
 
 const CN=['Desayuno','Media Mañana','Comida','Merienda','Cena','Post Entreno'];
 const CC=['#0055FF','#0D47A1','#1565C0','#1976D2','#2196F3','#42A5F5'];
+
+// ══ SISTEMA DE SLOTS DE COMIDAS ══════════════════════════════════════════
+// Definición de cada tipo de slot: etiqueta, icono, categorías de platos válidas
+const SLOT_DEFS = {
+  desayuno: {label:'Desayuno',              icon:'🌅', cats:['Desayuno'],                     color:'#FFB300'},
+  normal:   {label:'Comida',                icon:'🍽️', cats:['Desayuno','Cena','Comida'],      color:'#4D9FFF'},
+  pre:      {label:'Pre-entreno (2-3h)',     icon:'⚡', cats:['Pre Entreno'],                  color:'#00E5FF'},
+  intra:    {label:'Intra-entreno',         icon:'⚡', cats:['Pre Entreno'],                  color:'#FF6B35'},
+  post_pre: {label:'Post/Pre (entre sesiones)',icon:'🔄',cats:['Post Entreno','Pre Entreno'],  color:'#AB47BC'},
+  post:     {label:'Post-entreno (3R)',      icon:'💪', cats:['Post Entreno'],                 color:'#00C853'},
+  cena:     {label:'Cena',                  icon:'🌙', cats:['Cena'],                         color:'#7986CB'},
+};
+
+// Opciones rápidas para intra-entreno (carbos simples, sin plato completo)
+const INTRA_SNACKS = [
+  '🍌 Plátano maduro','🍬 Dátiles (5-6 ud)','🍯 Tortita arroz + miel',
+  '🥤 Bebida isotónica','💊 Gel de carbohidratos','🍊 Zumo naranja natural',
+  '🍇 Uvas pasas (puñado)'
+];
+
+// Lee el plan de un día con compatibilidad hacia atrás
+// Devuelve {sessions:[], tipo:null}
+function parseDiaPlan(raw){
+  if(!raw) return {sessions:[],tipo:null};
+  if(Array.isArray(raw)) return {sessions:raw.filter(Boolean),tipo:null};
+  if(typeof raw==='object'&&raw.s) return {sessions:(raw.s||[]).filter(Boolean),tipo:raw.t||null};
+  if(typeof raw==='string'&&raw) return {sessions:[raw],tipo:null};
+  return {sessions:[],tipo:null};
+}
+
+// Devuelve la secuencia de slots para el día según sesiones y nc (nº comidas)
+function getMealSlotsHoy(sessions, tipo, nc){
+  nc=nc||5;
+  var activas=(sessions||[]).filter(function(x){return x&&x!=='descanso';});
+  if(activas.length===0){
+    // Día descanso
+    var base=['desayuno','normal','normal','normal','cena','cena'];
+    return base.slice(0,nc);
+  }
+  if(activas.length===1){
+    if(nc<=3) return ['desayuno','pre','post'];
+    if(nc<=4) return ['desayuno','normal','pre','post'];
+    if(nc<=5) return ['desayuno','normal','pre','post','cena'];
+    return ['desayuno','normal','normal','pre','post','cena'];
+  }
+  // 2 sesiones
+  if(tipo==='seguidas'){
+    if(nc<=4) return ['desayuno','pre','intra','post'];
+    if(nc<=5) return ['desayuno','normal','pre','intra','post'];
+    return ['desayuno','normal','pre','intra','post','cena'];
+  } else {
+    // separadas
+    if(nc<=4) return ['desayuno','pre','post_pre','post'];
+    if(nc<=5) return ['desayuno','pre','post_pre','pre','post'];
+    return ['desayuno','pre','post_pre','pre','post','cena'];
+  }
+}
+
+// Devuelve los nombres de platos válidos para un slot
+function platosParaSlot(slotType){
+  var def=SLOT_DEFS[slotType];
+  if(!def) return Object.keys(PLATOS);
+  var cats=def.cats;
+  return Object.keys(PLATOS).filter(function(k){
+    return PLATOS[k]&&cats.indexOf(PLATOS[k].cat)>=0;
+  });
+}
 
 let S={user:null,isAdmin:false,ca:null,todos:[],fecha:new Date().toISOString().split('T')[0],
   rn:null,re:null,pn:null,pe:null,ci:null};
@@ -5277,7 +5364,7 @@ async function adminTab(tab,btn){
             var dias=[['1','LUN'],['2','MAR'],['3','MIÉ'],['4','JUE'],['5','VIE'],['6','SÁB'],['0','DOM']];
             var opts=[['sparring','🥊 Sparring'],['ambos','🔥 Tec+Gym'],['tecnica','🥋 Técnica'],['cardio','🏃 Cardio'],['gym','🏋️ Fuerza'],['descanso','🛌 Descanso']];
             var sel=function(id,val,extra){
-              return '<select id="'+id+'" style="width:100%;font-size:9px;padding:3px 2px;border-radius:6px;background:#0D1528;border:1px solid #1A2A40;color:#F0F4FF;text-align:center;margin-top:2px">'+
+              return '<select id="'+id+'" onchange="adminSemToggle(\''+id+'\')" style="width:100%;font-size:9px;padding:3px 2px;border-radius:6px;background:#0D1528;border:1px solid #1A2A40;color:#F0F4FF;text-align:center;margin-top:2px">'+
                 (extra?'<option value="">— 2ª —</option>':'')+
                 opts.map(function(o){return '<option value="'+o[0]+'"'+(val===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+
               '</select>';
@@ -5285,13 +5372,19 @@ async function adminTab(tab,btn){
             return '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px">'+
               dias.map(function(d){
                 var raw=ps[d[0]];
-                var arr=Array.isArray(raw)?raw:(raw?[raw]:[]);
-                var v1=arr[0]||'descanso';
-                var v2=arr[1]||'';
-                return '<div style="text-align:center">'+
+                var dp=parseDiaPlan(raw);
+                var v1=dp.sessions[0]||'descanso';
+                var v2=dp.sessions[1]||'';
+                var vt=dp.tipo||'seguidas';
+                var tieneDoble=v2!=='';
+                return '<div style="text-align:center" id="e-sem-col-'+d[0]+'">'+
                   '<div style="font-size:9px;font-weight:800;color:#4A5568;margin-bottom:3px;letter-spacing:.5px">'+d[1]+'</div>'+
                   sel('e-sem-'+d[0]+'-1',v1,false)+
                   sel('e-sem-'+d[0]+'-2',v2,true)+
+                  '<div id="e-sem-'+d[0]+'-t-wrap" style="margin-top:3px;display:'+(tieneDoble?'flex':'none')+';gap:2px">'+
+                    '<button id="e-sem-'+d[0]+'-t-seg" onclick="adminSemTipo(\''+d[0]+'\',\'seguidas\')" style="flex:1;font-size:8px;padding:2px 0;border-radius:4px;border:1px solid '+(vt==='seguidas'?'#00E5FF':'#1A2A40')+';background:'+(vt==='seguidas'?'rgba(0,229,255,.15)':'transparent')+';color:'+(vt==='seguidas'?'#00E5FF':'#4A5568')+';cursor:pointer">⚡Seguidas</button>'+
+                    '<button id="e-sem-'+d[0]+'-t-sep" onclick="adminSemTipo(\''+d[0]+'\',\'separadas\')" style="flex:1;font-size:8px;padding:2px 0;border-radius:4px;border:1px solid '+(vt==='separadas'?'#FFB300':'#1A2A40')+';background:'+(vt==='separadas'?'rgba(255,179,0,.15)':'transparent')+';color:'+(vt==='separadas'?'#FFB300':'#4A5568')+';cursor:pointer">🕐Sep.</button>'+
+                  '</div>'+
                 '</div>';
               }).join('')+
             '</div></div>';
@@ -5320,6 +5413,31 @@ async function adminTab(tab,btn){
         '<div class="field"><label>Carbos (g)</label><input type="number" id="e-carb-d" value="'+(cl.carbos_descanso||'')+'"></div>'+
         '<div class="field"><label>Grasas (g)</label><input type="number" id="e-gras-d" value="'+(cl.grasas_descanso||'')+'"></div>'+
       '</div>'+
+      // ── COMIDAS POR DEFECTO ──────────────────────────────────────────────
+      (function(){
+        var cd=cl.comidas_defecto?(typeof cl.comidas_defecto==='string'?JSON.parse(cl.comidas_defecto):cl.comidas_defecto):{};
+        var esCombate=cl.tipo_cliente==='combate';
+        var slots=esCombate
+          ?[['desayuno','🌅 Desayuno'],['pre','⚡ Pre-entreno'],['intra','⚡ Intra-entreno'],['post','💪 Post-entreno'],['cena','🌙 Cena']]
+          :[['desayuno','🌅 Desayuno'],['normal','🍽️ Comida principal'],['post','💪 Post-entreno'],['cena','🌙 Cena']];
+        return '<div style="font-size:11px;font-weight:700;color:#4D9FFF;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px">🍽️ Comidas por defecto</div>'+
+          '<div style="font-size:10px;color:#4A5568;margin-bottom:8px">Se precargarán automáticamente cada día. El cliente puede cambiarlas.</div>'+
+          '<div class="g2">'+
+          slots.map(function(sl){
+            var def=SLOT_DEFS[sl[0]];
+            var platosSlot=platosParaSlot(sl[0]);
+            var curVal=cd[sl[0]]||'';
+            return '<div class="field" style="grid-column:'+(sl[0]==='intra'?'1/-1':'auto')+'"><label>'+sl[1]+'</label>'+
+              '<select id="e-cd-'+sl[0]+'" style="font-size:11px">'+
+                '<option value="">— Sin defecto —</option>'+
+                (sl[0]==='intra'
+                  ? INTRA_SNACKS.map(function(s){return '<option value="'+s+'"'+(curVal===s?' selected':'')+'>'+s+'</option>';}).join('')
+                  : platosSlot.map(function(p){return '<option value="'+p+'"'+(curVal===p?' selected':'')+'>'+p+'</option>';}).join('')
+                )+
+              '</select></div>';
+          }).join('')+
+          '</div>';
+      }())+
       '<div class="field"><label>Notas</label><textarea id="e-not">'+(cl.notas_entrenador||'')+'</textarea></div>'+
       '<div style="display:flex;gap:8px;margin-top:.75rem">'+
         '<button class="btn bp" onclick="guardarCfg()">💾 Guardar</button>'+
@@ -5486,11 +5604,22 @@ async function guardarCfg(){
         [0,1,2,3,4,5,6].forEach(function(d){
           var e1=document.getElementById('e-sem-'+d+'-1');
           var e2=document.getElementById('e-sem-'+d+'-2');
+          var col=document.getElementById('e-sem-col-'+d);
           if(e1){
-            var arr=[e1.value];
-            if(e2&&e2.value) arr.push(e2.value);
-            obj[d]=arr;
+            var s=[e1.value];
+            if(e2&&e2.value) s.push(e2.value);
+            var entry={s:s};
+            if(s.length>1) entry.t=(col&&col.dataset.tipo)||'seguidas';
+            obj[d]=entry;
           }
+        });
+        return Object.keys(obj).length?JSON.stringify(obj):null;
+      }()),
+      comidas_defecto:(function(){
+        var obj={};
+        ['desayuno','pre','post','intra','normal','cena'].forEach(function(k){
+          var el=document.getElementById('e-cd-'+k);
+          if(el&&el.value) obj[k]=el.value;
         });
         return Object.keys(obj).length?JSON.stringify(obj):null;
       }())};
@@ -5515,7 +5644,8 @@ async function guardarCfg(){
         p_horas_tecnica:extra.horas_tecnica||null,
         p_trabajo_tipo:extra.trabajo_tipo||null,
         p_fase_combate:extra.fase_combate||null,
-        p_plan_semanal:extra.plan_semanal||null
+        p_plan_semanal:extra.plan_semanal||null,
+        p_comidas_defecto:extra.comidas_defecto||null
       })});
       Object.assign(S.ca,extra);
     }catch(e2){console.warn('Error guardando extras:',e2.message);}
@@ -6913,13 +7043,10 @@ function renderTipoDiaCombate(){
   var dow=new Date().getDay(); // 0=Dom,1=Lun...
   // Auto-determinar tipo de sesión del plan del entrenador
   var planSem=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
-  var sesionesHoy=[];
-  if(planSem&&planSem[dow]!==undefined){
-    var raw=planSem[dow];
-    sesionesHoy=Array.isArray(raw)?(raw.filter(function(s){return s&&s!==''})):(raw?[raw]:[]);
-  }
-  if(!sesionesHoy.length) sesionesHoy=['tecnica'];
+  var dpHoy=planSem?parseDiaPlan(planSem[dow]):{sessions:[],tipo:null};
+  var sesionesHoy=dpHoy.sessions.length?dpHoy.sessions:['tecnica'];
   S.combatDiaTipo=sesionesHoy[0]; // tipo principal para macros
+  S.combatDiaTipoSesion=dpHoy.tipo; // seguidas / separadas
   // Para macros usar la sesión de mayor demanda del día
   var prioMap={sparring:6,ambos:5,tecnica:4,gym:3,cardio:2,descanso:1};
   var tipoMacros=sesionesHoy.reduce(function(best,s){return (prioMap[s]||0)>(prioMap[best]||0)?s:best;},sesionesHoy[0]);
@@ -7511,8 +7638,13 @@ var MEAL_CATS_MAP={
 };
 
 // Genera las opciones <option> del select ordenadas por comida y dificultad
-function getPlatoOptsParaComida(mealIdx, misPlatos){
-  var priCats=MEAL_CATS_MAP[mealIdx]||Object.keys({Desayuno:1,Comida:1,Cena:1});
+function getPlatoOptsParaComida(mealIdx, misPlatos, slotType){
+  var priCats;
+  if(slotType&&SLOT_DEFS[slotType]){
+    priCats=SLOT_DEFS[slotType].cats;
+  } else {
+    priCats=MEAL_CATS_MAP[mealIdx]||['Desayuno','Comida','Cena'];
+  }
   // Agrupar platos: primero los de categoría prioritaria, luego el resto
   var pri=[], resto=[];
   Object.keys(PLATOS).forEach(function(k){
@@ -7608,6 +7740,18 @@ function renderNutriCliente(){
   var nc=parseInt(document.getElementById('n-ncom-hoy')&&document.getElementById('n-ncom-hoy').value)||c.n_comidas||5;
   var targets=getMealTargets(); // array of {p,c,g,k,pct} per meal
 
+  // ── Slots para clientes de combate ───────────────────────────────────
+  var _esCombate=c.tipo_cliente==='combate';
+  var _slots=null;
+  if(_esCombate){
+    var _ps=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
+    var _dow=new Date().getDay();
+    var _dpH=_ps?parseDiaPlan(_ps[_dow]):{sessions:[],tipo:null};
+    _slots=getMealSlotsHoy(_dpH.sessions,_dpH.tipo,nc);
+  }
+  // ── Comidas por defecto (ambos tipos de cliente) ──────────────────────
+  var _cd=c.comidas_defecto?(typeof c.comidas_defecto==='string'?JSON.parse(c.comidas_defecto):c.comidas_defecto):null;
+
   var comidas=rn&&rn.comidas||[];
 
   // Calc totals from saved comidas
@@ -7650,12 +7794,19 @@ function renderNutriCliente(){
     // Saved plato for this meal
     var savedPlato=com.plato||'';
 
+    var _slotType=_slots?_slots[i]:null;
+    var _slotDef=_slotType?SLOT_DEFS[_slotType]:null;
+    var _slotColor=_slotDef?_slotDef.color:col;
+    var _slotLabel=_slotDef?(_slotDef.icon+' '+_slotDef.label):(CN[i]||'Comida '+(i+1));
+    var _defaultPlato=_cd?(_slotType?_cd[_slotType]:(_cd[CN[i]]||_cd['normal'])):null;
+    var _tieneComida=com.alimentos&&com.alimentos.length>0;
+
     html+='<div class="cbk" id="cbk-'+i+'" style="margin-bottom:.75rem">'+
       // Header
-      '<div class="cbkh" style="background:'+col+'15;border-bottom:1px solid '+col+'25">'+
-        '<div style="width:32px;height:32px;border-radius:50%;background:'+col+'22;color:'+col+
-          ';border:1.5px solid '+col+'44;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;flex-shrink:0">'+(i+1)+'</div>'+
-        '<div class="cbkn">'+(CN[i]||'Comida '+(i+1))+'</div>'+
+      '<div class="cbkh" style="background:'+_slotColor+'15;border-bottom:1px solid '+_slotColor+'25">'+
+        '<div style="width:32px;height:32px;border-radius:50%;background:'+_slotColor+'22;color:'+_slotColor+
+          ';border:1.5px solid '+_slotColor+'44;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;flex-shrink:0">'+(i+1)+'</div>'+
+        '<div class="cbkn">'+_slotLabel+'</div>'+
         // Objetivo
         '<div style="font-size:10px;color:#4A5568;margin-right:6px">'+
           'Obj: <span style="color:'+col+';font-weight:700">'+tK+' kcal</span> '+
@@ -7684,7 +7835,7 @@ function renderNutriCliente(){
       // Body
       (function(){
         // Build per-meal plato options (sorted by relevance + difficulty)
-        var _platoOpts=getPlatoOptsParaComida(i,misPlatos);
+        var _platoOpts=getPlatoOptsParaComida(i,misPlatos,_slotType);
         // Suggestions from previous days
         var _sugs=getSugerenciasComida(i);
         var _sugsHtml='';
@@ -7702,7 +7853,18 @@ function renderNutriCliente(){
             }).join('')+
             '</div></div>';
         }
+        // Botón de comida habitual (si hay defecto y la comida está vacía)
+        var _habitualBtn='';
+        if(_defaultPlato&&!_tieneComida){
+          _habitualBtn='<div onclick="onClientePlatoSelect('+i+',\''+_defaultPlato.replace(/'/g,"\\'")+'\',' +tP+','+tC+','+tG+')" '+
+            'style="margin-bottom:8px;padding:8px 12px;background:rgba(77,159,255,.08);border:1px dashed #4D9FFF;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px">'+
+            '<div style="font-size:18px">📌</div>'+
+            '<div><div style="font-size:11px;font-weight:700;color:#4D9FFF">Cargar mi comida habitual</div>'+
+            '<div style="font-size:10px;color:#4A5568">'+_defaultPlato.substring(0,45)+'</div></div>'+
+          '</div>';
+        }
         return '<div class="cbkb">'+
+          _habitualBtn+
           _sugsHtml+
           // Plato selector
           '<div style="margin-bottom:.75rem">'+
