@@ -8058,15 +8058,18 @@ async function saveNutri(data){
 function _clampPorcion(ingName, macroRole){
   var n=(ingName||'').toLowerCase();
   // Suplementos y condimentos: rangos pequeños
-  if(/whey|proteína.*polvo|caseína|proteina.*polvo/i.test(n)) return {min:20,max:60};
-  if(/aceite/i.test(n))      return {min:8, max:25};
-  if(/mantequilla/i.test(n)) return {min:5, max:20};
-  if(/miel|mermelada/i.test(n)) return {min:10,max:30};
+  if(/whey|proteína.*polvo|caseína|proteina.*polvo/i.test(n)) return {min:20, max:60};
+  if(/aceite/i.test(n))         return {min:8,  max:25};
+  if(/mantequilla/i.test(n))    return {min:5,  max:20};
+  if(/miel|mermelada/i.test(n)) return {min:10, max:30};
+  // Frutos secos: porción pequeña
+  if(/nuez|nueces|almendra|pistach|cacahuete|anacardo|avellana|macadamia/i.test(n)) return {min:10, max:40};
+  // Grasas de alimento real (aguacate, queso, yema...): porción normal
+  if(macroRole==='gras') return {min:20, max:150};
   // Por rol macro
-  if(macroRole==='prot') return {min:70, max:350}; // carnes, pescados, huevos, legumbres
-  if(macroRole==='carb') return {min:40, max:220}; // arroces, pastas, panes, frutas
-  if(macroRole==='gras') return {min:8,  max:40};  // frutos secos, aguacate, quesos
-  return {min:10, max:300};
+  if(macroRole==='prot') return {min:70,  max:350};
+  if(macroRole==='carb') return {min:40,  max:350};
+  return {min:10, max:350};
 }
 
 function calcGramos(platoNombre, targetP, targetC, targetG){
