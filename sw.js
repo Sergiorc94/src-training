@@ -1,7 +1,7 @@
 // SRC Training – Service Worker
 // Estrategia: Cache First para assets estáticos, Network First para API
 
-const CACHE_NAME = 'src-training-v1';
+const CACHE_NAME = 'src-training-v3';
 const STATIC_ASSETS = [
   '/src-training/',
   '/src-training/index.html',
@@ -47,7 +47,7 @@ self.addEventListener('fetch', function(event) {
   // Para navegación (HTML), Network First con fallback a caché
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).then(function(response) {
+      fetch(new Request(event.request, {cache: 'no-store'})).then(function(response) {
         // Guardar copia en caché
         var clone = response.clone();
         caches.open(CACHE_NAME).then(function(cache) {
