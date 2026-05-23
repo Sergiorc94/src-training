@@ -535,6 +535,26 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <div class="field"><label>¿Sigues o has seguido alguna dieta?</label>
             <textarea id="q-dieta-prev" placeholder="Ej: cetogénica, ayuno intermitente, conté calorías... Si no escribe 'Ninguna'" style="height:60px;resize:none"></textarea>
           </div>
+          <div class="field"><label>🥩 Tipo de alimentación</label>
+            <select id="q-tipo-dieta">
+              <option value="omnivoro">🍗 Omnívoro (como de todo)</option>
+              <option value="sin_cerdo">🚫🐷 Sin cerdo</option>
+              <option value="sin_gluten">🌾 Sin gluten / celíaco</option>
+              <option value="vegetariano">🥦 Vegetariano (sin carne/pescado)</option>
+              <option value="vegano">🌱 Vegano (sin nada animal)</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:1/-1"><label>⭐ ¿Qué proteínas prefieres? (marca las que más te gustan)</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px" id="q-prot-fav-wrap">
+              ${[['pollo','🍗 Pollo'],['pavo','🦃 Pavo'],['ternera','🥩 Ternera'],['pescado','🐟 Pescado blanco'],['atun','🐟 Atún'],['salmon','🍣 Salmón'],['huevos','🥚 Huevos'],['legumbres','🫘 Legumbres'],['tofu','🌱 Tofu/Soja']].map(p=>`
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px">
+                <input type="checkbox" id="q-pf-${p[0]}" value="${p[0]}" style="accent-color:#4D9FFF">${p[1]}
+              </label>`).join('')}
+            </div>
+          </div>
+          <div class="field" style="grid-column:1/-1"><label>🚫 Alimentos que NO quieres ver en tu plan</label>
+            <textarea id="q-evitar" placeholder="Ej: cebolla, pimiento, coliflor, queso... separa con comas" style="height:50px;resize:none"></textarea>
+          </div>
         </div>
       </div>
     </div>
@@ -4316,6 +4336,65 @@ function platosParaSlot(slotType){
   });
 }
 
+// Filtra platos según preferencias del cuestionario
+function filtrarPlatosPorPreferencias(platosArr, prefs){
+  if(!prefs) return platosArr;
+  var tipoDieta=prefs.tipo_dieta||'omnivoro';
+  var evitarRaw=(prefs.alimentos_evitar||'').toLowerCase();
+  var evitarList=evitarRaw?evitarRaw.split(/[,;]+/).map(function(s){return s.trim();}).filter(Boolean):[];
+  var protFav=prefs.proteinas_favoritas||[];
+
+  return platosArr.filter(function(nombre){
+    var p=PLATOS[nombre]; if(!p) return false;
+    var ings=[p.prot&&p.prot.ing,p.carb&&p.carb.ing,p.gras&&p.gras.ing,p.libre,nombre].filter(Boolean).join(' ').toLowerCase();
+
+    // Filtro por tipo de dieta
+    if(tipoDieta==='vegetariano'||tipoDieta==='vegano'){
+      if(/pollo|pavo|ternera|cerdo|jamón|atún|merluza|salmón|salmon|pescado|carne|bacalao|gambas|marisco|pechuga/i.test(ings)) return false;
+    }
+    if(tipoDieta==='vegano'){
+      if(/huevo|leche|queso|yogur|mantequilla|whey|lácteo|lacteo|mozzarella|havarti/i.test(ings)) return false;
+    }
+    if(tipoDieta==='sin_cerdo'){
+      if(/cerdo|jamón|jamon|chorizo|lomo embuchado|panceta|bacon/i.test(ings)) return false;
+    }
+    if(tipoDieta==='sin_gluten'){
+      if(/pasta|pan molde|pan blanco|pan integral|bagel|harina de trigo|cereales|corn flakes/i.test(ings)) return false;
+    }
+
+    // Filtro por alimentos a evitar
+    for(var ei=0;ei<evitarList.length;ei++){
+      if(evitarList[ei]&&ings.indexOf(evitarList[ei])!==-1) return false;
+    }
+    return true;
+  });
+}
+
+// Obtiene el plato óptimo para un slot dado macros y preferencias
+function getDefaultPlatoForSlot(slotType, targets, prefs, adminDefault){
+  // Admin default tiene prioridad absoluta
+  if(adminDefault&&PLATOS[adminDefault]) return adminDefault;
+
+  var platosSlot=platosParaSlot(slotType);
+  // Filtrar por preferencias (con fallback sin filtro si queda vacío)
+  var filtrados=prefs?filtrarPlatosPorPreferencias(platosSlot,prefs):platosSlot;
+  if(!filtrados.length) filtrados=platosSlot; // fallback: sin filtro
+
+  // Puntuar por ajuste de macros (menor puntuación = mejor ajuste)
+  var scored=filtrados.map(function(nombre){
+    try{
+      var als=calcGramos(nombre,targets.p||20,targets.c||50,targets.g||10);
+      if(!als||als._realP===undefined) return {nombre:nombre,score:999999};
+      var dp=Math.abs((als._realP||0)-targets.p)*3; // proteína más importante
+      var dc=Math.abs((als._realC||0)-targets.c)*2;
+      var dg=Math.abs((als._realG||0)-targets.g)*1;
+      return {nombre:nombre,score:dp+dc+dg};
+    }catch(e){return {nombre:nombre,score:999999};}
+  });
+  scored.sort(function(a,b){return a.score-b.score;});
+  return scored[0]?scored[0].nombre:null;
+}
+
 let S={user:null,isAdmin:false,ca:null,todos:[],fecha:new Date().toISOString().split('T')[0],
   rn:null,re:null,pn:null,pe:null,ci:null};
 
@@ -5834,6 +5913,9 @@ async function enviarCuestionario(){
     como_come: document.getElementById('q-comida').value,
     n_comidas: parseInt(document.getElementById('q-ncomidas').value)||0,
     dieta_previa: document.getElementById('q-dieta-prev').value,
+    tipo_dieta: document.getElementById('q-tipo-dieta')?document.getElementById('q-tipo-dieta').value:'omnivoro',
+    proteinas_favoritas: ['pollo','pavo','ternera','pescado','atun','salmon','huevos','legumbres','tofu'].filter(function(k){var el=document.getElementById('q-pf-'+k);return el&&el.checked;}),
+    alimentos_evitar: document.getElementById('q-evitar')?document.getElementById('q-evitar').value:'',
     trabajo: document.getElementById('q-trabajo').value,
     trabajo_tipo: document.getElementById('q-trabajo-tipo').value,
     sueno: document.getElementById('q-sueno').value,
@@ -7749,7 +7831,15 @@ function renderNutriCliente(){
     var _dpH=_ps?parseDiaPlan(_ps[_dow]):{sessions:[],tipo:null};
     _slots=getMealSlotsHoy(_dpH.sessions,_dpH.tipo,nc);
   }
-  // ── Comidas por defecto (ambos tipos de cliente) ──────────────────────
+  // ── Preferencias del cuestionario ────────────────────────────────────
+  var _prefs=null;
+  try{
+    var _qd=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):null;
+    if(_qd&&(_qd.tipo_dieta||_qd.proteinas_favoritas||_qd.alimentos_evitar)){
+      _prefs={tipo_dieta:_qd.tipo_dieta,proteinas_favoritas:_qd.proteinas_favoritas,alimentos_evitar:_qd.alimentos_evitar};
+    }
+  }catch(e){}
+  // ── Comidas por defecto (admin override) ─────────────────────────────
   var _cd=c.comidas_defecto?(typeof c.comidas_defecto==='string'?JSON.parse(c.comidas_defecto):c.comidas_defecto):null;
 
   var comidas=rn&&rn.comidas||[];
@@ -7798,8 +7888,10 @@ function renderNutriCliente(){
     var _slotDef=_slotType?SLOT_DEFS[_slotType]:null;
     var _slotColor=_slotDef?_slotDef.color:col;
     var _slotLabel=_slotDef?(_slotDef.icon+' '+_slotDef.label):(CN[i]||'Comida '+(i+1));
-    var _defaultPlato=_cd?(_slotType?_cd[_slotType]:(_cd[CN[i]]||_cd['normal'])):null;
+    var _adminDefault=_cd?(_slotType?_cd[_slotType]:(_cd[CN[i]]||_cd['normal'])):null;
     var _tieneComida=com.alimentos&&com.alimentos.length>0;
+    // Auto-calcular plato óptimo si el slot está vacío
+    var _defaultPlato=_tieneComida?null:getDefaultPlatoForSlot(_slotType||'normal',{p:tP,c:tC,g:tG},_prefs,_adminDefault);
 
     html+='<div class="cbk" id="cbk-'+i+'" style="margin-bottom:.75rem">'+
       // Header
@@ -7855,12 +7947,16 @@ function renderNutriCliente(){
         }
         // Botón de comida habitual (si hay defecto y la comida está vacía)
         var _habitualBtn='';
-        if(_defaultPlato&&!_tieneComida){
-          _habitualBtn='<div onclick="onClientePlatoSelect('+i+',\''+_defaultPlato.replace(/'/g,"\\'")+'\',' +tP+','+tC+','+tG+')" '+
-            'style="margin-bottom:8px;padding:8px 12px;background:rgba(77,159,255,.08);border:1px dashed #4D9FFF;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px">'+
-            '<div style="font-size:18px">📌</div>'+
-            '<div><div style="font-size:11px;font-weight:700;color:#4D9FFF">Cargar mi comida habitual</div>'+
-            '<div style="font-size:10px;color:#4A5568">'+_defaultPlato.substring(0,45)+'</div></div>'+
+        if(_defaultPlato){
+          var _isAdmin=!!_adminDefault;
+          _habitualBtn='<div onclick="onClientePlatoSelect('+i+',\''+_defaultPlato.replace(/'/g,"\\'").replace(/\n/g,'')+'\',' +tP+','+tC+','+tG+')" '+
+            'style="margin-bottom:8px;padding:8px 12px;background:rgba(0,200,83,.06);border:1px solid rgba(0,200,83,.2);border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px">'+
+            '<div style="font-size:18px">'+(_isAdmin?'📌':'🤖')+'</div>'+
+            '<div style="flex:1">'+
+              '<div style="font-size:11px;font-weight:700;color:#00C853">'+(_isAdmin?'Mi comida habitual':'Mejor opción para tus macros')+'</div>'+
+              '<div style="font-size:10px;color:#4A5568;margin-top:1px">'+_defaultPlato.substring(0,50)+'</div>'+
+            '</div>'+
+            '<div style="font-size:10px;color:#00C853;font-weight:700">Aplicar →</div>'+
           '</div>';
         }
         return '<div class="cbkb">'+
