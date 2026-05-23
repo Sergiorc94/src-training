@@ -8054,6 +8054,21 @@ async function saveNutri(data){
   }
 }
 
+// Porciones mínimas y máximas por tipo de ingrediente
+function _clampPorcion(ingName, macroRole){
+  var n=(ingName||'').toLowerCase();
+  // Suplementos y condimentos: rangos pequeños
+  if(/whey|proteína.*polvo|caseína|proteina.*polvo/i.test(n)) return {min:20,max:60};
+  if(/aceite/i.test(n))      return {min:8, max:25};
+  if(/mantequilla/i.test(n)) return {min:5, max:20};
+  if(/miel|mermelada/i.test(n)) return {min:10,max:30};
+  // Por rol macro
+  if(macroRole==='prot') return {min:70, max:350}; // carnes, pescados, huevos, legumbres
+  if(macroRole==='carb') return {min:40, max:220}; // arroces, pastas, panes, frutas
+  if(macroRole==='gras') return {min:8,  max:40};  // frutos secos, aguacate, quesos
+  return {min:10, max:300};
+}
+
 function calcGramos(platoNombre, targetP, targetC, targetG){
   var plato = PLATOS[platoNombre];
   if(!plato) return null;
@@ -8111,6 +8126,23 @@ function calcGramos(platoNombre, targetP, targetC, targetG){
   g_prot = Math.max(0, g_prot);
   g_carb = Math.max(0, g_carb);
   g_gras = Math.max(0, g_gras);
+
+  // ── Aplicar porciones mínimas/máximas realistas ──────────────
+  // Si el solver da 10g de pechuga, lo subimos al mínimo lógico.
+  // Aceptamos que los macros finales queden ligeramente por encima
+  // del objetivo (siempre mejor que porciones absurdas).
+  if(sp && g_prot>0){
+    var cprot=_clampPorcion(sp.ing,'prot');
+    g_prot=Math.min(cprot.max, Math.max(cprot.min, g_prot));
+  }
+  if(sc && g_carb>0){
+    var ccarb=_clampPorcion(sc.ing,'carb');
+    g_carb=Math.min(ccarb.max, Math.max(ccarb.min, g_carb));
+  }
+  if(sg && g_gras>0){
+    var cgras=_clampPorcion(sg.ing,'gras');
+    g_gras=Math.min(cgras.max, Math.max(cgras.min, g_gras));
+  }
 
   // Build result
   if(sp && g_prot>0) resultado.push({nombre:sp.ing,gramos:g_prot,macroType:'prot',al:[sp.p,sp.c,sp.g,sp.p*4+sp.c*4+sp.g*9]});
