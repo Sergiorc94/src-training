@@ -747,7 +747,8 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         </div>
       </div>
       <div class="g3" id="i-stats"></div>
-      <div id="i-entreno-card" style="margin-top:1rem"></div>
+      <div id="i-semana-cal" style="margin-top:1rem"></div>
+      <div id="i-entreno-card" style="margin-top:.75rem"></div>
       <div id="i-streak-card" style="margin-top:.75rem"></div>
       <div style="margin-top:.75rem;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn bg bsm" onclick="setupNotificaciones()" style="flex:1;min-width:140px">
@@ -6325,6 +6326,9 @@ async function loadInicio(){
       }
     }
 
+    // Calendario semanal
+    renderSemanaCalendario(c);
+
     // Tarjeta racha / motivación
     var streakCard=document.getElementById('i-streak-card');
     if(streakCard&&racha>0){
@@ -6346,6 +6350,178 @@ async function loadInicio(){
   }catch(e){console.error(e);}
 }
 
+
+function renderSemanaCalendario(c){
+  var el=document.getElementById('i-semana-cal');
+  if(!el) return;
+
+  var DIAS_SHORT=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var DIAS_FULL=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  var SESSION_INFO={
+    fuerza:   {icon:'💪', label:'Fuerza',    color:'#4D9FFF'},
+    tecnica:  {icon:'🥋', label:'Técnica',   color:'#FFB300'},
+    sparring: {icon:'🥊', label:'Sparring',  color:'#FF6B35'},
+    cardio:   {icon:'🏃', label:'Cardio',    color:'#00E5FF'},
+    fisico:   {icon:'🏋️', label:'Físico',   color:'#AB47BC'},
+    descanso: {icon:'😴', label:'Descanso',  color:'#4A5568'},
+  };
+
+  var hoyD=new Date();
+  var hoyDow=hoyD.getDay(); // 0=Dom...6=Sáb
+  var ps=c.plan_semanal;
+  var planObj=null;
+  try{ planObj=ps?(typeof ps==='string'?JSON.parse(ps):ps):null; }catch(e){}
+
+  // Construir los 7 días de la semana (Lun→Dom = índices 1..6,0)
+  var weekOrder=[1,2,3,4,5,6,0]; // lunes primero
+  var today=new Date(); today.setHours(0,0,0,0);
+
+  // Calcular el lunes de esta semana
+  var lunesDiff=(hoyDow===0?-6:1-hoyDow);
+  var lunes=new Date(today); lunes.setDate(today.getDate()+lunesDiff);
+
+  // Si no hay plan, para fitness mostramos el plan de entreno
+  var fitPlan=S._peActivo||null; // guardado si existe
+
+  var dias=weekOrder.map(function(dow,i){
+    var dt=new Date(lunes); dt.setDate(lunes.getDate()+i);
+    var dtStr=dt.toISOString().split('T')[0];
+    var isHoy=dt.getTime()===today.getTime();
+    var isPasado=dt<today;
+    var isFuturo=dt>today;
+
+    // Sesiones de este día
+    var sessions=[], tipo=null;
+    if(planObj){
+      var raw=planObj[String(dow)];
+      if(raw){
+        var dp=parseDiaPlan(raw);
+        sessions=dp.sessions||[];
+        tipo=dp.tipo;
+      }
+    }
+
+    // Para fitness sin plan semanal: intentar leer del plan de entreno
+    var fitDayName=null;
+    if(!planObj && fitPlan){
+      var fitDias=fitPlan.contenido&&fitPlan.contenido.dias||[];
+      var fitSched=fitPlan.contenido&&fitPlan.contenido.schedule||null;
+      var fitIdx=(dow===0?6:dow-1); // lun=0..dom=6 para el plan
+      var fitDiIdx=null;
+      if(fitSched&&fitSched[fitIdx]!==undefined&&fitSched[fitIdx]!=='') fitDiIdx=parseInt(fitSched[fitIdx]);
+      else fitDiIdx=fitIdx%Math.max(fitDias.length,1);
+      var fitDia=fitDias[fitDiIdx];
+      if(fitDia&&fitDia.nombre) fitDayName=fitDia.nombre;
+    }
+
+    return {dow:dow, dt:dt, dtStr:dtStr, isHoy:isHoy, isPasado:isPasado, isFuturo:isFuturo,
+            sessions:sessions, tipo:tipo, fitDayName:fitDayName};
+  });
+
+  // ── Renderizar ────────────────────────────────────────────────
+  // Título
+  var semLabel='Semana del '+lunes.getDate()+' de '+lunes.toLocaleDateString('es-ES',{month:'long'});
+
+  var cardsHtml=dias.map(function(d){
+    var isHoy=d.isHoy;
+    var borderCol=isHoy?'#0055FF':d.isPasado?'rgba(255,255,255,.04)':'rgba(255,255,255,.08)';
+    var bgCol=isHoy?'rgba(0,85,255,.12)':d.isPasado?'rgba(0,0,0,.1)':'rgba(255,255,255,.02)';
+    var textCol=isHoy?'#F0F4FF':d.isPasado?'#4A5568':'#8899AA';
+    var numCol=isHoy?'#0055FF':d.isPasado?'#4A5568':'#8899AA';
+
+    // Contenido de sesiones
+    var sesHtml='';
+    if(d.sessions.length===0){
+      if(d.fitDayName){
+        // Fitness: mostrar nombre del día de entreno
+        sesHtml='<div style="font-size:10px;font-weight:700;color:#4D9FFF;text-align:center;margin-top:4px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52px">'+
+          d.fitDayName.substring(0,12)+'</div>';
+      } else {
+        sesHtml='<div style="font-size:18px;margin-top:2px;opacity:.25">—</div>';
+      }
+    } else {
+      var iconsHtml=d.sessions.map(function(s){
+        var si=SESSION_INFO[s]||{icon:'❓',label:s,color:'#8899AA'};
+        return '<div title="'+si.label+'" style="font-size:'+(d.sessions.length>1?'14':'18')+'px;line-height:1">'+si.icon+'</div>';
+      }).join('');
+      sesHtml='<div style="display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:3px">'+iconsHtml+'</div>';
+      // Etiqueta tipo (seguidas/separadas) para 2 sesiones
+      if(d.sessions.length>1 && d.tipo){
+        var tipoLabel=d.tipo==='seguidas'?'seguidas':'separadas';
+        var tipoCol=d.tipo==='seguidas'?'#FF6B35':'#AB47BC';
+        sesHtml+='<div style="font-size:8px;color:'+tipoCol+';font-weight:700;margin-top:2px;white-space:nowrap">'+tipoLabel+'</div>';
+      }
+    }
+
+    // "HOY" badge
+    var badge=isHoy?'<div style="font-size:8px;font-weight:900;background:#0055FF;color:#fff;border-radius:3px;padding:1px 5px;margin-bottom:2px;letter-spacing:.5px">HOY</div>':'';
+
+    // Día y número
+    var dayName=DIAS_SHORT[d.dow];
+    var dayNum=d.dt.getDate();
+
+    return '<div style="flex:1;min-width:42px;max-width:60px;background:'+bgCol+';border:1.5px solid '+borderCol+
+      ';border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;'+
+      'cursor:default;transition:border-color .15s">'+
+      badge+
+      '<div style="font-size:10px;font-weight:700;color:'+textCol+';text-transform:uppercase;letter-spacing:.5px">'+dayName+'</div>'+
+      '<div style="font-size:16px;font-weight:900;color:'+numCol+';line-height:1.1;margin-bottom:2px">'+dayNum+'</div>'+
+      sesHtml+
+    '</div>';
+  }).join('');
+
+  // Próximos días con entrenamientos (para clientes combate)
+  var proximosHtml='';
+  if(planObj){
+    var proximos=dias.filter(function(d){ return d.isFuturo && d.sessions.length>0 && !d.sessions.includes('descanso'); }).slice(0,3);
+    if(proximos.length){
+      proximosHtml='<div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">';
+      proximos.forEach(function(d){
+        var s1=SESSION_INFO[d.sessions[0]]||{icon:'❓',label:d.sessions[0],color:'#8899AA'};
+        var s2=d.sessions[1]?SESSION_INFO[d.sessions[1]]||{icon:'❓',label:d.sessions[1],color:'#8899AA'}:null;
+        var diasHasta=Math.round((d.dt-today)/(24*3600*1000));
+        var cuandoLabel=diasHasta===1?'mañana':diasHasta===2?'pasado mañana':'en '+diasHasta+' días';
+        proximosHtml+=
+          '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:8px 12px">'+
+            '<div style="font-size:18px">'+s1.icon+(s2?' '+s2.icon:'')+'</div>'+
+            '<div style="flex:1">'+
+              '<div style="font-size:12px;font-weight:800;color:#F0F4FF">'+
+                d.sessions.map(function(s){ return (SESSION_INFO[s]||{label:s}).label; }).join(' + ')+
+              '</div>'+
+              '<div style="font-size:11px;color:#4A5568">'+DIAS_FULL[d.dow]+' · '+cuandoLabel+'</div>'+
+            '</div>'+
+            '<div style="font-size:11px;color:#8899AA;font-weight:700">'+d.dt.getDate()+'/'+String(d.dt.getMonth()+1).padStart(2,'0')+'</div>'+
+          '</div>';
+      });
+      proximosHtml+='</div>';
+    }
+  }
+
+  el.innerHTML=
+    '<div class="card">'+
+      '<div class="ch">📅 Mi semana'+
+        '<div style="margin-left:auto;font-size:11px;color:#4A5568">'+semLabel+'</div>'+
+      '</div>'+
+      '<div class="cb">'+
+        ((!planObj && c.tipo_cliente!=='combate')?
+          // Fitness sin plan: mostrar leyenda neutra
+          '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">'+cardsHtml+'</div>'
+          :
+          (!planObj?
+            // Combate sin plan semanal
+            '<div style="font-size:12px;color:#4A5568;text-align:center;padding:12px 0">'+
+              'Tu entrenador aún no ha publicado la planificación semanal'+
+            '</div>'+
+            '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">'+cardsHtml+'</div>'
+            :
+            // Con plan semanal
+            '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">'+cardsHtml+'</div>'+
+            proximosHtml
+          )
+        )+
+      '</div>'+
+    '</div>';
+}
 
 async function guardarPeso(){
   var val=parseFloat(document.getElementById('peso-input')&&document.getElementById('peso-input').value);
