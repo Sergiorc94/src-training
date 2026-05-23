@@ -8490,29 +8490,9 @@ async function loadEntrenoCombate(){
   }
   var isPeaking=dpNum>0&&dpNum<=7;
 
-  // ── Selector de perfil de la guía ──────────────────────────
-  var _perfilActual=localStorage.getItem('pg_'+(c.id||'u'));
-  var _pgBtns=['p1','p2','p3'].map(function(pk){
-    var pp=PLANES_GUIA[pk];
-    var act=_perfilActual===pk;
-    return '<button onclick="selectPerfilGuia(\''+c.id+'\',\''+(act?'':pk)+'\')" '+
-      'style="flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid '+(act?'#4D9FFF':'#1A2A40')+';background:'+(act?'rgba(77,159,255,.12)':'transparent')+';color:'+(act?'#4D9FFF':'#4A5568')+';font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;line-height:1.3;text-align:center">'+
-      '<div style="font-size:15px">'+pp.emoji+'</div>'+
-      '<div>'+pp.label.split('—')[0].trim()+'</div>'+
-      '</button>';
-  }).join('');
-  var _pgSelector='<div style="margin-bottom:.75rem">'+
-    '<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Selecciona tu perfil SRC:</div>'+
-    '<div style="display:flex;gap:6px">'+_pgBtns+'</div>'+
-    (_perfilActual&&_guia&&_guia.faseLabel?
-      '<div style="margin-top:5px;font-size:10px;color:#4D9FFF;font-weight:700">📍 '+_guia.plan.label+' · '+_guia.faseLabel+'</div>'+
-      (_guia.faseNota?'<div style="font-size:10px;color:#FFB300;margin-top:2px">⚡ '+_guia.faseNota+'</div>':'')
-    :'')+
-  '</div>';
-
   // Banner fase + contador
   var diasPelea=dpNum>0?(dpNum===0?'¡PELEA HOY!':dpNum+'d ⚔️'):'';
-  var html=_pgSelector;
+  var html='';
   html+='<div style="background:rgba('+faseP.color+',.08);border:1px solid rgba('+faseP.color+',.25);border-radius:10px;padding:10px 14px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center">'+
     '<div>'+
       '<div style="font-size:11px;font-weight:800;color:rgba('+faseP.color+',1);text-transform:uppercase;letter-spacing:.5px">'+faseP.label+'</div>'+
