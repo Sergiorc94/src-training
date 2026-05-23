@@ -5442,14 +5442,19 @@ async function adminTab(tab,btn){
           (function(){
             var ps=cl.plan_semanal?(typeof cl.plan_semanal==='string'?JSON.parse(cl.plan_semanal):cl.plan_semanal):{};
             var dias=[['1','LUN'],['2','MAR'],['3','MIÉ'],['4','JUE'],['5','VIE'],['6','SÁB'],['0','DOM']];
-            var opts=[['sparring','🥊 Sparring'],['ambos','🔥 Tec+Gym'],['tecnica','🥋 Técnica'],['cardio','🏃 Cardio'],['gym','🏋️ Fuerza'],['descanso','🛌 Descanso']];
+            var opts=[['descanso','😴 Descanso'],['tecnica','🥋 Técnica'],['sparring','🥊 Sparring'],['fuerza','💪 Fuerza'],['cardio','🏃 Cardio'],['fisico','🏋️ Físico']];
+            var SESS_COLOR={tecnica:'#FFB300',sparring:'#FF6B35',fuerza:'#4D9FFF',cardio:'#00E5FF',fisico:'#AB47BC',descanso:'#2A3A50'};
             var sel=function(id,val,extra){
-              return '<select id="'+id+'" onchange="adminSemToggle(\''+id+'\')" style="width:100%;font-size:9px;padding:3px 2px;border-radius:6px;background:#0D1528;border:1px solid #1A2A40;color:#F0F4FF;text-align:center;margin-top:2px">'+
-                (extra?'<option value="">— 2ª —</option>':'')+
+              return '<select id="'+id+'" onchange="adminSemToggle(\''+id+'\')" '+
+                'style="width:100%;font-size:10px;padding:4px 2px;border-radius:8px;background:#0D1528;'+
+                'border:2px solid '+(val&&val!=='descanso'?(SESS_COLOR[val]||'#1A2A40'):'#1A2A40')+';'+
+                'color:#F0F4FF;text-align:center;margin-top:3px;cursor:pointer;outline:none" '+
+                'onchange="adminSemToggle(\''+id+'\');this.style.borderColor=this.value&&this.value!==\'descanso\'?({tecnica:\'#FFB300\',sparring:\'#FF6B35\',fuerza:\'#4D9FFF\',cardio:\'#00E5FF\',fisico:\'#AB47BC\'}[this.value]||\'#1A2A40\'):\'#1A2A40\'">'+
+                (extra?'<option value="">—</option>':'')+
                 opts.map(function(o){return '<option value="'+o[0]+'"'+(val===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+
               '</select>';
             };
-            return '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px">'+
+            return '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px">'+
               dias.map(function(d){
                 var raw=ps[d[0]];
                 var dp=parseDiaPlan(raw);
@@ -5457,13 +5462,14 @@ async function adminTab(tab,btn){
                 var v2=dp.sessions[1]||'';
                 var vt=dp.tipo||'seguidas';
                 var tieneDoble=v2!=='';
-                return '<div style="text-align:center" id="e-sem-col-'+d[0]+'">'+
-                  '<div style="font-size:9px;font-weight:800;color:#4A5568;margin-bottom:3px;letter-spacing:.5px">'+d[1]+'</div>'+
+                var col1=SESS_COLOR[v1]||'#1A2A40';
+                return '<div style="text-align:center;background:rgba(255,255,255,.02);border:1px solid #1A2A40;border-radius:10px;padding:6px 3px" id="e-sem-col-'+d[0]+'" data-tipo="'+(tieneDoble?vt:'seguidas')+'">'+
+                  '<div style="font-size:10px;font-weight:900;color:#8899AA;margin-bottom:4px;letter-spacing:.5px">'+d[1]+'</div>'+
                   sel('e-sem-'+d[0]+'-1',v1,false)+
                   sel('e-sem-'+d[0]+'-2',v2,true)+
-                  '<div id="e-sem-'+d[0]+'-t-wrap" style="margin-top:3px;display:'+(tieneDoble?'flex':'none')+';gap:2px">'+
-                    '<button id="e-sem-'+d[0]+'-t-seg" onclick="adminSemTipo(\''+d[0]+'\',\'seguidas\')" style="flex:1;font-size:8px;padding:2px 0;border-radius:4px;border:1px solid '+(vt==='seguidas'?'#00E5FF':'#1A2A40')+';background:'+(vt==='seguidas'?'rgba(0,229,255,.15)':'transparent')+';color:'+(vt==='seguidas'?'#00E5FF':'#4A5568')+';cursor:pointer">⚡Seguidas</button>'+
-                    '<button id="e-sem-'+d[0]+'-t-sep" onclick="adminSemTipo(\''+d[0]+'\',\'separadas\')" style="flex:1;font-size:8px;padding:2px 0;border-radius:4px;border:1px solid '+(vt==='separadas'?'#FFB300':'#1A2A40')+';background:'+(vt==='separadas'?'rgba(255,179,0,.15)':'transparent')+';color:'+(vt==='separadas'?'#FFB300':'#4A5568')+';cursor:pointer">🕐Sep.</button>'+
+                  '<div id="e-sem-'+d[0]+'-t-wrap" style="margin-top:4px;display:'+(tieneDoble?'flex':'none')+';gap:2px">'+
+                    '<button id="e-sem-'+d[0]+'-t-seg" onclick="adminSemTipo(\''+d[0]+'\',\'seguidas\')" style="flex:1;font-size:8px;padding:3px 0;border-radius:5px;border:1px solid '+(vt==='seguidas'?'#00E5FF':'#1A2A40')+';background:'+(vt==='seguidas'?'rgba(0,229,255,.15)':'transparent')+';color:'+(vt==='seguidas'?'#00E5FF':'#4A5568')+';cursor:pointer;font-weight:700">⚡Jun</button>'+
+                    '<button id="e-sem-'+d[0]+'-t-sep" onclick="adminSemTipo(\''+d[0]+'\',\'separadas\')" style="flex:1;font-size:8px;padding:3px 0;border-radius:5px;border:1px solid '+(vt==='separadas'?'#FFB300':'#1A2A40')+';background:'+(vt==='separadas'?'rgba(255,179,0,.15)':'transparent')+';color:'+(vt==='separadas'?'#FFB300':'#4A5568')+';cursor:pointer;font-weight:700">🕐Sep</button>'+
                   '</div>'+
                 '</div>';
               }).join('')+
@@ -5675,9 +5681,6 @@ async function guardarCfg(){
       nivel_combate:document.getElementById('e-nivel-combate')?document.getElementById('e-nivel-combate').value||null:null,
       dias_prep_fisica:document.getElementById('e-dias-prep')?parseInt(document.getElementById('e-dias-prep').value)||3:null,
       material_disponible:document.getElementById('e-material')?document.getElementById('e-material').value||null:null,
-      dias_tecnica:document.getElementById('e-dias-tec')?parseInt(document.getElementById('e-dias-tec').value)||3:null,
-      horas_tecnica:document.getElementById('e-horas-tec')?parseFloat(document.getElementById('e-horas-tec').value)||1.5:null,
-      trabajo_tipo:document.getElementById('e-trabajo-tipo')?document.getElementById('e-trabajo-tipo').value||null:null,
       fase_combate:document.getElementById('e-fase-combate')?document.getElementById('e-fase-combate').value||null:null,
       plan_semanal:(function(){
         var obj={};
@@ -5720,9 +5723,6 @@ async function guardarCfg(){
         p_nivel_combate:extra.nivel_combate||null,
         p_dias_prep_fisica:extra.dias_prep_fisica||null,
         p_material_disponible:extra.material_disponible||null,
-        p_dias_tecnica:extra.dias_tecnica||null,
-        p_horas_tecnica:extra.horas_tecnica||null,
-        p_trabajo_tipo:extra.trabajo_tipo||null,
         p_fase_combate:extra.fase_combate||null,
         p_plan_semanal:extra.plan_semanal||null,
         p_comidas_defecto:extra.comidas_defecto||null
@@ -6362,7 +6362,8 @@ function renderSemanaCalendario(c){
     tecnica:  {icon:'🥋', label:'Técnica',   color:'#FFB300'},
     sparring: {icon:'🥊', label:'Sparring',  color:'#FF6B35'},
     cardio:   {icon:'🏃', label:'Cardio',    color:'#00E5FF'},
-    fisico:   {icon:'🏋️', label:'Físico',   color:'#AB47BC'},
+    fisico:   {icon:'🏋️', label:'Físico',  color:'#AB47BC'},
+    gym:      {icon:'🏋️', label:'Fuerza',  color:'#4D9FFF'}, // legacy alias
     descanso: {icon:'😴', label:'Descanso',  color:'#4A5568'},
   };
 
