@@ -4123,6 +4123,10 @@ function adminSemToggle(selId){
   var e2=document.getElementById('e-sem-'+d+'-2');
   var wrap=document.getElementById('e-sem-'+d+'-t-wrap');
   if(wrap) wrap.style.display=(e2&&e2.value)?'flex':'none';
+  // Actualizar color borde del select
+  var sel1=document.getElementById('e-sem-'+d+'-1');
+  if(sel1){var SCOL={tecnica:'#FFB300',sparring:'#FF6B35',fuerza:'#4D9FFF',cardio:'#00E5FF',fisico:'#AB47BC',descanso:'#1A2A40'};sel1.style.borderColor=SCOL[sel1.value]||'#1A2A40';}
+  renderAdminSemPreview();
 }
 // Activa seguidas o separadas para un día
 function adminSemTipo(d, tipo){
@@ -4130,9 +4134,41 @@ function adminSemTipo(d, tipo){
   var sep=document.getElementById('e-sem-'+d+'-t-sep');
   if(seg){seg.style.border='1px solid '+(tipo==='seguidas'?'#00E5FF':'#1A2A40');seg.style.background=tipo==='seguidas'?'rgba(0,229,255,.15)':'transparent';seg.style.color=tipo==='seguidas'?'#00E5FF':'#4A5568';}
   if(sep){sep.style.border='1px solid '+(tipo==='separadas'?'#FFB300':'#1A2A40');sep.style.background=tipo==='separadas'?'rgba(255,179,0,.15)':'transparent';sep.style.color=tipo==='separadas'?'#FFB300':'#4A5568';}
-  // Guardar valor en data attr
   var col=document.getElementById('e-sem-col-'+d);
   if(col) col.dataset.tipo=tipo;
+  renderAdminSemPreview();
+}
+
+// ── Vista previa semana (admin) ──────────────────────────────────
+function renderAdminSemPreview(){
+  var el=document.getElementById('admin-sem-preview');
+  if(!el) return;
+  var DIAS=[['1','L'],['2','M'],['3','X'],['4','J'],['5','V'],['6','S'],['0','D']];
+  var SCOL={tecnica:'#FFB300',sparring:'#FF6B35',fuerza:'#4D9FFF',cardio:'#00E5FF',fisico:'#AB47BC',descanso:'rgba(255,255,255,.05)'};
+  var SICON={tecnica:'🥋',sparring:'🥊',fuerza:'💪',cardio:'🏃',fisico:'🏋️',descanso:'😴'};
+  var hoyDow=String(new Date().getDay());
+  var html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">';
+  DIAS.forEach(function(d){
+    var e1=document.getElementById('e-sem-'+d[0]+'-1');
+    var e2=document.getElementById('e-sem-'+d[0]+'-2');
+    var col=document.getElementById('e-sem-col-'+d[0]);
+    var v1=e1?e1.value:'descanso';
+    var v2=e2?e2.value:'';
+    var tipo=col?col.dataset.tipo:'seguidas';
+    var isHoy=d[0]===hoyDow;
+    var bg=v1!=='descanso'?(SCOL[v1]||'#333'):SCOL.descanso;
+    var border=isHoy?'2px solid #0055FF':'1px solid rgba(255,255,255,.08)';
+    html+='<div style="text-align:center;border-radius:8px;border:'+border+';background:'+bg+
+      (v1!=='descanso'?'20':'')+';padding:5px 2px;position:relative">'+
+      (isHoy?'<div style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:8px;background:#0055FF;color:#fff;border-radius:3px;padding:0 4px;font-weight:900;white-space:nowrap">HOY</div>':'')+
+      '<div style="font-size:9px;font-weight:900;color:#6E8090;margin-bottom:2px">'+d[1]+'</div>'+
+      '<div style="font-size:14px;line-height:1">'+( SICON[v1]||'—')+'</div>'+
+      (v2?'<div style="font-size:11px;line-height:1;margin-top:1px">'+(SICON[v2]||'')+'</div>'+
+        '<div style="font-size:7px;color:'+(tipo==='seguidas'?'#00E5FF':'#FFB300')+';font-weight:700;margin-top:1px">'+(tipo==='seguidas'?'jun':'sep')+'</div>':'')+
+    '</div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
 }
 
 function renderPlanificador(c, compact){
@@ -5473,7 +5509,12 @@ async function adminTab(tab,btn){
                   '</div>'+
                 '</div>';
               }).join('')+
-            '</div></div>';
+            '</div></div>'+
+            // Vista previa semana
+            '<div class="field" style="grid-column:1/-1;margin-top:4px">'+
+              '<label style="display:flex;align-items:center;gap:6px">👁️ Vista previa cliente<span style="font-size:10px;font-weight:400;color:#4A5568">— se actualiza al instante</span></label>'+
+              '<div id="admin-sem-preview" style="margin-top:8px"></div>'+
+            '</div>';
           }())
         :
           '<div id="e-fecha-pelea-ph"></div><div id="e-peso-cat-ph"></div>'+
@@ -5530,6 +5571,8 @@ async function adminTab(tab,btn){
         '<button class="btn bg bsm" onclick="recalcCfgMacros()">⚡ Recalcular</button>'+
         '<button class="btn bg bsm" onclick="toggleActivo()">'+( cl.activo?'🚫 Desactivar':'✅ Activar')+'</button>'+
       '</div></div></div>';
+    // Renderizar preview semana si existe el div
+    setTimeout(renderAdminSemPreview, 50);
   }
   else if(tab==='ci'){
     try{
@@ -6524,6 +6567,80 @@ function renderSemanaCalendario(c){
     '</div>';
 }
 
+// ── BIENESTAR ──────────────────────────────────────────────────
+var _bienestarHoy={sueno:null,sensaciones:null,fatiga_percibida:null,estres:null};
+
+function setBienestar(key, val){
+  _bienestarHoy[key]=val;
+  // Actualizar visual: todos los botones de ese key
+  var maxMap={sueno:5,sensaciones:10,fatiga_percibida:5,estres:5};
+  var max=maxMap[key]||5;
+  for(var i=1;i<=max;i++){
+    // Buscar botones por onclick
+  }
+  // Re-render solo la tarjeta de bienestar sin recargar todo loadCamp
+  renderBienestarCard();
+}
+
+function renderBienestarCard(){
+  var card=document.getElementById('bienestar-card');
+  if(!card) return;
+  var BIEN_METRICS=[
+    {key:'sueno',label:'Sueño',icon:'😴',max:5,desc:['','Fatal','Mal','Regular','Bien','Genial']},
+    {key:'sensaciones',label:'Energía',icon:'⚡',max:10,desc:null},
+    {key:'fatiga_percibida',label:'Fatiga',icon:'🔋',max:5,desc:['','Fresco','Ligero','Moderado','Cargado','Agotado']},
+    {key:'estres',label:'Estrés',icon:'🧠',max:5,desc:['','Tranquilo','Algo','Moderado','Alto','Muy alto']},
+  ];
+  var gridHtml=BIEN_METRICS.map(function(m){
+    var val=_bienestarHoy[m.key];
+    var valLabel=val?(m.desc?m.desc[val]:val+'/'+m.max):'—';
+    var stars='<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px">';
+    for(var i=1;i<=m.max;i++){
+      var active=val&&i<=val;
+      stars+='<button onclick="setBienestar(\''+m.key+'\','+i+')" style="width:'+(m.max===10?'22px':'28px')+
+        ';height:'+(m.max===10?'22px':'28px')+';border-radius:50%;border:2px solid '+(active?'#0055FF':'rgba(255,255,255,.12)')+
+        ';background:'+(active?'rgba(0,85,255,.25)':'transparent')+
+        ';color:'+(active?'#F0F4FF':'#2A3A50')+';font-size:'+(m.max===10?'11':'12')+'px;font-weight:900;cursor:pointer">'+i+'</button>';
+    }
+    stars+='</div>';
+    return '<div>'+
+      '<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">'+
+        '<span style="font-size:16px">'+m.icon+'</span>'+
+        '<span style="font-size:12px;font-weight:700;color:#F0F4FF">'+m.label+'</span>'+
+        (val?'<span style="margin-left:auto;font-size:11px;font-weight:800;color:#0055FF">'+valLabel+'</span>':'')+
+      '</div>'+stars+'</div>';
+  }).join('');
+  // Mantener sparkline
+  var spark=card.querySelector('[data-spark]');
+  var sparkHtml=spark?spark.outerHTML:'';
+  var btn=card.querySelector('button[onclick*="guardarBienestar"]');
+  var cb=card.querySelector('.cb');
+  if(cb) cb.innerHTML=
+    '<div class="g2" style="gap:12px">'+gridHtml+'</div>'+
+    '<button onclick="guardarBienestar()" style="width:100%;margin-top:12px;padding:10px;background:linear-gradient(135deg,#0055FF,#0044CC);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.5px">💾 Guardar bienestar</button>'+
+    sparkHtml;
+}
+
+async function guardarBienestar(){
+  var c=S.user;
+  var datos=_bienestarHoy;
+  if(!datos.sueno&&!datos.sensaciones&&!datos.fatiga_percibida&&!datos.estres){
+    toast('Rellena al menos un campo','warn'); return;
+  }
+  try{
+    var payload={
+      cliente_id:c.id,
+      fecha:hoy(),
+      sueno:datos.sueno||null,
+      sensaciones:datos.sensaciones||null,
+      fatiga_percibida:datos.fatiga_percibida||null,
+      estres:datos.estres||null
+    };
+    await db.upsert('registros_entreno',payload,'cliente_id,fecha');
+    toast('✅ Bienestar guardado','ok');
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
 async function guardarPeso(){
   var val=parseFloat(document.getElementById('peso-input')&&document.getElementById('peso-input').value);
   if(!val||val<30||val>250){toast('Introduce un peso válido','err');return;}
@@ -6705,6 +6822,102 @@ async function loadCamp(){
   var hasPlanner=c&&c.tipo_plan&&c.tipo_plan.includes('combate')&&c.inicio_protocolo&&c.semanas_protocolo;
 
   var html='';
+
+  // ── BIENESTAR HOY ────────────────────────────────────────────
+  var bienestarData={sueno:null,sensaciones:null,fatiga_percibida:null,estres:null};
+  try{
+    var reHoy=await db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=eq.'+hoy()+'&limit=1');
+    if(reHoy&&reHoy[0]){
+      bienestarData.sueno=reHoy[0].sueno||null;
+      bienestarData.sensaciones=reHoy[0].sensaciones||null;
+      bienestarData.fatiga_percibida=reHoy[0].fatiga_percibida||null;
+      bienestarData.estres=reHoy[0].estres||null;
+    }
+    // Sincronizar estado global para que setBienestar parta de los valores guardados
+    _bienestarHoy={sueno:bienestarData.sueno,sensaciones:bienestarData.sensaciones,
+      fatiga_percibida:bienestarData.fatiga_percibida,estres:bienestarData.estres};
+    // Últimos 7 días de bienestar
+    var hace7=new Date(); hace7.setDate(hace7.getDate()-6);
+    var hace7Str=hace7.toISOString().split('T')[0];
+    var reSemana=await db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=gte.'+hace7Str+'&order=fecha.asc&limit=7');
+    S._bienestarSemana=reSemana||[];
+  }catch(e){S._bienestarSemana=[];}
+
+  var BIEN_METRICS=[
+    {key:'sueno',label:'Sueño',icon:'😴',max:5,desc:['','Fatal','Mal','Regular','Bien','Genial']},
+    {key:'sensaciones',label:'Energía',icon:'⚡',max:10,desc:null},
+    {key:'fatiga_percibida',label:'Fatiga',icon:'🔋',max:5,desc:['','Fresco','Ligero','Moderado','Cargado','Agotado']},
+    {key:'estres',label:'Estrés',icon:'🧠',max:5,desc:['','Tranquilo','Algo','Moderado','Alto','Muy alto']},
+  ];
+
+  function bienStars(key,max,val){
+    var h='<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px">';
+    for(var i=1;i<=max;i++){
+      var active=val&&i<=val;
+      h+='<button onclick="setBienestar(\''+key+'\','+i+')" style="width:'+(max===10?'22px':'28px')+
+        ';height:'+(max===10?'22px':'28px')+';border-radius:50%;border:2px solid '+(active?'#0055FF':'rgba(255,255,255,.12)')+
+        ';background:'+(active?'rgba(0,85,255,.25)':'transparent')+
+        ';color:'+(active?'#F0F4FF':'#2A3A50')+';font-size:'+(max===10?'11':'12')+'px;font-weight:900;cursor:pointer">'+i+'</button>';
+    }
+    h+='</div>';
+    return h;
+  }
+
+  // Sparkline 7 días bienestar (sensaciones como indicador principal)
+  function bienSparkline(){
+    var sem=S._bienestarSemana||[];
+    if(!sem.length) return '';
+    var DIAS_S=['D','L','M','X','J','V','S'];
+    var hoyD=new Date(); hoyD.setHours(0,0,0,0);
+    var semMap={};
+    sem.forEach(function(r){ semMap[r.fecha]=r; });
+    var days=[];
+    for(var i=6;i>=0;i--){var d=new Date(hoyD);d.setDate(hoyD.getDate()-i);days.push(d);}
+    var html='<div data-spark="1" style="display:flex;gap:4px;align-items:flex-end;margin-top:8px">';
+    days.forEach(function(d){
+      var ds=d.toISOString().split('T')[0];
+      var r=semMap[ds];
+      var sens=r?r.sensaciones:null;
+      var fatiga=r?r.fatiga_percibida:null;
+      var sueno=r?r.sueno:null;
+      // Color según sensaciones
+      var col=sens===null?'#1A2A40':sens>=8?'#00C853':sens>=6?'#FFB300':sens>=4?'#FF6B35':'#FF1744';
+      var h=sens?Math.round(sens/10*36)+4:4;
+      var isHoy=ds===hoy();
+      html+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">'+
+        '<div title="'+(sens?'Energía: '+sens+'/10':'Sin registro')+'" style="width:100%;height:'+h+'px;background:'+col+';border-radius:3px 3px 0 0;min-height:4px;opacity:'+(isHoy?1:.75)+'"></div>'+
+        (sueno?'<div title="Sueño '+sueno+'/5" style="font-size:9px">'+['','😫','😕','😐','🙂','😴'][sueno]+'</div>':'<div style="font-size:9px;color:#1A2A40">—</div>')+
+        '<div style="font-size:8px;font-weight:700;color:'+(isHoy?'#0055FF':'#4A5568')+'">'+DIAS_S[d.getDay()]+'</div>'+
+      '</div>';
+    });
+    html+='</div>';
+    return html;
+  }
+
+  html+=
+    '<div class="card" style="margin-bottom:.75rem" id="bienestar-card">'+
+      '<div class="ch">🧠 Bienestar hoy'+
+        '<div style="margin-left:auto;font-size:11px;color:#4A5568">'+new Date().toLocaleDateString('es-ES',{weekday:'long'})+'</div>'+
+      '</div>'+
+      '<div class="cb">'+
+        '<div class="g2" style="gap:12px">'+
+          BIEN_METRICS.map(function(m){
+            var val=bienestarData[m.key];
+            var valLabel=val?(m.desc?m.desc[val]:val+'/'+m.max):'—';
+            return '<div>'+
+              '<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">'+
+                '<span style="font-size:16px">'+m.icon+'</span>'+
+                '<span style="font-size:12px;font-weight:700;color:#F0F4FF">'+m.label+'</span>'+
+                (val?'<span style="margin-left:auto;font-size:11px;font-weight:800;color:#0055FF">'+valLabel+'</span>':'')+
+              '</div>'+
+              bienStars(m.key,m.max,val)+
+            '</div>';
+          }).join('')+
+        '</div>'+
+        '<button onclick="guardarBienestar()" style="width:100%;margin-top:12px;padding:10px;background:linear-gradient(135deg,#0055FF,#0044CC);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.5px">💾 Guardar bienestar</button>'+
+        bienSparkline()+
+      '</div>'+
+    '</div>';
 
   // ── FASE ACTUAL (siempre visible) ────────────────────────────
   var fase=getFaseCombate(c);
