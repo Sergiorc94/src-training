@@ -5750,7 +5750,8 @@ async function guardarCfg(){
         return Object.keys(obj).length?JSON.stringify(obj):null;
       }())};
     try{
-      await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({
+      // Payload base (todos los tipos de cliente)
+      var rpcPayload={
         p_id:c.id,
         p_kcal_descanso:extra.kcal_descanso,
         p_proteina_descanso:extra.proteina_descanso,
@@ -5760,16 +5761,22 @@ async function guardarCfg(){
         p_semanas_protocolo:extra.semanas_protocolo,
         p_tipo_plan:extra.tipo_plan||null,
         p_tipo_cliente:extra.tipo_cliente||'fitness',
-        p_fecha_pelea:extra.fecha_pelea||null,
-        p_peso_categoria:extra.peso_categoria||null,
-        p_deporte:extra.deporte||null,
-        p_nivel_combate:extra.nivel_combate||null,
-        p_dias_prep_fisica:extra.dias_prep_fisica||null,
-        p_material_disponible:extra.material_disponible||null,
-        p_fase_combate:extra.fase_combate||null,
         p_plan_semanal:extra.plan_semanal||null,
         p_comidas_defecto:extra.comidas_defecto||null
-      })});
+      };
+      // Campos exclusivos de combate — solo si el cliente es combate
+      if(extra.tipo_cliente==='combate'){
+        Object.assign(rpcPayload,{
+          p_fecha_pelea:extra.fecha_pelea||null,
+          p_peso_categoria:extra.peso_categoria||null,
+          p_deporte:extra.deporte||null,
+          p_nivel_combate:extra.nivel_combate||null,
+          p_dias_prep_fisica:extra.dias_prep_fisica||null,
+          p_material_disponible:extra.material_disponible||null,
+          p_fase_combate:extra.fase_combate||null
+        });
+      }
+      await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify(rpcPayload)});
       Object.assign(S.ca,extra);
     }catch(e2){console.warn('Error guardando extras:',e2.message);}
 
