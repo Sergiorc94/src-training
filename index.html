@@ -110,14 +110,14 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
 .isml:focus{border-color:#0055FF}
 
 /* ── MOBILE BOTTOM NAV ───────────────── */
-.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#070E1A;border-top:1px solid #1A2A40;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.5)}
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#070E1A;border-top:1px solid #1A2A40;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.5);padding-bottom:env(safe-area-inset-bottom,0px)}
 .mob-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 6px;background:none;border:none;color:#4A5568;font-size:9px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:color .15s;-webkit-tap-highlight-color:transparent}
 .mob-nav-btn.mob-active{color:#0055FF}
 .mob-nav-icon{font-size:20px;line-height:1}
 @media(max-width:640px){
   .mob-nav{display:flex}
   .tabs{display:none!important}
-  #app{padding-bottom:72px}
+  #app{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   .g4{grid-template-columns:repeat(2,1fr)!important}
   .g3{grid-template-columns:1fr 1fr!important}
   .main{padding:1rem .75rem}
@@ -259,7 +259,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
 
 <div id="app">
   <!-- NAVBAR -->
-  <div class="nav" style="display:flex;align-items:center;gap:0;padding:0 1rem;background:#070E1A;border-bottom:1px solid #1A2A40;position:sticky;top:0;z-index:50;height:56px;box-shadow:0 2px 20px rgba(0,0,0,.4)">
+  <div class="nav" style="display:flex;align-items:center;gap:0;padding:0 1rem;padding-top:env(safe-area-inset-top,0px);background:#070E1A;border-bottom:1px solid #1A2A40;position:sticky;top:0;z-index:50;min-height:56px;box-shadow:0 2px 20px rgba(0,0,0,.4)">
     <div style="display:flex;align-items:center;gap:10px;margin-right:auto">
       <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:1px">SRC</div>
       <div style="display:flex;flex-direction:column;line-height:1.1">
@@ -3368,6 +3368,10 @@ const COMBATE_DIAS_MAP={
   d5:{1:'A',2:'B',4:'C',5:'D',6:'E'}
 };
 function getFaseCombate(c){
+  // El entrenador controla la fase manualmente desde el panel admin.
+  // Si está definida, tiene prioridad absoluta.
+  if(c.fase_combate) return c.fase_combate;
+  // Fallback automático por fecha de pelea (si no hay fase manual)
   if(!c.fecha_pelea) return 'base';
   var fp=new Date(c.fecha_pelea),hD=new Date();hD.setHours(0,0,0,0);
   var dias=Math.ceil((fp-hD)/(24*3600*1000));
@@ -5260,7 +5264,29 @@ async function adminTab(tab,btn){
           '</select></div>'+
           '<div class="field"><label>💼 Tipo de trabajo</label><select id="e-trabajo-tipo">'+
             [['sedentario','Sedentario (oficina)'],['moderado','Moderado (de pie/activo)'],['activo','Activo (físico/manual)']].map(function(x){return '<option value="'+x[0]+'"'+((cl.trabajo_tipo||'sedentario')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
-          '</select></div>'
+          '</select></div>'+
+          // ── FASE DE PREPARACIÓN ──────────────────────────────────
+          '<div class="field" style="grid-column:1/-1"><label>🏗️ Fase de preparación actual</label><select id="e-fase-combate">'+
+            [['base','🏗️ Base / Acumulación'],['especial','⚡ Especial / Transformación'],['competicion','🏆 Competición / Peaking'],['transicion','🔄 Transición / Recuperación']]
+              .map(function(x){return '<option value="'+x[0]+'"'+((cl.fase_combate||'base')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
+          '</select></div>'+
+          // ── PLAN SEMANAL ─────────────────────────────────────────
+          '<div class="field" style="grid-column:1/-1"><label>📅 Distribución semanal de sesiones</label>'+
+          (function(){
+            var ps=cl.plan_semanal?(typeof cl.plan_semanal==='string'?JSON.parse(cl.plan_semanal):cl.plan_semanal):{};
+            var dias=[['1','LUN'],['2','MAR'],['3','MIÉ'],['4','JUE'],['5','VIE'],['6','SÁB'],['0','DOM']];
+            var opts=[['sparring','🥊 Sparring'],['ambos','🔥 Tec+Gym'],['tecnica','🥋 Técnica'],['cardio','🏃 Cardio'],['gym','🏋️ Fuerza'],['descanso','🛌 Descanso']];
+            return '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px">'+
+              dias.map(function(d){
+                var val=ps[d[0]]||'descanso';
+                return '<div style="text-align:center">'+
+                  '<div style="font-size:9px;font-weight:800;color:#4A5568;margin-bottom:3px;letter-spacing:.5px">'+d[1]+'</div>'+
+                  '<select id="e-sem-'+d[0]+'" style="width:100%;font-size:9px;padding:4px 2px;border-radius:6px;background:#0D1528;border:1px solid #1A2A40;color:#F0F4FF;text-align:center">'+
+                    opts.map(function(o){return '<option value="'+o[0]+'"'+(val===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+
+                  '</select></div>';
+              }).join('')+
+            '</div></div>';
+          }())
         :
           '<div id="e-fecha-pelea-ph"></div><div id="e-peso-cat-ph"></div>'+
           '<div id="e-deporte-ph"></div><div id="e-nivel-ph"></div><div id="e-mat-ph"></div>'
@@ -5444,7 +5470,12 @@ async function guardarCfg(){
       material_disponible:document.getElementById('e-material')?document.getElementById('e-material').value||null:null,
       dias_tecnica:document.getElementById('e-dias-tec')?parseInt(document.getElementById('e-dias-tec').value)||3:null,
       horas_tecnica:document.getElementById('e-horas-tec')?parseFloat(document.getElementById('e-horas-tec').value)||1.5:null,
-      trabajo_tipo:document.getElementById('e-trabajo-tipo')?document.getElementById('e-trabajo-tipo').value||null:null};
+      trabajo_tipo:document.getElementById('e-trabajo-tipo')?document.getElementById('e-trabajo-tipo').value||null:null,
+      fase_combate:document.getElementById('e-fase-combate')?document.getElementById('e-fase-combate').value||null:null,
+      plan_semanal:(function(){
+        var obj={};[0,1,2,3,4,5,6].forEach(function(d){var el=document.getElementById('e-sem-'+d);if(el)obj[d]=el.value;});
+        return Object.keys(obj).length?JSON.stringify(obj):null;
+      }())};
     try{
       await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({
         p_id:c.id,
@@ -5464,7 +5495,9 @@ async function guardarCfg(){
         p_material_disponible:extra.material_disponible||null,
         p_dias_tecnica:extra.dias_tecnica||null,
         p_horas_tecnica:extra.horas_tecnica||null,
-        p_trabajo_tipo:extra.trabajo_tipo||null
+        p_trabajo_tipo:extra.trabajo_tipo||null,
+        p_fase_combate:extra.fase_combate||null,
+        p_plan_semanal:extra.plan_semanal||null
       })});
       Object.assign(S.ca,extra);
     }catch(e2){console.warn('Error guardando extras:',e2.message);}
@@ -6849,7 +6882,7 @@ function renderTipoDiaCombate(){
     return;
   }
 
-  // ══ BLOQUE 1: TIPO DE DÍA ══════════════════════════════════════
+  // ══ BLOQUE 1: TIPO DE DÍA (asignado por entrenador) ═══════════
   var tipos=[
     {id:'sparring', icon:'🥊',label:'Sparring',  color:'#FF2D55'},
     {id:'ambos',    icon:'🔥',label:'Tec+Gym',   color:'#FF6B35'},
@@ -6858,6 +6891,28 @@ function renderTipoDiaCombate(){
     {id:'gym',      icon:'🏋️',label:'Fuerza',   color:'#4D9FFF'},
     {id:'descanso', icon:'🛌',label:'Descanso',  color:'#6E8090'},
   ];
+  var diasNom=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var dow=new Date().getDay(); // 0=Dom,1=Lun...
+  // Auto-determinar tipo de sesión del plan del entrenador
+  var planSem=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
+  if(planSem&&planSem[dow]!==undefined&&planSem[dow]!=='') S.combatDiaTipo=planSem[dow];
+  if(!S.combatDiaTipo) S.combatDiaTipo='tecnica';
+  var dm=m[S.combatDiaTipo]||m.tecnica; // recalcular dm con tipo actualizado
+  var tipoHoy=tipos.find(function(t){return t.id===S.combatDiaTipo;})||tipos[2];
+
+  // Tarjeta de sesión asignada (solo lectura — el entrenador lo fija)
+  html+='<div style="background:rgba('+hexToRgb(tipoHoy.color)+',.08);border:1.5px solid '+tipoHoy.color+';border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">'+
+    '<div style="font-size:28px">'+tipoHoy.icon+'</div>'+
+    '<div style="flex:1">'+
+      '<div style="font-size:15px;font-weight:900;color:'+tipoHoy.color+'">'+tipoHoy.label+'</div>'+
+      '<div style="font-size:10px;color:#4A5568;margin-top:2px">'+diasNom[dow]+' · Sesión asignada por tu entrenador</div>'+
+    '</div>'+
+    '<div style="text-align:right">'+
+      '<div style="font-size:18px;font-weight:900;color:'+tipoHoy.color+'">'+dm.k+'</div>'+
+      '<div style="font-size:9px;color:#4A5568">kcal hoy</div>'+
+    '</div>'+
+  '</div>';
+
   // Readiness badge
   var rdData=getReadinessHoy();
   var rdInfo=rdData?getReadinessInfo(rdData.score):null;
@@ -6868,17 +6923,6 @@ function renderTipoDiaCombate(){
       '<div style="font-size:10px;color:#4A5568;margin-left:4px">'+rdInfo.tip+'</div>'+
     '</div>';
   }
-  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px">';
-  tipos.forEach(function(t){
-    var act=S.combatDiaTipo===t.id;
-    var dm_t=m[t.id]||m.tecnica;
-    html+='<button onclick="setCombatDiaTipo(\''+t.id+'\')" style="padding:7px 4px;border-radius:8px;border:1.5px solid '+(act?t.color:'#1A2A40')+';background:'+(act?'rgba('+hexToRgb(t.color)+',.14)':'#0D1528')+';color:'+(act?t.color:'#4A5568')+';cursor:pointer;text-align:center;transition:all .15s">'+
-      '<div style="font-size:14px">'+t.icon+'</div>'+
-      '<div style="font-size:10px;font-weight:700;margin-top:2px">'+t.label+'</div>'+
-      '<div style="font-size:10px;opacity:.75;margin-top:1px">'+dm_t.k+'kcal</div>'+
-    '</button>';
-  });
-  html+='</div>';
 
   // ══ BLOQUE 2: MACROS DEL DÍA ══════════════════════════════════
   // Siempre visible. Cuatro números grandes, clara y directa.
@@ -8556,12 +8600,43 @@ async function loadEntrenoCombate(){
     if(isPeaking) return 'RIR 4-5';
     return fase==='especial'?'RIR 2-3':fase==='competicion'?'RIR 3-4':'RIR '+d.rir;
   }
+  // ── DETECCIÓN DE TIPO DE EJERCICIO ───────────────────────────
+  function detectTipoEjercicio(nombre){
+    var n=(nombre||'').toLowerCase();
+    if(/assault.?bike|air.?bike|echo.?bike|assault|airbike/i.test(n)) return 'bike';
+    if(/remo|rowing|erg\b|ergómetro/i.test(n)) return 'remo';
+    if(/carrera|running|sprint|cinta|treadmill|correr/i.test(n)) return 'carrera';
+    if(/cuerda|jump.?rope|comba|salto.*cuerda/i.test(n)) return 'cuerda';
+    if(/sled|trineo|prowler/i.test(n)) return 'sled';
+    if(/sombra|shadow.?box|shadow/i.test(n)) return 'sombra';
+    if(/saco|heavy.?bag|bag/i.test(n)) return 'saco';
+    if(/interval|hiit|rondas.*×.*s|×.*s\//i.test(n)) return 'intervalos';
+    return 'fuerza';
+  }
+  // ── ETIQUETA TIPO EJERCICIO ───────────────────────────────────
+  function ejTipoBadge(tipo){
+    var map={
+      bike:{l:'🚴 Watts/FC',c:'0,229,255'},remo:{l:'🚣 Remo',c:'0,229,255'},
+      carrera:{l:'🏃 Carrera',c:'0,200,83'},cuerda:{l:'🪢 Cuerda',c:'255,179,0'},
+      sled:{l:'🛷 Sled',c:'255,107,53'},sombra:{l:'👊 Sombra',c:'171,71,188'},
+      saco:{l:'🥊 Saco',c:'255,45,85'},intervalos:{l:'⚡ Intervalos',c:'255,107,53'},
+    };
+    var x=map[tipo];
+    return x?'<span style="background:rgba('+x.c+',.12);color:rgba('+x.c+',1);border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700">'+x.l+'</span>':'';
+  }
+
   function buildSeriesArr(ejNom, sAdj, defaultReps){
+    var tipo=detectTipoEjercicio(ejNom);
+    var esCardio=tipo!=='fuerza';
     var ejGuardado=S.reCombate.ejercicios[ejNom]||{series:[]};
     var arr=[];
     for(var i=0;i<sAdj;i++){
       var sg=ejGuardado.series&&ejGuardado.series[i]||{};
-      arr.push({done:sg.done||false,kg:sg.kg||'',reps:sg.reps||defaultReps||'',rpe:sg.rpe||0});
+      if(esCardio){
+        arr.push({done:sg.done||false,tiempo:sg.tiempo||'',vatios:sg.vatios||'',fc:sg.fc||'',rpe:sg.rpe||0,_tipo:tipo});
+      } else {
+        arr.push({done:sg.done||false,kg:sg.kg||'',reps:sg.reps||defaultReps||'',rpe:sg.rpe||0,_tipo:'fuerza'});
+      }
     }
     return arr;
   }
@@ -8579,7 +8654,7 @@ async function loadEntrenoCombate(){
     return '<span style="background:rgba(255,179,0,.1);color:#FFB300;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700">'+d.r+'</span>'+
       (rirAdj!=='—'?'<span style="background:rgba(0,200,83,.1);color:#00C853;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700">'+rirAdj+'</span>':'')+
       curvaBadge(d.patron)+
-      '<span style="background:rgba(110,102,91,.08);color:var(--text-3);border-radius:4px;padding:2px 7px;font-size:10px">'+d.patron+'</span>';
+      (d.patron?'<span style="background:rgba(110,102,91,.08);color:var(--text-3);border-radius:4px;padding:2px 7px;font-size:10px">'+d.patron+'</span>':'');
   }
 
   sesion.bloques.forEach(function(bloque){
@@ -8719,8 +8794,9 @@ async function loadEntrenoCombate(){
         html+='<div style="background:var(--surface-2);border-radius:8px;padding:10px 12px;margin-bottom:8px" id="'+ejId+'-block">'+
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'+
             '<div style="flex:1;min-width:0">'+
-              '<div style="display:flex;align-items:center;gap:6px">'+
+              '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
                 '<div style="font-size:13px;font-weight:700;color:var(--text)">'+ejNom+'</div>'+
+                ejTipoBadge(detectTipoEjercicio(ejNom))+
                 (getGuiaEj(ejNom)?'<button id="guia-btn-'+_guiaId+'" onclick="toggleGuiaEj(\''+_guiaId+'\')" style="flex-shrink:0;background:transparent;border:1px solid rgba(77,159,255,.25);border-radius:12px;padding:2px 7px;font-size:10px;font-weight:700;color:#4A5568;cursor:pointer;transition:all .2s" title="Cómo hacerlo">ℹ️</button>':'')+
               '</div>'+
               (d.nota?'<div style="font-size:11px;color:var(--gold);margin-top:2px">⚡ '+d.nota+'</div>':'')+
@@ -10261,16 +10337,33 @@ function calcProgresion(ejNom, reHistory, rirStr, repsStr){
   };
 }
 
+// ── DETECCIÓN GLOBAL DE TIPO DE EJERCICIO ─────────────────────
+// (también existe versión local en loadEntrenoCombate)
+function detectTipoEjercicio(nombre){
+  var n=(nombre||'').toLowerCase();
+  if(/assault.?bike|air.?bike|echo.?bike|assault|airbike/i.test(n)) return 'bike';
+  if(/remo|rowing|erg\b|ergómetro/i.test(n)) return 'remo';
+  if(/carrera|running|sprint|cinta|treadmill|correr/i.test(n)) return 'carrera';
+  if(/cuerda|jump.?rope|comba|salto.*cuerda/i.test(n)) return 'cuerda';
+  if(/sled|trineo|prowler/i.test(n)) return 'sled';
+  if(/sombra|shadow.?box|shadow/i.test(n)) return 'sombra';
+  if(/saco|heavy.?bag|bag/i.test(n)) return 'saco';
+  if(/interval|hiit|rondas.*×.*s|×.*s\//i.test(n)) return 'intervalos';
+  return 'fuerza';
+}
+
 function renderSerieRow(diaIdx, ei, si, s, lastMax, diaType, ejNom, ejRir){
   // diaType: 'fitness' | 'combate'
   var rpe=parseInt(s.rpe)||0;
-  var mejora=lastMax>0&&parseFloat(s.kg)>lastMax;
-  var igualAnterior=lastMax>0&&parseFloat(s.kg)===lastMax;
   var rpeColor=rpe>=9?'#FF1744':rpe>=8?'#FF6B35':rpe>=7?'#FFB300':rpe>=6?'#00C853':'#4A5568';
   var rowId=diaType==='combate'?('cej-'+ei+'-s'+si):('serie-row-'+diaIdx+'-'+ei+'-'+si);
   var ejNomEsc=(ejNom||'').replace(/'/g,"\\'");
   var isDone=!!s.done;
   var isSug=!!s._sugerido&&!isDone;
+
+  // Detectar tipo de ejercicio para mostrar campos adecuados
+  var ejTipo=s._tipo||detectTipoEjercicio(ejNom);
+  var esCardio=ejTipo!=='fuerza';
 
   var html='<div style="margin-bottom:5px;border-radius:6px;padding:4px 6px;transition:all .2s;'+
     (isDone?'background:rgba(0,200,83,.05);border:1px solid rgba(0,200,83,.2)':
@@ -10278,31 +10371,70 @@ function renderSerieRow(diaIdx, ei, si, s, lastMax, diaType, ejNom, ejRir){
      'background:transparent;border:1px solid transparent')+
   '" id="'+rowId+'">';
 
-  // Fila principal: S# / kg / reps / ✓
-  html+='<div style="display:flex;gap:5px;align-items:center">'+
-    '<div class="serie-num" style="font-size:11px;font-weight:700;color:'+(isDone?'#00C853':isSug?'#4D9FFF':'#4A5568')+';min-width:22px">S'+(si+1)+'</div>'+
-    '<input type="number" step="0.5" placeholder="kg" value="'+(s.kg||'')+'" '+
-      'style="width:60px;padding:5px 6px;background:#0D1528;border:1px solid '+(isSug?'rgba(0,85,255,.35)':'#1A2A40')+';border-radius:6px;color:'+(isSug?'#7AB8FF':'#F0F4FF')+';font-size:13px;font-weight:700;text-align:center" '+
-      'oninput="'+(diaType==='combate'?'updateSerieCombate(\''+ejNomEsc+'\','+si+',\'kg\',this.value)':'updateSerie('+diaIdx+','+ei+','+si+',\'kg\',this.value)')+'">'+
-    '<span style="color:#4A5568;font-size:11px">kg</span>'+
-    '<input type="number" placeholder="reps" value="'+(s.reps||'')+'" '+
-      'style="width:48px;padding:5px 6px;background:#0D1528;border:1px solid '+(isSug?'rgba(0,85,255,.35)':'#1A2A40')+';border-radius:6px;color:'+(isSug?'#7AB8FF':'#F0F4FF')+';font-size:13px;font-weight:700;text-align:center" '+
-      'oninput="'+(diaType==='combate'?'updateSerieCombate(\''+ejNomEsc+'\','+si+',\'reps\',this.value)':'updateSerie('+diaIdx+','+ei+','+si+',\'reps\',this.value)')+'">'+
-    '<span style="color:#4A5568;font-size:11px">rep</span>'+
-    (isSug?'<span class="sug-badge" title="Sugerencia automática" style="font-size:9px;color:#4D9FFF;background:rgba(0,85,255,.12);border:1px solid rgba(0,85,255,.25);border-radius:4px;padding:1px 4px;white-space:nowrap;flex-shrink:0">✦ sug</span>':'')+
-    (mejora?'<span style="font-size:12px">🔥</span>':(igualAnterior?'<span style="font-size:11px">➡️</span>':''))+
-    // ── Botón ✓ para fitness ─────────────────────────────────────
+  // ── FILA PRINCIPAL ────────────────────────────────────────────
+  if(esCardio){
+    // CARDIO: tiempo / vatios / pulsaciones
+    var camposCardio={
+      bike:    [{f:'tiempo',p:'seg',w:52},{f:'vatios',p:'W',w:48},{f:'fc',p:'ppm FC',w:52}],
+      remo:    [{f:'tiempo',p:'seg',w:52},{f:'vatios',p:'W',w:48},{f:'fc',p:'ppm FC',w:52}],
+      carrera: [{f:'tiempo',p:'seg',w:52},{f:'ritmo',p:'min/km',w:60},{f:'fc',p:'ppm FC',w:52}],
+      cuerda:  [{f:'tiempo',p:'seg',w:52},{f:'fc',p:'ppm FC',w:52}],
+      sled:    [{f:'tiempo',p:'seg',w:52},{f:'rpe',p:'RPE',w:40}],
+      sombra:  [{f:'tiempo',p:'seg',w:52},{f:'fc',p:'ppm FC',w:52}],
+      saco:    [{f:'tiempo',p:'seg',w:52},{f:'fc',p:'ppm FC',w:52}],
+      intervalos:[{f:'tiempo',p:'seg',w:52},{f:'fc',p:'ppm FC',w:52}],
+    };
+    var campos=camposCardio[ejTipo]||camposCardio.intervalos;
+    html+='<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+
+      '<div class="serie-num" style="font-size:11px;font-weight:700;color:'+(isDone?'#00C853':'#00E5FF')+';min-width:22px">R'+(si+1)+'</div>';
+    campos.forEach(function(cam){
+      if(cam.f==='rpe') return; // RPE se muestra abajo
+      var fieldKey=cam.f;
+      var val=s[fieldKey]||'';
+      html+='<input type="number" placeholder="'+cam.p+'" value="'+val+'" '+
+        'style="width:'+cam.w+'px;padding:5px 4px;background:#0D1528;border:1px solid #00E5FF22;border-radius:6px;color:#00E5FF;font-size:12px;font-weight:700;text-align:center" '+
+        'oninput="'+(diaType==='combate'?'updateSerieCombate(\''+ejNomEsc+'\','+si+',\''+fieldKey+'\',this.value)':'updateSerie('+diaIdx+','+ei+','+si+',\''+fieldKey+'\',this.value)')+'">'+
+        '<span style="color:#4A5568;font-size:10px">'+cam.p+'</span>';
+    });
+    // Botón completar ronda
     (diaType==='fitness'?
-      '<button onclick="marcarSerieFit('+diaIdx+','+ei+','+si+',\''+ejNomEsc+'\','+(getDescansoFitness(ejNom,ejRir))+')" '+
+      html+='<button onclick="marcarSerieFit('+diaIdx+','+ei+','+si+',\''+ejNomEsc+'\',20)" '+
         'id="done-btn-'+rowId+'" '+
         'style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:1.5px solid '+(isDone?'#00C853':'#1A2A40')+';'+
         'background:'+(isDone?'rgba(0,200,83,.15)':'#0D1528')+';color:'+(isDone?'#00C853':'#4A5568')+';'+
-        'font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;'+
-        '-webkit-tap-highlight-color:transparent">'+
-        (isDone?'✓':'○')+
-      '</button>':'')+
-  '</div>';
-  // Fila RPE compacta
+        'font-size:14px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent">'+
+        (isDone?'✓':'○')+'</button>'
+    :html+='');
+    html+='</div>';
+  } else {
+    // FUERZA: kg / reps
+    var mejora=lastMax>0&&parseFloat(s.kg)>lastMax;
+    var igualAnterior=lastMax>0&&parseFloat(s.kg)===lastMax;
+    html+='<div style="display:flex;gap:5px;align-items:center">'+
+      '<div class="serie-num" style="font-size:11px;font-weight:700;color:'+(isDone?'#00C853':isSug?'#4D9FFF':'#4A5568')+';min-width:22px">S'+(si+1)+'</div>'+
+      '<input type="number" step="0.5" placeholder="kg" value="'+(s.kg||'')+'" '+
+        'style="width:60px;padding:5px 6px;background:#0D1528;border:1px solid '+(isSug?'rgba(0,85,255,.35)':'#1A2A40')+';border-radius:6px;color:'+(isSug?'#7AB8FF':'#F0F4FF')+';font-size:13px;font-weight:700;text-align:center" '+
+        'oninput="'+(diaType==='combate'?'updateSerieCombate(\''+ejNomEsc+'\','+si+',\'kg\',this.value)':'updateSerie('+diaIdx+','+ei+','+si+',\'kg\',this.value)')+'">'+
+      '<span style="color:#4A5568;font-size:11px">kg</span>'+
+      '<input type="number" placeholder="reps" value="'+(s.reps||'')+'" '+
+        'style="width:48px;padding:5px 6px;background:#0D1528;border:1px solid '+(isSug?'rgba(0,85,255,.35)':'#1A2A40')+';border-radius:6px;color:'+(isSug?'#7AB8FF':'#F0F4FF')+';font-size:13px;font-weight:700;text-align:center" '+
+        'oninput="'+(diaType==='combate'?'updateSerieCombate(\''+ejNomEsc+'\','+si+',\'reps\',this.value)':'updateSerie('+diaIdx+','+ei+','+si+',\'reps\',this.value)')+'">'+
+      '<span style="color:#4A5568;font-size:11px">rep</span>'+
+      (isSug?'<span class="sug-badge" style="font-size:9px;color:#4D9FFF;background:rgba(0,85,255,.12);border:1px solid rgba(0,85,255,.25);border-radius:4px;padding:1px 4px;white-space:nowrap;flex-shrink:0">✦ sug</span>':'')+
+      (mejora?'<span style="font-size:12px">🔥</span>':(igualAnterior?'<span style="font-size:11px">➡️</span>':''))+
+      (diaType==='fitness'?
+        '<button onclick="marcarSerieFit('+diaIdx+','+ei+','+si+',\''+ejNomEsc+'\','+(getDescansoFitness(ejNom,ejRir))+')" '+
+          'id="done-btn-'+rowId+'" '+
+          'style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:1.5px solid '+(isDone?'#00C853':'#1A2A40')+';'+
+          'background:'+(isDone?'rgba(0,200,83,.15)':'#0D1528')+';color:'+(isDone?'#00C853':'#4A5568')+';'+
+          'font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;'+
+          '-webkit-tap-highlight-color:transparent">'+
+          (isDone?'✓':'○')+
+        '</button>':'')+
+    '</div>';
+  }
+
+  // ── FILA RPE ─────────────────────────────────────────────────
   html+='<div id="rpe-row-'+rowId+'" style="display:flex;align-items:center;gap:3px;margin-top:3px;margin-left:27px">'+
     '<span style="font-size:10px;color:#4A5568;font-weight:700;margin-right:2px">RPE</span>'+
     [6,7,8,9,10].map(function(v){
