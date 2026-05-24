@@ -3819,7 +3819,7 @@ const PLANES_GUIA=(function(){
   // Crea ejercicio compatible con el formato E (basico/cuerpo/completo)
   function g(nom,s,r,rir,nota,patron){
     var d={nom:nom,s:s,r:r,rir:rir||'—',nota:nota||'',patron:patron||'Fuerza'};
-    return {patron:d.patron,cuerpo:d,basico:d,completo:d};
+    return {nombre:nom,patron:d.patron,cuerpo:d,basico:d,completo:d};
   }
 
   // ─── BLOQUES COMPARTIDOS ────────────────────────────────────────
@@ -4169,6 +4169,121 @@ const PLANES_GUIA=(function(){
   };
 })();
 
+// ─── HELPERS GLOBALES DE ENTRENO COMBATE ─────────────────────────────
+// makeEj: versión global de g() (dentro de PLANES_GUIA la función es local)
+function makeEj(nom,s,r,rir,nota,patron){
+  var d={nom:nom,s:s,r:r,rir:rir||'—',nota:nota||'',patron:patron||'Fuerza'};
+  return {patron:d.patron,nombre:nom,cuerpo:d,basico:d,completo:d};
+}
+
+// ─── SEMANA EN FASE ───────────────────────────────────────────────────
+// Prioriza inicio_protocolo si está guardado, si no estima desde fecha_pelea
+function getSemanaEnFase(c){
+  if(c.inicio_protocolo){
+    var ini=new Date(c.inicio_protocolo);
+    var hD=new Date(); hD.setHours(0,0,0,0);
+    return Math.max(1,Math.floor((hD-ini)/(7*24*3600*1000))+1);
+  }
+  if(!c.fecha_pelea) return 1;
+  var fp=new Date(c.fecha_pelea), hD=new Date(); hD.setHours(0,0,0,0);
+  var diasFight=Math.max(0,Math.ceil((fp-hD)/(24*3600*1000)));
+  var fase=getFaseCombate(c);
+  if(fase==='camp_cronico'){
+    // Sem 1 camp = ~12 semanas antes del peaking (peaking empieza a 21 días)
+    var semRestantes=Math.min(12,Math.max(1,Math.ceil((diasFight-21)/7)));
+    return Math.max(1,12-semRestantes+1);
+  }
+  return 1;
+}
+
+// ─── PROTOCOLO ACONDICIONAMIENTO POR FASE/SEMANA ─────────────────────
+// Documento SRC Entrenos:
+//   Base sem 1-3 → A (aeróbico base 30min 65-70%)
+//   Base sem 4+  → B (VO2max 6×3min @90-95%)
+//   Camp crónico → C (resistencia láctica 5×3min @85%)
+//   Post-pelea   → A (vuelta aeróbica regenerativa)
+//   Peaking / Fight Week / Post-pesaje → null (sin acond. dedicado)
+function getProtocoloAcond(fase, semana){
+  if(fase==='base') return semana>=4?'B':'A';
+  if(fase==='camp_cronico') return 'C';
+  if(fase==='post_pelea') return 'A';
+  return null;
+}
+
+// Crea sesión de acondicionamiento específica para el protocolo activo
+function buildAcondSession(fase, proto, semana){
+  var protData={
+    'A':{s:1,r:'30 min',
+      nom:'Aeróbico Base — Protocolo A (Sem.'+semana+')',
+      nota:'FC 65-70%. Ritmo conversacional (puedes hablar entre frases). '+
+           'Bicicleta de asalto, cuerda o trote suave. Fundación aeróbica. '+
+           'Sem.'+semana+' de base — no hay que correr, hay que CONSTRUIR el motor.'},
+    'B':{s:6,r:'3 min',
+      nom:'Potencia Aeróbica VO2max — Protocolo B (Sem.'+semana+')',
+      nota:'6 rondas × 3min @90-95% FC máx / 3min descanso activo. '+
+           'VO2max real. Solo después de 3-4 semanas de base aeróbica sólida. '+
+           'Sem.'+semana+'. Si no aguantas las 6 rondas a esa FC, baja a Protocolo A una semana más.'},
+    'C':{s:5,r:'3 min',
+      nom:'Resistencia Láctica — Protocolo C (Sem.'+semana+')',
+      nota:'5 rondas × 3min @85% FC / 1min descanso activo. '+
+           'Aguantar la acidez. Umbral láctico. Sem.'+semana+' de camp. '+
+           'La acidez que sientes en el 4.º round se entrena aquí, no en el sparring.'},
+    'D':{s:4,r:'10-30 seg',
+      nom:'Progresión Aláctico-Láctico — Protocolo D (Sem.'+semana+')',
+      nota:'Ronda 1: 10s/60s · Ronda 2: 15s/45s · Ronda 3: 20s/30s · Ronda 4: 30s/20s. '+
+           'Transición completa de sistemas energéticos. Sem.'+semana+'. '+
+           'El entrenamiento más completo de los 4 pero el más duro — solo en fases específicas.'}
+  };
+  var pd=protData[proto];
+  if(!pd) return null;
+  return {
+    id:'D', nombre:'Acondicionamiento — Protocolo '+proto, emoji:'🏃',
+    bloques:[{
+      nombre:'Protocolo '+proto+' — '+pd.nom.split(' (Sem')[0], min:35,
+      ejs:[makeEj(pd.nom,pd.s,pd.r,'—',pd.nota,'Cardio')]
+    }]
+  };
+}
+
+// ─── LEY DE ACOMODACIÓN (Perfil 3 — Profesional) ─────────────────────
+// Documento SRC Entrenos: variación obligatoria cada semana para
+// evitar adaptación al estímulo (Principio de Acomodación de Zatsiorsky)
+var VARIANTES_EJERCICIO={
+  sentadilla:['Sentadilla con caja','Sentadilla Zercher','Sentadilla frontal','Sentadilla con cadenas','Sentadilla con bandas'],
+  bisagra:   ['Peso muerto sumo','Peso muerto hex/trap bar','Peso muerto agarre snatch','Peso muerto con banda','Peso muerto déficit'],
+  empuje:    ['Press banca','Press inclinado','Press estrecho (tríceps)','Press con cadenas','Floor press'],
+  tiron:     ['Dominadas con peso','Dominadas en anillas','Dominadas agarre neutro+peso','Remo barra','Remo con cadenas']
+};
+function getVarianteEjercicio(patron, semana){
+  var arr=VARIANTES_EJERCICIO[patron.toLowerCase()];
+  if(!arr) return null;
+  return arr[(semana-1)%arr.length];
+}
+// Sustituye "Patrón (VARÍA c/sem: ...)" por "Patrón — Sem.N: VarianteEspecífica"
+function applyLeyAcomodacion(sesion, semana){
+  var s2=JSON.parse(JSON.stringify(sesion));
+  s2.bloques=s2.bloques.map(function(blq){
+    blq.ejs=blq.ejs.map(function(ej){
+      var nom=ej.nombre||(ej.cuerpo&&ej.cuerpo.nom)||'';
+      var match=nom.match(/^(.+?)\s*\(VARÍA c\/sem:[^)]+\)/i);
+      if(match){
+        var patronKey=match[1].trim().toLowerCase();
+        var variante=getVarianteEjercicio(patronKey,semana);
+        if(variante){
+          var nuevoNom=match[1].trim()+' — Sem.'+semana+': '+variante;
+          ej.nombre=nuevoNom;
+          ['cuerpo','basico','completo'].forEach(function(m){
+            if(ej[m]) ej[m].nom=nuevoNom;
+          });
+        }
+      }
+      return ej;
+    });
+    return blq;
+  });
+  return s2;
+}
+
 // Normaliza nivel_combate → clave de perfil p1/p2/p3
 function getNivelPerfil(c){
   var niv=c.nivel_combate||'p2';
@@ -4217,7 +4332,15 @@ function getSesionGuia(c){
     var dm=plan.diasMap[dk]||plan.diasMap[Object.keys(plan.diasMap)[0]]||{1:'A',3:'B',5:'C'};
     var letra=dm[dow];
     var sesion=letra?sesiones.find(function(s){return s.id===letra;}):null;
-    return {sesion:sesion, sesiones:sesiones, perfil:perfil, plan:plan, faseLabel:faseLabel, faseNota:faseNota, dias:dk};
+    // Ley de Acomodación: sustituir variante semanal en sesiones de p3
+    var semActual=getSemanaEnFase(c);
+    if(perfil==='p3'&&sesion) sesion=applyLeyAcomodacion(sesion,semActual);
+    // Auto-seleccionar protocolo de acondicionamiento según fase/semana
+    if(sesion&&sesion.id==='D'){
+      var proto=getProtocoloAcond(fase,semActual);
+      if(proto){var aS=buildAcondSession(fase,proto,semActual);if(aS)sesion=aS;}
+    }
+    return {sesion:sesion, sesiones:sesiones, perfil:perfil, plan:plan, faseLabel:faseLabel, faseNota:faseNota, dias:dk, semActual:semActual};
   }
 }
 function selectPerfilGuia(cid,perfil){
@@ -5838,6 +5961,7 @@ function renderAdminCombateMacros(c){
     (c.trabajo_tipo||'sedentario')+
     (!(edad)?' <span style="color:#FFB300">⚠️ Falta edad</span>':'')+
   '</div>';
+  html+=renderCortePeso(c);
   return html;
 }
 
@@ -7222,9 +7346,11 @@ async function loadCamp(){
   // Focus points per phase
   var focusPts={
     base:['Construye tu base de fuerza','Volumen alto, intensidad moderada','Técnica limpia en todos los movimientos','Mantén el peso / pequeño superávit'],
-    especial:['Transfiere la fuerza al ring','Potencia explosiva — calidad > cantidad','Sparring aumenta, gym baja','Peso estable o pequeño déficit'],
-    competicion:['Mantén lo ganado, nada nuevo','Reducir volumen al 50%','Activación neurológica diaria','Corte de peso si aplica'],
-    transicion:['Recuperación activa','Nada intenso','Recomponer con buena nutrición','Planifica la siguiente temporada']
+    camp_cronico:['Transfiere la fuerza al ring','Potencia explosiva — calidad > cantidad','Sparring aumenta, gym baja','Déficit moderado 0.5-1 kg/sem'],
+    peaking:['Mantén lo ganado, nada nuevo','Volumen al 50% — calidad máxima','Método de contraste: fuerza + explosivo','Calorías suben — cuerpo recupera'],
+    fight_week:['Activación SNC suave','Sin nada nuevo, sin nada intenso','EMOM 12min + movilidad única sesión','Corte hídrico si aplica — protocolo ISSN'],
+    post_pesaje:['Sin entrenamiento hasta la pelea','Rehidratación activa inmediata','Carbos simples para recargar glucógeno','Llega lleno y activo al combate'],
+    post_pelea:['Recuperación activa','Sin métricas de rendimiento','Recomponer con buena nutrición','Planifica la siguiente temporada']
   };
   var fps=focusPts[fase]||[];
   // Weekly template based on dias_fuerza
@@ -7333,6 +7459,14 @@ async function loadCamp(){
       '</div>';
     }
   }catch(e){console.warn('peso chart:',e);}
+
+  // ── CORTE DE PESO ────────────────────────────────────────────
+  if(c.peso_categoria||c.fecha_pelea){
+    html+='<div class="card" style="margin-bottom:.75rem">'+
+      '<div class="ch">⚖️ Corte de peso — Planificación</div>'+
+      '<div class="cb">'+renderCortePeso(c)+'</div>'+
+    '</div>';
+  }
 
   // Planificador completo
   html+='<div class="card" style="margin-bottom:.75rem"><div class="ch">📊 Tu protocolo</div><div class="cb">'+
@@ -7566,6 +7700,81 @@ function renderReadinessWidget(){
   html+='<button onclick="guardarReadiness()" style="width:100%;padding:12px;background:linear-gradient(135deg,rgba(77,159,255,.9),rgba(51,120,220,.9));border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;margin-top:2px">✅ Guardar check-in</button>'+
     '</div></div>';
   el.innerHTML=html;
+}
+
+// ─── CALCULADORA CORTE DE PESO — Fórmula SRC / Claudia ───────────────
+// total   = peso_actual − categoría
+// crónico = total − 3kg  (los 3kg finales = deshidratación fight week)
+// semanas_necesarias = crónico / 0.75 kg/semana  (tasa de corte segura)
+// ISSN: máx 6.7% en 72h, 4.4% en 24h, 12% total absoluto
+function calcCortePeso(c){
+  var pesoActual=parseFloat(c.peso_inicial||0);
+  var pesoCat=parseFloat(c.peso_categoria||0);
+  if(!pesoActual||!pesoCat) return null;
+  var totalCorte=Math.round((pesoActual-pesoCat)*10)/10;
+  if(totalCorte<=0) return {ok:true,enCat:true,pesoActual:pesoActual,pesoCat:pesoCat,totalCorte:0};
+  var porcentaje=Math.round(totalCorte/pesoActual*1000)/10;
+  var cronico=Math.round(Math.max(0,totalCorte-3)*10)/10;
+  var fwReserve=Math.round(Math.min(3,totalCorte)*10)/10;
+  var semanasNecesarias=Math.round(cronico/0.75*10)/10;
+  var diasFight=0,semanasDisp=0;
+  if(c.fecha_pelea){
+    var fp=new Date(c.fecha_pelea),hD=new Date();hD.setHours(0,0,0,0);
+    diasFight=Math.max(0,Math.ceil((fp-hD)/(24*3600*1000)));
+    semanasDisp=Math.round(Math.max(0,(diasFight-7)/7)*10)/10;
+  }
+  var issn72h=Math.round(pesoActual*0.067*10)/10;
+  var issn24h=Math.round(pesoActual*0.044*10)/10;
+  var maxTotal=Math.round(pesoActual*0.12*10)/10;
+  var viable=semanasDisp>=semanasNecesarias;
+  var excedeLimite=totalCorte>maxTotal;
+  return {ok:true,enCat:false,
+    pesoActual:pesoActual,pesoCat:pesoCat,
+    totalCorte:totalCorte,porcentaje:porcentaje,
+    cronico:cronico,fwReserve:fwReserve,
+    semanasNecesarias:semanasNecesarias,semanasDisp:semanasDisp,
+    diasFight:diasFight,viable:viable,excedeLimite:excedeLimite,
+    issn72h:issn72h,issn24h:issn24h,maxTotal:maxTotal};
+}
+function renderCortePeso(c){
+  var d=calcCortePeso(c);
+  if(!d) return '<div style="font-size:11px;color:#4A5568;margin-top:8px;padding:6px">⚖️ Sin peso actual o categoría configurados — el admin debe completar estos campos.</div>';
+  if(d.enCat) return '<div style="font-size:12px;color:#00C853;margin-top:8px;padding:8px 10px;background:rgba(0,200,83,.06);border:1px solid rgba(0,200,83,.25);border-radius:8px">'+
+    '✅ Peso actual ('+d.pesoActual+'kg) ya dentro de la categoría ('+d.pesoCat+'kg). Sin corte de peso necesario.</div>';
+  var col=d.excedeLimite?'255,107,53':(d.viable?'0,200,83':'255,45,85');
+  var estado=d.excedeLimite?'⚠️ Riesgo elevado':(d.viable?'✅ Viable':'❌ Revisar categoría');
+  var html='<div style="background:rgba('+col+',.06);border:1px solid rgba('+col+',.3);border-radius:10px;padding:12px;margin-top:8px">';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">';
+  html+='<div style="font-size:12px;font-weight:800;color:#F0F4FF">⚖️ Corte de peso</div>';
+  html+='<div style="font-size:12px;font-weight:900;color:rgba('+col+',1)">'+estado+'</div>';
+  html+='</div>';
+  var chips=[
+    ['Peso actual',d.pesoActual+'kg',''],
+    ['Categoría',d.pesoCat+'kg',''],
+    ['Total corte',d.totalCorte+'kg',d.porcentaje+'% corporal'],
+    ['Crónico (dieta)',d.cronico+'kg','@0.75 kg/semana'],
+    ['Fight Week',d.fwReserve+'kg','deshidratación aguda'],
+    ['Sem. necesarias',d.semanasNecesarias,'/ '+d.semanasDisp+' disponibles'],
+  ];
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px">';
+  chips.forEach(function(ch){
+    html+='<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:6px 8px;text-align:center">'+
+      '<div style="font-size:15px;font-weight:900;color:#F0F4FF">'+ch[1]+'</div>'+
+      (ch[2]?'<div style="font-size:9px;color:#4A5568;margin-top:1px">'+ch[2]+'</div>':'')+
+      '<div style="font-size:9px;color:#4A5568;margin-top:2px">'+ch[0]+'</div>'+
+    '</div>';
+  });
+  html+='</div>';
+  html+='<div style="border-top:1px solid rgba('+col+',.15);padding-top:8px">';
+  html+='<div style="font-size:10px;font-weight:700;color:rgba('+col+',.8);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">ISSN — Límites de deshidratación aguda</div>';
+  html+='<div style="display:flex;gap:12px;margin-bottom:5px">';
+  html+='<div style="font-size:11px;color:#8892A4">72h antes: <strong style="color:#F0F4FF">máx '+d.issn72h+'kg</strong> (6.7%)</div>';
+  html+='<div style="font-size:11px;color:#8892A4">24h antes: <strong style="color:#F0F4FF">máx '+d.issn24h+'kg</strong> (4.4%)</div>';
+  html+='</div>';
+  if(d.excedeLimite) html+='<div style="font-size:11px;color:rgba(255,107,53,1);font-weight:700;margin-top:3px">⚠️ El corte total ('+d.totalCorte+'kg = '+d.porcentaje+'%) supera el límite ISSN del 12% del peso corporal. Evaluar cambio de categoría o consultar médico deportivo.</div>';
+  else if(!d.viable&&d.diasFight>0) html+='<div style="font-size:11px;color:rgba(255,45,85,1);font-weight:700;margin-top:3px">❌ Solo '+d.semanasDisp+' semanas disponibles para un corte de '+d.semanasNecesarias+' sem. Considerar categoría superior.</div>';
+  html+='</div></div>';
+  return html;
 }
 
 function calcMacrosCombate(c){
@@ -9492,6 +9701,7 @@ async function loadEntrenoCombate(){
     '</div>'+
     (perfilLabel?'<div style="font-size:10px;color:var(--text-3);margin-top:4px;font-weight:600">'+perfilLabel+'</div>':'')+
     (faseNota?'<div style="font-size:10px;color:var(--text-3);margin-top:3px;line-height:1.4;opacity:.8">'+faseNota+'</div>':'')+
+    ((_guia&&_guia.perfil==='p3')?'<div style="font-size:10px;color:rgba(171,71,188,.9);margin-top:4px;font-weight:700">🔄 Ley Acomodación — Sem.'+(_guia.semActual||1)+': variante activa en ejercicios principales</div>':'')+
   '</div>';
 
   // E1: Banner de peaking
