@@ -4335,6 +4335,28 @@ function getNivelPerfil(c){
 }
 // Obtiene la sesión guía para hoy
 // El perfil lo asigna el admin desde nivel_combate (p1/p2/p3)
+// Construye un mapa {getDay(): 'A'|'B'|'C'|'D'} basado en los días de gym del plan_semanal real del cliente.
+// Devuelve null si no hay plan_semanal o no hay días de gym definidos (usa el mapa por defecto).
+function getCustomDiasMap(c, dk){
+  var ps;
+  try{ ps=typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):(c.plan_semanal||{}); }
+  catch(e){ return null; }
+  // Orden Mon→Dom en getDay() terms: 1,2,3,4,5,6,0
+  var ORDER=[1,2,3,4,5,6,0];
+  // Clave en plan_semanal == getDay() (0=DOM, 1=LUN…6=SÁB)
+  var gymDays=ORDER.filter(function(dow){
+    var entry=ps[String(dow)];
+    if(!entry) return false;
+    var s0=Array.isArray(entry.s)?entry.s[0]:entry;
+    return s0==='fuerza'||s0==='acondicionamiento'||s0==='fisico';
+  });
+  if(!gymDays.length) return null;
+  var letters=['A','B','C','D','E'];
+  var map={};
+  gymDays.slice(0,dk).forEach(function(dow,i){ map[dow]=letters[i]; });
+  return map;
+}
+
 function getSesionGuia(c){
   var perfil=getNivelPerfil(c);
   if(!perfil) return null;
@@ -4346,7 +4368,7 @@ function getSesionGuia(c){
   if(perfil==='p1'){
     var dk=dias<=2?2:dias>=4?4:3;
     sesiones=plan.dias[dk]||plan.dias[3];
-    var dm=plan.diasMap[dk]||{1:'A',3:'B',5:'C'};
+    var dm=getCustomDiasMap(c,dk)||plan.diasMap[dk]||{1:'A',3:'B',5:'C'};
     var letra=dm[dow];
     var sesion=letra?sesiones.find(function(s){return s.id===letra;}):null;
     // Auto-seleccionar protocolo si la sesión es un día dedicado de acondicionamiento
@@ -4380,7 +4402,7 @@ function getSesionGuia(c){
     if(perfil==='p3') dk=dk<3?3:dk;
     else dk=dk<2?2:dk;
     sesiones=faseData.dias[dk]||faseData.dias[Object.keys(faseData.dias)[0]]||[];
-    var dm=plan.diasMap[dk]||plan.diasMap[Object.keys(plan.diasMap)[0]]||{1:'A',3:'B',5:'C'};
+    var dm=getCustomDiasMap(c,dk)||plan.diasMap[dk]||plan.diasMap[Object.keys(plan.diasMap)[0]]||{1:'A',3:'B',5:'C'};
     var letra=dm[dow];
     var sesion=letra?sesiones.find(function(s){return s.id===letra;}):null;
     var semActual=getSemanaEnFase(c);
@@ -4433,6 +4455,109 @@ function adminSemTipo(d, tipo){
   var col=document.getElementById('e-sem-col-'+d);
   if(col) col.dataset.tipo=tipo;
   renderAdminSemPreview();
+}
+
+// ── Chip wizard — ciclo descanso→técnica→sparring para días de combate ──────
+function adminChipCycle(d){
+  var chip=document.getElementById('chip-sem-'+d);
+  if(!chip) return;
+  var cur=chip.dataset.state||'descanso';
+  // Ciclo: descanso→tecnica→sparring→descanso
+  // Si el chip estaba en estado gym (fuerza/acondicionamiento), vuelve a descanso
+  var NEXT={descanso:'tecnica',tecnica:'sparring',sparring:'descanso',fuerza:'descanso',acondicionamiento:'descanso'};
+  var next=NEXT[cur]||'descanso';
+  var CD={
+    descanso:         {ico:'😴',lbl:'Descanso',  bg:'rgba(255,255,255,.03)',border:'#1A2A40',color:'#4A5568'},
+    tecnica:          {ico:'🥋',lbl:'Técnica',   bg:'rgba(255,179,0,.12)',  border:'#FFB300',color:'#FFB300'},
+    sparring:         {ico:'🥊',lbl:'Sparring',  bg:'rgba(255,107,53,.12)', border:'#FF6B35',color:'#FF6B35'},
+    fuerza:           {ico:'💪',lbl:'Fuerza',    bg:'rgba(77,159,255,.12)', border:'#4D9FFF',color:'#4D9FFF'},
+    acondicionamiento:{ico:'🏃',lbl:'Acond.',    bg:'rgba(0,229,255,.12)',  border:'#00E5FF',color:'#00E5FF'}
+  };
+  var cd=CD[next];
+  chip.dataset.state=next;
+  chip.style.background=cd.bg;
+  chip.style.borderColor=cd.border;
+  var icoEl=chip.querySelector('.chip-ico');
+  var lblEl=chip.querySelector('.chip-lbl');
+  if(icoEl) icoEl.textContent=cd.ico;
+  if(lblEl){ lblEl.textContent=cd.lbl; lblEl.style.color=cd.color; }
+  // Sync hidden select
+  var sel1=document.getElementById('e-sem-'+d+'-1');
+  if(sel1) sel1.value=next;
+  var sel2=document.getElementById('e-sem-'+d+'-2');
+  if(sel2) sel2.value='';
+  renderAdminSemPreview();
+}
+
+// ── Auto-distribuir días de gym según dias_prep_fisica ───────────────────────
+function adminAutoDistribuir(){
+  var diasPrep=parseInt((document.getElementById('e-dias-prep')||{}).value)||3;
+  // Orden Mon→Dom (mismas claves que plan_semanal: 1=Lun…6=Sáb,0=Dom)
+  var ORDER=['1','2','3','4','5','6','0'];
+  // Días libres = no técnica, no sparring
+  var freeDays=ORDER.filter(function(d){
+    var chip=document.getElementById('chip-sem-'+d);
+    var st=chip?chip.dataset.state:'descanso';
+    return st!=='tecnica'&&st!=='sparring';
+  });
+  // Tipos de sesión gym según número de días
+  var GYM_TYPES={
+    2:['fuerza','fuerza'],
+    3:['fuerza','fuerza','acondicionamiento'],
+    4:['fuerza','fuerza','fuerza','acondicionamiento'],
+    5:['fuerza','fuerza','fuerza','fuerza','acondicionamiento']
+  };
+  var types=GYM_TYPES[diasPrep]||GYM_TYPES[3];
+  // Primero limpia todos los días libres (descanso)
+  freeDays.forEach(function(d){
+    var s1=document.getElementById('e-sem-'+d+'-1');
+    if(s1) s1.value='descanso';
+    var s2=document.getElementById('e-sem-'+d+'-2');
+    if(s2) s2.value='';
+  });
+  // Asigna gym a los primeros N días libres
+  var gymDays=freeDays.slice(0,diasPrep);
+  gymDays.forEach(function(d,i){
+    var tipo=types[i]||'fuerza';
+    var s1=document.getElementById('e-sem-'+d+'-1');
+    if(s1) s1.value=tipo;
+  });
+  // Actualizar chips visualmente
+  adminSyncChipsFromSelects();
+  renderAdminSemPreview();
+  // Aviso si no hay suficientes días libres
+  if(freeDays.length<diasPrep){
+    var falta=diasPrep-freeDays.length;
+    var msg='⚠️ Solo hay '+freeDays.length+' día'+(freeDays.length!==1?'s':'')+' libre'+(freeDays.length!==1?'s':'')+
+      ' para '+diasPrep+' sesiones de gym.\nQuitan '+falta+' día'+(falta!==1?'s':'')+' de técnica/sparring para hacer espacio.';
+    setTimeout(function(){alert(msg);},50);
+  }
+}
+
+// Sincroniza el estado visual de chips con los valores de los selects ocultos
+function adminSyncChipsFromSelects(){
+  var ORDER=['1','2','3','4','5','6','0'];
+  var CD={
+    descanso:         {ico:'😴',lbl:'Descanso',  bg:'rgba(255,255,255,.03)',border:'#1A2A40',color:'#4A5568'},
+    tecnica:          {ico:'🥋',lbl:'Técnica',   bg:'rgba(255,179,0,.12)',  border:'#FFB300',color:'#FFB300'},
+    sparring:         {ico:'🥊',lbl:'Sparring',  bg:'rgba(255,107,53,.12)', border:'#FF6B35',color:'#FF6B35'},
+    fuerza:           {ico:'💪',lbl:'Fuerza',    bg:'rgba(77,159,255,.12)', border:'#4D9FFF',color:'#4D9FFF'},
+    acondicionamiento:{ico:'🏃',lbl:'Acond.',    bg:'rgba(0,229,255,.12)',  border:'#00E5FF',color:'#00E5FF'}
+  };
+  ORDER.forEach(function(d){
+    var chip=document.getElementById('chip-sem-'+d);
+    if(!chip) return;
+    var sel1=document.getElementById('e-sem-'+d+'-1');
+    var selVal=sel1?sel1.value:'descanso';
+    var cd=CD[selVal]||CD.descanso;
+    chip.dataset.state=selVal;
+    chip.style.background=cd.bg;
+    chip.style.borderColor=cd.border;
+    var icoEl=chip.querySelector('.chip-ico');
+    var lblEl=chip.querySelector('.chip-lbl');
+    if(icoEl) icoEl.textContent=cd.ico;
+    if(lblEl){ lblEl.textContent=cd.lbl; lblEl.style.color=cd.color; }
+  });
 }
 
 // ── Vista previa semana (admin) ──────────────────────────────────
@@ -5802,43 +5927,66 @@ async function adminTab(tab,btn){
           (function(){
             var ps=cl.plan_semanal?(typeof cl.plan_semanal==='string'?JSON.parse(cl.plan_semanal):cl.plan_semanal):{};
             var dias=[['1','LUN'],['2','MAR'],['3','MIÉ'],['4','JUE'],['5','VIE'],['6','SÁB'],['0','DOM']];
-            var opts=[['descanso','😴 Descanso'],['tecnica','🥋 Técnica'],['sparring','🥊 Sparring'],['fuerza','💪 Fuerza'],['acondicionamiento','🏃 Acondicionamiento']];
-            var SESS_COLOR={tecnica:'#FFB300',sparring:'#FF6B35',fuerza:'#4D9FFF',acondicionamiento:'#00E5FF',cardio:'#00E5FF',fisico:'#4D9FFF',descanso:'#2A3A50'};
-            var sel=function(id,val,extra){
-              return '<select id="'+id+'" onchange="adminSemToggle(\''+id+'\')" '+
-                'style="width:100%;font-size:10px;padding:4px 2px;border-radius:8px;background:#0D1528;'+
-                'border:2px solid '+(val&&val!=='descanso'?(SESS_COLOR[val]||'#1A2A40'):'#1A2A40')+';'+
-                'color:#F0F4FF;text-align:center;margin-top:3px;cursor:pointer;outline:none" '+
-                'onchange="adminSemToggle(\''+id+'\');this.style.borderColor=this.value&&this.value!==\'descanso\'?({tecnica:\'#FFB300\',sparring:\'#FF6B35\',fuerza:\'#4D9FFF\',acondicionamiento:\'#00E5FF\',cardio:\'#00E5FF\'}[this.value]||\'#1A2A40\'):\'#1A2A40\'">'+
-                (extra?'<option value="">—</option>':'')+
-                opts.map(function(o){return '<option value="'+o[0]+'"'+(val===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+
-              '</select>';
+            var opts=[['descanso','Descanso'],['tecnica','Técnica'],['sparring','Sparring'],['fuerza','Fuerza'],['acondicionamiento','Acondicionamiento']];
+            var CD={
+              descanso:         {ico:'😴',lbl:'Descanso',  bg:'rgba(255,255,255,.03)',border:'#1A2A40',color:'#4A5568'},
+              tecnica:          {ico:'🥋',lbl:'Técnica',   bg:'rgba(255,179,0,.12)',  border:'#FFB300',color:'#FFB300'},
+              sparring:         {ico:'🥊',lbl:'Sparring',  bg:'rgba(255,107,53,.12)', border:'#FF6B35',color:'#FF6B35'},
+              fuerza:           {ico:'💪',lbl:'Fuerza',    bg:'rgba(77,159,255,.12)', border:'#4D9FFF',color:'#4D9FFF'},
+              acondicionamiento:{ico:'🏃',lbl:'Acond.',    bg:'rgba(0,229,255,.12)',  border:'#00E5FF',color:'#00E5FF'}
             };
-            return '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px">'+
-              dias.map(function(d){
-                var raw=ps[d[0]];
-                var dp=parseDiaPlan(raw);
-                var v1=dp.sessions[0]||'descanso';
-                var v2=dp.sessions[1]||'';
-                var vt=dp.tipo||'seguidas';
-                var tieneDoble=v2!=='';
-                var col1=SESS_COLOR[v1]||'#1A2A40';
-                return '<div style="text-align:center;background:rgba(255,255,255,.02);border:1px solid #1A2A40;border-radius:10px;padding:6px 3px" id="e-sem-col-'+d[0]+'" data-tipo="'+(tieneDoble?vt:'seguidas')+'">'+
-                  '<div style="font-size:10px;font-weight:900;color:#8899AA;margin-bottom:4px;letter-spacing:.5px">'+d[1]+'</div>'+
-                  sel('e-sem-'+d[0]+'-1',v1,false)+
-                  sel('e-sem-'+d[0]+'-2',v2,true)+
-                  '<div id="e-sem-'+d[0]+'-t-wrap" style="margin-top:4px;display:'+(tieneDoble?'flex':'none')+';gap:2px">'+
-                    '<button id="e-sem-'+d[0]+'-t-seg" onclick="adminSemTipo(\''+d[0]+'\',\'seguidas\')" style="flex:1;font-size:8px;padding:3px 0;border-radius:5px;border:1px solid '+(vt==='seguidas'?'#00E5FF':'#1A2A40')+';background:'+(vt==='seguidas'?'rgba(0,229,255,.15)':'transparent')+';color:'+(vt==='seguidas'?'#00E5FF':'#4A5568')+';cursor:pointer;font-weight:700">⚡Jun</button>'+
-                    '<button id="e-sem-'+d[0]+'-t-sep" onclick="adminSemTipo(\''+d[0]+'\',\'separadas\')" style="flex:1;font-size:8px;padding:3px 0;border-radius:5px;border:1px solid '+(vt==='separadas'?'#FFB300':'#1A2A40')+';background:'+(vt==='separadas'?'rgba(255,179,0,.15)':'transparent')+';color:'+(vt==='separadas'?'#FFB300':'#4A5568')+';cursor:pointer;font-weight:700">🕐Sep</button>'+
-                  '</div>'+
+            var html='<div style="font-size:11px;color:#6E8090;margin:6px 0 10px;line-height:1.4">'+
+              '① Toca cada día para marcar 🥋 Técnica o 🥊 Sparring · ② Pulsa <b style="color:#4D9FFF">Distribuir</b> y la app asigna los días de gym automáticamente.</div>';
+            // ── Chips grid ──
+            html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:10px">';
+            dias.forEach(function(d){
+              var raw=ps[d[0]];
+              var dp=parseDiaPlan(raw);
+              var v1=dp.sessions[0]||'descanso';
+              var cd=CD[v1]||CD.descanso;
+              html+=
+                '<div id="chip-sem-'+d[0]+'" data-state="'+v1+'" onclick="adminChipCycle(\''+d[0]+'\')" '+
+                'style="text-align:center;border-radius:10px;border:2px solid '+cd.border+';background:'+cd.bg+';'+
+                'padding:8px 3px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:all .15s">'+
+                  '<div style="font-size:9px;font-weight:900;color:#8899AA;letter-spacing:.5px;margin-bottom:3px">'+d[1]+'</div>'+
+                  '<div class="chip-ico" style="font-size:18px;line-height:1;margin-bottom:2px">'+cd.ico+'</div>'+
+                  '<div class="chip-lbl" style="font-size:9px;color:'+cd.color+';font-weight:700">'+cd.lbl+'</div>'+
                 '</div>';
-              }).join('')+
-            '</div></div>'+
-            // Vista previa semana
-            '<div class="field" style="grid-column:1/-1;margin-top:4px">'+
-              '<label style="display:flex;align-items:center;gap:6px">👁️ Vista previa cliente<span style="font-size:10px;font-weight:400;color:#4A5568">— se actualiza al instante</span></label>'+
-              '<div id="admin-sem-preview" style="margin-top:8px"></div>'+
-            '</div>';
+            });
+            html+='</div>';
+            // ── Auto-distribute button ──
+            html+=
+              '<button type="button" onclick="adminAutoDistribuir()" '+
+              'style="width:100%;padding:10px 0;border-radius:10px;border:2px solid #4D9FFF;background:rgba(77,159,255,.1);'+
+              'color:#4D9FFF;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:12px;letter-spacing:.3px">'+
+              '🤖 Distribuir automáticamente las sesiones de rendimiento físico</button>';
+            // ── Hidden selects — guardarCfg() reads these ──
+            html+='<div style="display:none">';
+            dias.forEach(function(d){
+              var raw=ps[d[0]];
+              var dp=parseDiaPlan(raw);
+              var v1=dp.sessions[0]||'descanso';
+              var v2=dp.sessions[1]||'';
+              var vt=dp.tipo||'seguidas';
+              html+=
+                '<div id="e-sem-col-'+d[0]+'" data-tipo="'+(v2?vt:'seguidas')+'">'+
+                  '<select id="e-sem-'+d[0]+'-1">'+
+                    opts.map(function(o){return '<option value="'+o[0]+'"'+(v1===o[0]?' selected':'')+'>'+o[0]+'</option>';}).join('')+
+                  '</select>'+
+                  '<select id="e-sem-'+d[0]+'-2"><option value=""></option>'+
+                    opts.map(function(o){return '<option value="'+o[0]+'"'+(v2===o[0]?' selected':'')+'>'+o[0]+'</option>';}).join('')+
+                  '</select>'+
+                '</div>';
+            });
+            html+='</div>';
+            // ── Close outer field div + preview ──
+            html+=
+              '</div>'+
+              '<div class="field" style="grid-column:1/-1;margin-top:4px">'+
+                '<label style="display:flex;align-items:center;gap:6px">👁️ Vista previa<span style="font-size:10px;font-weight:400;color:#4A5568">— se actualiza al instante</span></label>'+
+                '<div id="admin-sem-preview" style="margin-top:8px"></div>'+
+              '</div>';
+            return html;
           }())
         :
           '<div id="e-fecha-pelea-ph"></div><div id="e-peso-cat-ph"></div>'+
