@@ -4484,8 +4484,39 @@ function adminChipCycle(d){
   // Sync hidden select
   var sel1=document.getElementById('e-sem-'+d+'-1');
   if(sel1) sel1.value=next;
+  // Show/hide chip2 (doble sesión) depending on combat state
+  var chip2=document.getElementById('chip2-sem-'+d);
+  var isCombate=(next==='tecnica'||next==='sparring');
+  if(chip2) chip2.style.display=isCombate?'block':'none';
+  if(!isCombate){
+    // Clear secondary session when switching away from combat
+    var sel2=document.getElementById('e-sem-'+d+'-2');
+    if(sel2) sel2.value='';
+    if(chip2){chip2.style.borderColor='#1A2A40';chip2.style.color='#2A3A50';chip2.style.background='transparent';chip2.textContent='+ Gym';}
+  }
+  renderAdminSemPreview();
+}
+
+// ── Doble sesión — cicla la sesión secundaria de un día de combate ────────────
+function adminChipCycle2(d){
   var sel2=document.getElementById('e-sem-'+d+'-2');
-  if(sel2) sel2.value='';
+  if(!sel2) return;
+  var cur=sel2.value||'';
+  var NEXT2={''  :'fuerza','fuerza':'acondicionamiento','acondicionamiento':''};
+  var next2=NEXT2[cur];
+  if(next2===undefined) next2='';
+  sel2.value=next2;
+  var chip2=document.getElementById('chip2-sem-'+d);
+  if(!chip2) return;
+  var CD2={
+    fuerza:           {ico:'💪',lbl:'Fuerza',border:'#4D9FFF',color:'#4D9FFF'},
+    acondicionamiento:{ico:'🏃',lbl:'Acond.',border:'#00E5FF',color:'#00E5FF'}
+  };
+  var cd2=next2?CD2[next2]:null;
+  chip2.style.borderColor=cd2?cd2.border:'#1A2A40';
+  chip2.style.color=cd2?cd2.color:'#2A3A50';
+  chip2.style.background=cd2?'rgba(255,255,255,.05)':'transparent';
+  chip2.textContent=cd2?(cd2.ico+' '+cd2.lbl):'+ Gym';
   renderAdminSemPreview();
 }
 
@@ -4544,19 +4575,38 @@ function adminSyncChipsFromSelects(){
     fuerza:           {ico:'💪',lbl:'Fuerza',    bg:'rgba(77,159,255,.12)', border:'#4D9FFF',color:'#4D9FFF'},
     acondicionamiento:{ico:'🏃',lbl:'Acond.',    bg:'rgba(0,229,255,.12)',  border:'#00E5FF',color:'#00E5FF'}
   };
+  var CD2={
+    fuerza:           {ico:'💪',lbl:'Fuerza',border:'#4D9FFF',color:'#4D9FFF'},
+    acondicionamiento:{ico:'🏃',lbl:'Acond.',border:'#00E5FF',color:'#00E5FF'}
+  };
   ORDER.forEach(function(d){
     var chip=document.getElementById('chip-sem-'+d);
     if(!chip) return;
     var sel1=document.getElementById('e-sem-'+d+'-1');
-    var selVal=sel1?sel1.value:'descanso';
-    var cd=CD[selVal]||CD.descanso;
-    chip.dataset.state=selVal;
+    var sel2=document.getElementById('e-sem-'+d+'-2');
+    var v1=sel1?sel1.value:'descanso';
+    var v2=sel2?sel2.value:'';
+    var cd=CD[v1]||CD.descanso;
+    chip.dataset.state=v1;
     chip.style.background=cd.bg;
     chip.style.borderColor=cd.border;
     var icoEl=chip.querySelector('.chip-ico');
     var lblEl=chip.querySelector('.chip-lbl');
     if(icoEl) icoEl.textContent=cd.ico;
     if(lblEl){ lblEl.textContent=cd.lbl; lblEl.style.color=cd.color; }
+    // Sync chip2 (doble sesión)
+    var chip2=document.getElementById('chip2-sem-'+d);
+    if(chip2){
+      var isCombate=(v1==='tecnica'||v1==='sparring');
+      chip2.style.display=isCombate?'block':'none';
+      if(isCombate){
+        var cd2=v2?CD2[v2]:null;
+        chip2.style.borderColor=cd2?cd2.border:'#1A2A40';
+        chip2.style.color=cd2?cd2.color:'#2A3A50';
+        chip2.style.background=cd2?'rgba(255,255,255,.05)':'transparent';
+        chip2.textContent=cd2?(cd2.ico+' '+cd2.lbl):'+ Gym';
+      }
+    }
   });
 }
 
@@ -5935,22 +5985,34 @@ async function adminTab(tab,btn){
               fuerza:           {ico:'💪',lbl:'Fuerza',    bg:'rgba(77,159,255,.12)', border:'#4D9FFF',color:'#4D9FFF'},
               acondicionamiento:{ico:'🏃',lbl:'Acond.',    bg:'rgba(0,229,255,.12)',  border:'#00E5FF',color:'#00E5FF'}
             };
-            var html='<div style="font-size:11px;color:#6E8090;margin:6px 0 10px;line-height:1.4">'+
-              '① Toca cada día para marcar 🥋 Técnica o 🥊 Sparring · ② Pulsa <b style="color:#4D9FFF">Distribuir</b> y la app asigna los días de gym automáticamente.</div>';
+            var html='<div style="font-size:11px;color:#6E8090;margin:6px 0 8px;line-height:1.4">'+
+              '① Toca cada día para marcar 🥋 Técnica o 🥊 Sparring · ② En días de combate puedes añadir <b style="color:#4D9FFF">+ Gym</b> como doble sesión · ③ Pulsa <b style="color:#4D9FFF">Distribuir</b> para rellenar los días de gym libres.</div>'+
+              '<div style="font-size:10px;background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.2);border-radius:6px;padding:5px 8px;margin-bottom:10px;line-height:1.4;color:#8899AA">'+
+              '⚡ <b style="color:#FFB300">Regla del documento:</b> Si gym y técnica/sparring el mismo día → mín. 6h separación · Técnica/Sparring <b>siempre primero</b> · Fuerza máxima + sparring duro el mismo día = error (regla 72h)</div>';
             // ── Chips grid ──
             html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:10px">';
             dias.forEach(function(d){
               var raw=ps[d[0]];
               var dp=parseDiaPlan(raw);
               var v1=dp.sessions[0]||'descanso';
+              var v2=dp.sessions[1]||'';
               var cd=CD[v1]||CD.descanso;
+              var isCombate=(v1==='tecnica'||v1==='sparring');
+              var cd2=v2?(CD[v2]||null):null;
               html+=
                 '<div id="chip-sem-'+d[0]+'" data-state="'+v1+'" onclick="adminChipCycle(\''+d[0]+'\')" '+
                 'style="text-align:center;border-radius:10px;border:2px solid '+cd.border+';background:'+cd.bg+';'+
-                'padding:8px 3px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:all .15s">'+
+                'padding:8px 3px 6px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:all .15s">'+
                   '<div style="font-size:9px;font-weight:900;color:#8899AA;letter-spacing:.5px;margin-bottom:3px">'+d[1]+'</div>'+
                   '<div class="chip-ico" style="font-size:18px;line-height:1;margin-bottom:2px">'+cd.ico+'</div>'+
                   '<div class="chip-lbl" style="font-size:9px;color:'+cd.color+';font-weight:700">'+cd.lbl+'</div>'+
+                  '<div id="chip2-sem-'+d[0]+'" onclick="event.stopPropagation();adminChipCycle2(\''+d[0]+'\')" '+
+                  'style="margin-top:4px;border-radius:6px;border:1px dashed '+(cd2?cd2.border:'#1A2A40')+';'+
+                  'background:'+(cd2?'rgba(255,255,255,.05)':'transparent')+';'+
+                  'padding:2px 0;font-size:8px;font-weight:700;color:'+(cd2?cd2.color:'#2A3A50')+';cursor:pointer;'+
+                  'display:'+(isCombate?'block':'none')+'">'+
+                  (cd2?(cd2.ico+' '+cd2.lbl):'+ Gym')+
+                  '</div>'+
                 '</div>';
             });
             html+='</div>';
