@@ -4349,7 +4349,15 @@ function getSesionGuia(c){
     var dm=plan.diasMap[dk]||{1:'A',3:'B',5:'C'};
     var letra=dm[dow];
     var sesion=letra?sesiones.find(function(s){return s.id===letra;}):null;
-    return {sesion:sesion, sesiones:sesiones, perfil:perfil, plan:plan, faseLabel:'', faseNota:'', dias:dk};
+    // Auto-seleccionar protocolo si la sesión es un día dedicado de acondicionamiento
+    // (p1 4-días: sesión C tiene "Elige el protocolo")
+    var semActual=getSemanaEnFase(c);
+    var fase1=getFaseCombate(c);
+    if(sesion&&sesion.bloques&&sesion.bloques.some(function(b){return /Elige el protocolo/i.test(b.nombre);})){
+      var proto1=getProtocoloAcond(fase1,semActual);
+      if(proto1){var aS=buildAcondSession(fase1,proto1,semActual);if(aS)sesion=aS;}
+    }
+    return {sesion:sesion, sesiones:sesiones, perfil:perfil, plan:plan, faseLabel:'', faseNota:'', dias:dk, semActual:semActual};
   } else {
     var fase=getFaseCombate(c);
     // Map nuevas fases → claves en PLANES_GUIA.fases
@@ -4378,10 +4386,12 @@ function getSesionGuia(c){
     var semActual=getSemanaEnFase(c);
     // Ley de Acomodación: sustituir variante semanal en sesiones de p3
     if(perfil==='p3'&&sesion) sesion=applyLeyAcomodacion(sesion,semActual);
-    // Auto-seleccionar protocolo de acondicionamiento en día dedicado (Sesión D)
-    // Los protocolos A/B/C/D son SOLO para el día dedicado de acondicionamiento
-    // El bloque "Aeróbico Base" embebido en la sesión C siempre es base aeróbica larga — no cambia
-    if(sesion&&sesion.id==='D'){
+    // Auto-seleccionar protocolo de acondicionamiento en día dedicado
+    // Aplica a sesión D (p2/p3 4-5 días) y a cualquier sesión con bloque "Elige el protocolo"
+    // El bloque "Aeróbico Base" embebido en la sesión C NO cambia — siempre base aeróbica larga
+    var esAcondDedicado=sesion&&(sesion.id==='D'||
+      (sesion.bloques&&sesion.bloques.some(function(b){return /Elige el protocolo/i.test(b.nombre);})));
+    if(esAcondDedicado){
       var proto=getProtocoloAcond(fase,semActual);
       if(proto){var aS=buildAcondSession(fase,proto,semActual);if(aS)sesion=aS;}
     }
