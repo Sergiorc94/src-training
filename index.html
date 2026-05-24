@@ -3384,12 +3384,48 @@ const PLANES_CONFIG = {
 // SISTEMA DE ENTRENO COMBATE — SRC Performance
 // Basado en ENFAF (30 módulos) + Fight Science Club
 // ═══════════════════════════════════════════
+// Fases reales según documentos SRC Performance (entreno + nutrición)
+// base → camp_cronico → peaking → fight_week → post_pesaje → post_pelea
 const FASE_COMBATE_PARAMS={
-  base:      {label:'Base / Acumulación',      icon:'🏗️', color:'110,102,91', rir:'RIR 3-4',vol:'100%',   s_mult:1},
-  especial:  {label:'Especial / Transformación',icon:'⚡', color:'184,137,90', rir:'RIR 2-3',vol:'70-80%', s_mult:0.85},
-  competicion:{label:'Competición / Peaking',  icon:'🏆', color:'200,232,102',rir:'RIR 3-4',vol:'40-50%', s_mult:0.6},
-  transicion:{label:'Transición / Recuperación',icon:'🔄',color:'163,155,139',rir:'—',     vol:'20-30%', s_mult:0.4}
+  base:{
+    label:'Preparación Base', icon:'🏗️', color:'110,102,91',
+    rir:'RIR 3-4', vol:'100%', s_mult:1.0,
+    desc:'Fuerza máxima + aeróbico. Máximo volumen. La base de todo el camp.',
+    nutDesc:'Mantenimiento o déficit pequeño. Carbohidratos ALTOS. Construir sin perder rendimiento.'
+  },
+  camp_cronico:{
+    label:'Camp (fase crónica)', icon:'⚔️', color:'220,100,60',
+    rir:'RIR 2-3', vol:'85%', s_mult:0.85,
+    desc:'Volumen -15%, misma intensidad. Técnica prioritaria. Láctico + vaciado de lactato.',
+    nutDesc:'Déficit moderado: 0.5-1 kg/semana. Mínimos ISSN siempre: carbos ≥3g/kg, proteína ≥1.2g/kg.'
+  },
+  peaking:{
+    label:'Peaking (semanas finales)', icon:'🎯', color:'200,180,50',
+    rir:'RIR 3-4', vol:'50%', s_mult:0.6,
+    desc:'Método de contraste. Sem -3: fuerza+explosivo. Sem -2: solo contraste. Sem -1: EMOM activación.',
+    nutDesc:'Calorías suben (curva en U). El cuerpo recupera del estrés acumulado del camp.'
+  },
+  fight_week:{
+    label:'Fight Week', icon:'🥊', color:'200,50,50',
+    rir:'—', vol:'20%', s_mult:0.3,
+    desc:'Solo activación suave. EMOM 12min + movilidad. Llegar fresco, no mejorado.',
+    nutDesc:'Manipulación: carbos bajan (vaciar glucógeno), fibra <10g, sodio bajo. Calorías TOTALES suben via grasas.'
+  },
+  post_pesaje:{
+    label:'Post-pesaje', icon:'💧', color:'60,180,220',
+    rir:'—', vol:'0%', s_mult:0,
+    desc:'Sin entrenamiento hasta la pelea. Recuperar. Moverse suave si hay horas.',
+    nutDesc:'Protocolo por fases: 0-15min suero oral → 1-2h carbos simples → 2-6h carbos+proteína → 6-12h carga completa 8-12g/kg.'
+  },
+  post_pelea:{
+    label:'Post-pelea / Recuperación', icon:'🔄', color:'100,160,100',
+    rir:'—', vol:'15%', s_mult:0.2,
+    desc:'Sem 1: descanso completo. Sem 2: aeróbico suave. Sem 3: vuelta gradual muy ligera.',
+    nutDesc:'Superávit calórico. Proteína alta. Carbos altos para recuperar glucógeno y regular cortisol. Recuperación hormonal.'
+  }
 };
+// Alias de compatibilidad con valores antiguos guardados en BD
+const FASE_ALIAS={especial:'camp_cronico',competicion:'peaking',transicion:'post_pelea'};
 const COMBATE_DIAS_MAP={
   d2:{1:'A',4:'B'},
   d3:{1:'A',3:'B',5:'C'},
@@ -3397,16 +3433,21 @@ const COMBATE_DIAS_MAP={
   d5:{1:'A',2:'B',4:'C',5:'D',6:'E'}
 };
 function getFaseCombate(c){
-  // El entrenador controla la fase manualmente desde el panel admin.
-  // Si está definida, tiene prioridad absoluta.
-  if(c.fase_combate) return c.fase_combate;
-  // Fallback automático por fecha de pelea (si no hay fase manual)
+  // El entrenador controla la fase manualmente — tiene prioridad absoluta.
+  var fase=c.fase_combate;
+  if(fase){
+    // Normalizar alias de valores antiguos
+    return FASE_ALIAS[fase]||fase;
+  }
+  // Fallback automático por fecha de pelea
   if(!c.fecha_pelea) return 'base';
   var fp=new Date(c.fecha_pelea),hD=new Date();hD.setHours(0,0,0,0);
   var dias=Math.ceil((fp-hD)/(24*3600*1000));
-  if(dias<0) return 'transicion';
-  if(dias<=21) return 'competicion';
-  if(dias<=56) return 'especial';
+  if(dias<0)  return 'post_pelea';
+  if(dias===0) return 'post_pesaje';
+  if(dias<=7)  return 'fight_week';
+  if(dias<=21) return 'peaking';
+  if(dias<=84) return 'camp_cronico';
   return 'base';
 }
 // Ejercicios por sesión, material y fase
@@ -4124,6 +4165,13 @@ function selectPerfilGuia(cid,perfil){
 }
 
 // Muestra/oculta el toggle seguidas/separadas cuando cambia la 2ª sesión
+// Actualiza el description de fase cuando cambia el select
+function adminFaseChange(sel){
+  var fase=sel.value;
+  var p=FASE_COMBATE_PARAMS[fase]||FASE_COMBATE_PARAMS.base;
+  var desc=document.getElementById('fase-combate-desc');
+  if(desc) desc.innerHTML='<b style="color:#8899AA">Entreno:</b> '+p.desc+'<br><b style="color:#8899AA">Nutrición:</b> '+p.nutDesc;
+}
 function adminSemToggle(selId){
   var m=selId.match(/e-sem-(\d+)-2/);
   if(!m) return;
@@ -5462,7 +5510,7 @@ async function adminTab(tab,btn){
             [['novel','Novel (menos de 1 año)'],['amateur','Amateur (1-3 años)'],['avanzado','Avanzado (3+ años)']].map(function(x){return '<option value="'+x[0]+'"'+((cl.nivel_combate||'amateur')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
           '</select></div>'+
           '<div class="field"><label>📅 Días prep. física/sem.</label><select id="e-dias-prep">'+
-            [2,3,4].map(function(d){return '<option value="'+d+'"'+((cl.dias_prep_fisica||3)===d?' selected':'')+'>'+d+' días</option>';}).join('')+
+            [[2,'2 días'],[3,'3 días'],[4,'4 días'],[5,'5 días (profesional)']].map(function(x){return '<option value="'+x[0]+'"'+((cl.dias_prep_fisica||3)===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
           '</select></div>'+
           '<div class="field"><label>🏋️ Material disponible</label><select id="e-material">'+
             [['cuerpo','Sin material (casa)'],['basico','Mancuernas / KB'],['completo','Gimnasio completo']].map(function(x){return '<option value="'+x[0]+'"'+((cl.material_disponible||'basico')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
@@ -5477,10 +5525,29 @@ async function adminTab(tab,btn){
             [['sedentario','Sedentario (oficina)'],['moderado','Moderado (de pie/activo)'],['activo','Activo (físico/manual)']].map(function(x){return '<option value="'+x[0]+'"'+((cl.trabajo_tipo||'sedentario')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
           '</select></div>'+
           // ── FASE DE PREPARACIÓN ──────────────────────────────────
-          '<div class="field" style="grid-column:1/-1"><label>🏗️ Fase de preparación actual</label><select id="e-fase-combate">'+
-            [['base','🏗️ Base / Acumulación'],['especial','⚡ Especial / Transformación'],['competicion','🏆 Competición / Peaking'],['transicion','🔄 Transición / Recuperación']]
-              .map(function(x){return '<option value="'+x[0]+'"'+((cl.fase_combate||'base')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
-          '</select></div>'+
+          '<div class="field" style="grid-column:1/-1">'+
+            '<label>🏗️ Fase de preparación actual</label>'+
+            '<select id="e-fase-combate" onchange="adminFaseChange(this)">'+
+              (function(){
+                var faseActual=cl.fase_combate?FASE_ALIAS[cl.fase_combate]||cl.fase_combate:'base';
+                return [
+                  ['base',        '🏗️ Preparación Base (12+ sem antes)'],
+                  ['camp_cronico','⚔️ Camp — fase crónica (8-12 sem)'],
+                  ['peaking',     '🎯 Peaking (últimas 3 semanas)'],
+                  ['fight_week',  '🥊 Fight Week (7 días antes del pesaje)'],
+                  ['post_pesaje', '💧 Post-pesaje (entre pesaje y pelea)'],
+                  ['post_pelea',  '🔄 Post-pelea / Recuperación']
+                ].map(function(x){return '<option value="'+x[0]+'"'+(faseActual===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('');
+              }())+
+            '</select>'+
+            '<div id="fase-combate-desc" style="margin-top:5px;font-size:11px;color:#4A5568;line-height:1.4;padding:6px 8px;background:rgba(255,255,255,.03);border-radius:6px;border-left:3px solid rgba(255,255,255,.1)">'+
+              (function(){
+                var f=cl.fase_combate?FASE_ALIAS[cl.fase_combate]||cl.fase_combate:'base';
+                var p=FASE_COMBATE_PARAMS[f]||FASE_COMBATE_PARAMS.base;
+                return '<b style="color:#8899AA">Entreno:</b> '+p.desc+'<br><b style="color:#8899AA">Nutrición:</b> '+p.nutDesc;
+              }())+
+            '</div>'+
+          '</div>'+
           // ── PLAN SEMANAL ─────────────────────────────────────────
           '<div class="field" style="grid-column:1/-1"><label>📅 Distribución semanal de sesiones</label>'+
           (function(){
@@ -5528,10 +5595,17 @@ async function adminTab(tab,btn){
           '<div id="e-fecha-pelea-ph"></div><div id="e-peso-cat-ph"></div>'+
           '<div id="e-deporte-ph"></div><div id="e-nivel-ph"></div><div id="e-mat-ph"></div>'
         )+
-        '<div class="field" style="grid-column:1/-1"><label>Tipo de plan (planificador)</label><select id="e-tipo-plan">'+
-          [['','— Sin planificador —'],['estetico_deficit','🔥 Definición'],['estetico_volumen','💪 Volumen'],['combate_amateur','🥊 Training Camp Amateur'],['combate_pro','🏆 Training Camp Pro']]
-            .map(([v,l])=>'<option value="'+v+'"'+(cl.tipo_plan===v?' selected':'')+'>'+l+'</option>').join('')+
-        '</select></div>'+
+        '<div class="field" style="grid-column:1/-1"><label>📋 Planificador de periodización</label><select id="e-tipo-plan">'+
+          (cl.tipo_cliente==='combate'
+            ? [['','— Sin planificador —'],['combate_amateur','🥊 Training Camp Amateur (17 sem)'],['combate_pro','🏆 Training Camp Pro (20 sem)']]
+            : [['','— Sin planificador —'],['estetico_deficit','🔥 Definición (16 sem)'],['estetico_volumen','💪 Volumen (18 sem)']]
+          ).map(([v,l])=>'<option value="'+v+'"'+(cl.tipo_plan===v?' selected':'')+'>'+l+'</option>').join('')+
+        '</select>'+
+        '<div style="margin-top:4px;font-size:10px;color:#4A5568">'+
+          (cl.tipo_cliente==='combate'
+            ? 'Activa la línea de tiempo de fases en la pestaña Camp del cliente.'
+            : 'Activa el planificador de fases en la pestaña Camp del cliente.')+
+        '</div></div>'+
       '</div>'+
       (cl.tipo_cliente==='combate'?renderAdminCombateMacros(cl):'')+
       '<div style="font-size:11px;font-weight:700;color:#00C853;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px">💪 Día de entreno (override manual — dejar vacío para usar cálculo automático)</div>'+
@@ -7446,16 +7520,27 @@ function calcMacrosCombate(c){
   var calTec=Math.round(peso*horasTec*7);  // ~7 kcal/kg/h artes marciales
   var calGym=Math.round(peso*1.0*5);       // ~5 kcal/kg/h pesas
 
-  // Multiplicador de fase
-  var phaseMult={base:1.0,especial:0.93,competicion:0.88,transicion:0.95}[fase]||1.0;
-
-  // Ajuste si hay que hacer peso urgente
-  if(c.fecha_pelea&&c.peso_categoria){
-    var fp=new Date(c.fecha_pelea),hD=new Date();hD.setHours(0,0,0,0);
-    var dp=Math.ceil((fp-hD)/(24*3600*1000));
-    var exceso=(parseFloat(c.peso_inicial)||peso)-parseFloat(c.peso_categoria);
-    if(dp>0&&dp<=21&&exceso>2) phaseMult=Math.min(phaseMult,0.85);
-  }
+  // ── Multiplicador calórico y ratio de carbos por FASE ─────────────
+  // Fuente: Nutrición SRC v7 + ISSN Position Statement 2023
+  //
+  // base:        Mantenimiento o déficit pequeño. Carbos altos.
+  // camp_cronico: Déficit moderado (-10%). Carbos ALTOS — ISSN mínimos enforced.
+  //              Claudia: 0.5-1 kg/semana. Aritz: no recortar carbos masivamente.
+  // peaking:     Calorías suben (curva en U). Cuerpo recupera del estrés del camp.
+  // fight_week:  Calorías TOTALES suben. Carbos BAJAN para vaciar glucógeno.
+  //              Los 3 recursos a manipular: glucógeno, contenido intestinal, agua corporal.
+  // post_pesaje: Protocolo de recarga. Carbos prioritarios. Calorías altas.
+  // post_pelea:  Superávit. Recuperación hormonal. Todo alto.
+  var phaseData={
+    base:         {mult:1.00, carbRatioEntren:0.62, carbRatioDesc:0.40},
+    camp_cronico: {mult:0.90, carbRatioEntren:0.60, carbRatioDesc:0.38},
+    peaking:      {mult:0.96, carbRatioEntren:0.62, carbRatioDesc:0.42},
+    fight_week:   {mult:1.00, carbRatioEntren:0.28, carbRatioDesc:0.25}, // carbos bajos — grasas suben
+    post_pesaje:  {mult:1.10, carbRatioEntren:0.72, carbRatioDesc:0.70}, // carga de carbos
+    post_pelea:   {mult:1.08, carbRatioEntren:0.58, carbRatioDesc:0.42}  // superávit recuperación
+  };
+  var pd=phaseData[fase]||phaseData.base;
+  var phaseMult=pd.mult;
 
   // Kcal por tipo de día
   var calSparring=Math.round(peso*1.5*8);  // ~8 kcal/kg/h sparring × 1.5h
@@ -7467,13 +7552,13 @@ function calcMacrosCombate(c){
   var kGym=Math.round((tdeeBase+calGym)*phaseMult);
   var kDesc=Math.round(tdeeBase*phaseMult);
 
-  // Proteína: 2.2g/kg para deportistas de combate
-  var prot=Math.round(peso*2.2);
+  // Proteína: 1.8g/kg (ISSN combat sports, preserva músculo en déficit)
+  var prot=Math.round(peso*1.8);
   var protKcal=prot*4;
 
-  // ISSN mínimos absolutos en campamento
+  // ISSN mínimos absolutos — nunca cruzar estos en campamento
   var issnMinProt=Math.round(peso*1.2);
-  var issnMinCarb=Math.round(peso*3.0);
+  var issnMinCarb=fase==='fight_week'?Math.round(peso*1.5):Math.round(peso*3.0); // fight_week: deplete glucógeno
   var issnMinGras=Math.round(peso*0.5);
 
   function macros(kcal,carbRatio){
@@ -7482,19 +7567,21 @@ function calcMacrosCombate(c){
     var p=prot,c_=Math.round(carbKcal/4),g=Math.round((rem-carbKcal)/9);
     var warn=[];
     if(p<issnMinProt){p=issnMinProt;warn.push('prot');}
-    if(c_<issnMinCarb){c_=issnMinCarb;warn.push('carb');}
+    if(fase!=='fight_week'&&c_<issnMinCarb){c_=issnMinCarb;warn.push('carb');}
     if(g<issnMinGras){g=issnMinGras;warn.push('gras');}
     return {k:Math.round(kcal),p:p,c:c_,g:g,issn_warn:warn};
   }
 
+  var cE=pd.carbRatioEntren, cD=pd.carbRatioDesc;
   return {
-    sparring:macros(kSparring,0.65),  // Máximos carbos — alta intensidad
-    ambos:   macros(kAmbos,0.60),
-    tecnica: macros(kTec,0.58),
-    cardio:  macros(kCardio,0.62),
-    gym:     macros(kGym,0.50),
-    descanso:macros(kDesc,0.35),
-    fase:fase
+    sparring:macros(kSparring, Math.min(cE+0.05, 0.72)), // Sparring: máximos carbos
+    ambos:   macros(kAmbos,   cE),
+    tecnica: macros(kTec,     cE-0.02),
+    cardio:  macros(kCardio,  cE+0.02),
+    gym:     macros(kGym,     cE-0.05),
+    descanso:macros(kDesc,    cD),
+    fase:fase,
+    phaseData:pd
   };
 }
 
