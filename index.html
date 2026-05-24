@@ -4075,6 +4075,52 @@ const PLANES_GUIA=(function(){
 
   var transicionPro=[p3E_sabado];
 
+  // ─── CAMP: sesiones modificadas según el documento ────────────────
+  // Camp crónico = mismos ejercicios que base PERO:
+  //   · -1 serie en ejercicios principales (5×3 → 4×3)
+  //   · Aeróbico base → Protocolo C (resistencia láctica)
+  //   · Vaciado de lactato al final de cada sesión de fuerza
+  //   · +10min movilidad articular al final
+  function campify(sessions){
+    return sessions.map(function(ses){
+      var s2=JSON.parse(JSON.stringify(ses));
+      s2.nombre='[Camp] '+s2.nombre;
+      s2.bloques=s2.bloques.map(function(blq){
+        // Reducir series en bloques de fuerza
+        var esFuerza=/Fuerza|Bisagra|Sentadilla|Tren Inf|Tren Sup|Potencia|Core/.test(blq.nombre)
+                  &&!/Aeróbico|Movilidad|Vaciado|Cardio|Acondic/.test(blq.nombre);
+        if(esFuerza){
+          blq.ejs=blq.ejs.map(function(ej){
+            ['cuerpo','basico','completo'].forEach(function(m){
+              if(ej[m]&&typeof ej[m].s==='number'&&ej[m].s>2) ej[m].s--;
+            });
+            return ej;
+          });
+        }
+        // Reemplazar aeróbico base por resistencia láctica (Protocolo C)
+        if(/Aeróbico Base/.test(blq.nombre)){
+          var lEj=g(
+            'Resistencia láctica — Protocolo C',5,
+            '3 min al 85% FC / 1 min descanso activo','—',
+            'Aguantar la acidez de los rounds duros. Umbral láctico. 5 rondas. Semanas 8-4 antes de la pelea.','Cardio'
+          );
+          blq.nombre='Resistencia Láctica (Protocolo C)';
+          blq.min=20; blq.ejs=[lEj];
+        }
+        return blq;
+      });
+      // Añadir vaciado de lactato + movilidad al final si la sesión tiene fuerza
+      var tieneF=s2.bloques.some(function(b){return /Fuerza|Bisagra|Sentadilla|Tren/.test(b.nombre);});
+      if(tieneF){
+        s2.bloques.push({nombre:'Vaciado de Lactato (Camp)',min:8,
+          ejs:[g('Vaciado de lactato — Bicicleta de asalto',4,'15 seg al máximo','—','90s descanso completo. Elimina el ácido láctico. Siempre al final del camp.','Cardio')]});
+        s2.bloques.push({nombre:'Movilidad Articular (Camp)',min:10,
+          ejs:[g('Movilidad articular completa — círculos lentos',1,'10 min','—','Tobillo → rodilla → cadera → hombro. Activo. Añadida obligatoriamente en camp.','Movilidad')]});
+      }
+      return s2;
+    });
+  }
+
   // ─── ESTRUCTURA COMPLETA ────────────────────────────────────────
   return {
     p1:{
@@ -4093,7 +4139,7 @@ const PLANES_GUIA=(function(){
         base:{label:'🏗️ Preparación Base (12+ semanas)',nota:'Fuerza máxima. Aeróbico base. Máximo volumen. La base de todo.',
           dias:{2:[p2A_base,p2B_base],3:[p2A_base,p2B_base,p2C_base],4:[p2A_base,p2B_base,p2D_base,p2C_base]}},
         camp_cronico:{label:'⚔️ Camp — fase crónica (8-12 sem)',nota:'Volumen -15%, misma intensidad. Técnica prioritaria. Acondicionamiento láctico. Vaciado de lactato al final siempre.',
-          dias:{2:[p2A_base,p2B_base],3:[p2A_base,p2B_base,p2C_base],4:[p2A_base,p2B_base,p2D_base,p2C_base]}},
+          dias:{2:campify([p2A_base,p2B_base]),3:campify([p2A_base,p2B_base,p2C_base]),4:campify([p2A_base,p2B_base,p2D_base,p2C_base])}},
         peaking:{label:'🎯 Peaking (semanas -3 a -2)',nota:'Método de contraste: fuerza pesada → explosivo inmediato. Sin acondicionamiento duro. Disipar fatiga.',
           dias:{2:p2_peaking_s2,3:p2_peaking_s2,4:p2_peaking_s2}},
         fight_week:{label:'🥊 Fight Week (semana -1)',nota:'Solo activación SNC. EMOM 12min. Sin nada intenso. Sin nada nuevo. Todo lo que serás ya lo eres.',
@@ -4111,7 +4157,7 @@ const PLANES_GUIA=(function(){
         base:{label:'🏗️ Preparación Base Larga (16-20 semanas)',nota:'Máximo volumen. Variación obligatoria del ejercicio principal cada semana. Tests de rendimiento.',
           dias:{3:[p3A_base,p3B_base,p3C_base],4:[p3A_base,p3B_base,acond_dia,p3C_base],5:[p3A_base,p3B_base,acond_dia,p3C_base,p3E_sabado]}},
         camp_cronico:{label:'⚔️ Camp Profesional (12-8 sem)',nota:'Variación obligatoria cada semana · Ondas de carga en explosivos (55%→65%→75%) · Monitor FC en sparring (umbral 170-175 ppm).',
-          dias:{3:[p3A_base,p3B_base,p3C_base],4:[p3A_base,p3B_base,acond_dia,p3C_base],5:[p3A_base,p3B_base,acond_dia,p3C_base,p3E_sabado]}},
+          dias:{3:campify([p3A_base,p3B_base,p3C_base]),4:campify([p3A_base,p3B_base,acond_dia,p3C_base]),5:campify([p3A_base,p3B_base,acond_dia,p3C_base,p3E_sabado])}},
         peaking:{label:'🎯 Peaking 3 semanas',nota:'Sem -3: contraste inicial · Sem -2: solo contraste dominante · Sem -1: activación de fibras rápidas.',
           dias:{3:p3_peaking_s2,4:p3_peaking_s2,5:p3_peaking_s2}},
         fight_week:{label:'🥊 Fight Week — Activación Final',nota:'Solo activa el SNC. Sin fatiga. Sin nada nuevo. Todo lo que serás ya lo eres.',
@@ -4123,9 +4169,16 @@ const PLANES_GUIA=(function(){
   };
 })();
 
+// Normaliza nivel_combate → clave de perfil p1/p2/p3
+function getNivelPerfil(c){
+  var niv=c.nivel_combate||'p2';
+  var norm={novel:'p1',amateur:'p2',avanzado:'p3'};
+  return norm[niv]||niv; // si ya es p1/p2/p3 pasa directo
+}
 // Obtiene la sesión guía para hoy
+// El perfil lo asigna el admin desde nivel_combate (p1/p2/p3)
 function getSesionGuia(c){
-  var perfil=localStorage.getItem('pg_'+(c.id||'u'));
+  var perfil=getNivelPerfil(c);
   if(!perfil) return null;
   var plan=PLANES_GUIA[perfil];
   if(!plan) return null;
@@ -5515,8 +5568,17 @@ async function adminTab(tab,btn){
           '<div class="field"><label>🥊 Deporte</label><select id="e-deporte">'+
             ['MMA','Boxeo','Kickboxing','Muay Thai','BJJ','Judo','Wrestling','Karate','Otro'].map(function(d){return '<option value="'+d+'"'+((cl.deporte||'')=== d?' selected':'')+'>'+d+'</option>';}).join('')+
           '</select></div>'+
-          '<div class="field"><label>📊 Nivel</label><select id="e-nivel-combate">'+
-            [['novel','Novel (menos de 1 año)'],['amateur','Amateur (1-3 años)'],['avanzado','Avanzado (3+ años)']].map(function(x){return '<option value="'+x[0]+'"'+((cl.nivel_combate||'amateur')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
+          '<div class="field"><label>📊 Perfil de peleador</label><select id="e-nivel-combate">'+
+            (function(){
+              // Normalizar valor guardado: novel→p1, amateur→p2, avanzado→p3
+              var niv=cl.nivel_combate||'p2';
+              var norm={novel:'p1',amateur:'p2',avanzado:'p3'}[niv]||niv;
+              return [
+                ['p1','Perfil 1 — Sin camp real (compite con poco aviso)'],
+                ['p2','Perfil 2 — Camp organizado (8-12 semanas)'],
+                ['p3','Perfil 3 — Profesional / Semi-pro']
+              ].map(function(x){return '<option value="'+x[0]+'"'+(norm===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('');
+            }())+
           '</select></div>'+
           '<div class="field"><label>📅 Días prep. física/sem.</label><select id="e-dias-prep">'+
             [[2,'2 días'],[3,'3 días'],[4,'4 días'],[5,'5 días (profesional)']].map(function(x){return '<option value="'+x[0]+'"'+((cl.dias_prep_fisica||3)===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
@@ -9412,15 +9474,22 @@ async function loadEntrenoCombate(){
   }
   var isPeaking=dpNum>0&&dpNum<=7;
 
-  // Banner fase + contador
+  // Banner fase + perfil + contador
   var diasPelea=dpNum>0?(dpNum===0?'¡PELEA HOY!':dpNum+'d ⚔️'):'';
+  var perfilLabel=_guia&&_guia.plan?(_guia.plan.emoji||'')+'  '+(_guia.plan.label||''):'';
+  var faseNota=_guia?_guia.faseNota:'';
+  var faseLabel=_guia?_guia.faseLabel:'';
   var html='';
-  html+='<div style="background:rgba('+faseP.color+',.08);border:1px solid rgba('+faseP.color+',.25);border-radius:10px;padding:10px 14px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center">'+
-    '<div>'+
-      '<div style="font-size:11px;font-weight:800;color:rgba('+faseP.color+',1);text-transform:uppercase;letter-spacing:.5px">'+faseP.label+'</div>'+
-      '<div style="font-size:11px;color:var(--text-3)">Vol: '+faseP.vol+' · '+(isPeaking?'RIR 4-5 (peaking)':faseP.rir)+'</div>'+
+  html+='<div style="background:rgba('+faseP.color+',.08);border:1px solid rgba('+faseP.color+',.25);border-radius:10px;padding:10px 14px;margin-bottom:.75rem">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center">'+
+      '<div>'+
+        '<div style="font-size:11px;font-weight:800;color:rgba('+faseP.color+',1);text-transform:uppercase;letter-spacing:.5px">'+faseP.label+'</div>'+
+        '<div style="font-size:11px;color:var(--text-3)">Vol: '+faseP.vol+' · '+(isPeaking?'RIR 4-5 (peaking)':faseP.rir)+'</div>'+
+      '</div>'+
+      (diasPelea?'<div style="font-size:13px;font-weight:800;color:rgba('+faseP.color+',1)">'+diasPelea+'</div>':'')+
     '</div>'+
-    (diasPelea?'<div style="font-size:13px;font-weight:800;color:rgba('+faseP.color+',1)">'+diasPelea+'</div>':'')+
+    (perfilLabel?'<div style="font-size:10px;color:var(--text-3);margin-top:4px;font-weight:600">'+perfilLabel+'</div>':'')+
+    (faseNota?'<div style="font-size:10px;color:var(--text-3);margin-top:3px;line-height:1.4;opacity:.8">'+faseNota+'</div>':'')+
   '</div>';
 
   // E1: Banner de peaking
