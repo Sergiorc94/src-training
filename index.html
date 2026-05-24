@@ -10377,33 +10377,97 @@ async function loadEntrenoCombate(){
   });
   html+='</div></div>';
 
-  // E7: Recomendación de cardio (acordeón — no sobrecarga la vista)
+  // E7: Contexto de cardio (acordeón — aclaración sobre el trabajo cardiovascular)
   (function(){
     var dep=c.deporte||'';
     var isStr=/boxe|kickbox|muay|karate|taekwon/i.test(dep);
     var isGrp=/bjj|judo|lucha|wrestl|grappl/i.test(dep);
+
+    // ── Mensaje según fase ──────────────────────────────────────────
     var msgs={
       base:{
-        titulo:'Cardio de base',
-        txt:isStr?'2-3 sesiones · Assault bike o remo ergómetro · Intervalos 20s/40s · 15-20min<br>❌ Correr en continuo no transfiere bien al combate (fatiga periférica distinta)':
-            isGrp?'1-2 sesiones moderadas · Assault bike · Circuito de carries · Prioriza siempre la técnica sobre el cardio extra':'Assault bike + intervalos · Complementar con sparring específico del deporte'
+        color:'#4D9FFF',
+        titulo:'Fase base — contexto de cardio',
+        obligatorio:'El bloque de Aeróbico Base que aparece arriba en la sesión. Eso es todo el cardio de hoy. Hazlo al ritmo conversacional indicado y listo.',
+        opcional: isStr
+          ? 'Si quieres trabajo cardiovascular adicional (en días separados, no hoy): Assault bike o remo ergómetro · Intervalos cortos 20s/40s · 15-20 min.<br>❌ Correr en continuo no transfiere bien al combate — la fatiga es en músculos distintos a los que usas peleando.'
+          : isGrp
+          ? 'Si quieres trabajo cardiovascular adicional (en un día separado): Assault bike moderado · Circuito de carries. Máximo 1-2 sesiones extra por semana — la técnica siempre primero.'
+          : 'Si quieres trabajo cardiovascular adicional (en un día separado): Assault bike + intervalos cortos. Máximo 2 sesiones extra. Tu deporte específico (sparring, grappling) ya es el mejor cardio.',
+        siNo:'El aeróbico de la sesión de hoy ya construye tu base. Sin problema.',
+        siPaso:'Acumulas fatiga que perjudica las sesiones técnicas. El documento lo dice claro: si llegas cansado a la técnica, algo está mal. Reduce.'
       },
-      especial:{
-        titulo:'Cardio específico de fase',
-        txt:isStr?'6-8 sprints de 10s / 50s recuperación · Imita la naturaleza intermitente del combate · Alta calidad, poca cantidad':
-            isGrp?'Sparring técnico intenso como cardio principal · Sled push/pull como complemento · No correr':'Sparring como cardio principal · Assault bike solo en días de descanso de técnica'
+      camp_cronico:{
+        color:'#FF6B35',
+        titulo:'Camp — contexto de cardio',
+        obligatorio:'El trabajo energético específico del bloque de acondicionamiento de esta sesión. Nada más hoy.',
+        opcional:'El sparring y las sesiones técnicas del camp YA son tu "cardio específico". No necesitas añadir más trabajo cardiovascular encima. Si sobran energías, algo falla en el camp.',
+        siNo:'Perfecto. El camp ya genera suficiente carga cardiovascular con el sparring y el trabajo técnico.',
+        siPaso:'Riesgo real de sobreentrenamiento en pleno camp. La carga del camp ya es alta — el cardio extra aquí no mejora, destroza la recuperación.'
       },
-      competicion:{titulo:'Cardio en competición',txt:'Mínimo · Solo sparring suave · El objetivo es llegar fresco, no trabajar más · Prioriza recuperación y técnica'},
-      transicion:{titulo:'Cardio de transición',txt:'Actividad ligera: caminatas, natación suave, movilidad · Sin intensidad alta · El cuerpo necesita recuperar'}
+      peaking:{
+        color:'#FF1744',
+        titulo:'Peaking — contexto de cardio',
+        obligatorio:'Ninguno hoy. El objetivo es llegar fresco.',
+        opcional:'NADA de cardio extra. Ni assault bike ni nada. El cuerpo necesita disipar la fatiga acumulada del camp para que se exprese al 100% el día de la pelea.',
+        siNo:'Correcto. Eso es exactamente lo que hay que hacer.',
+        siPaso:'Llegas cansado a la pelea. Todas las adaptaciones del camp quedan tapadas por la fatiga. Es el error más común y más caro.'
+      },
+      fight_week:{
+        color:'#FF1744',
+        titulo:'Fight week — contexto de cardio',
+        obligatorio:'Solo activación suave (EMOM 12 min de la guía si aplica). Nada más.',
+        opcional:'Cero cardio extra. Si acaso: 5-10 min de movilidad y respiración abdominal para bajar el cortisol.',
+        siNo:'Perfecto.',
+        siPaso:'Llegas agotado a la pelea. Todo el trabajo del camp perdido por no saber parar.'
+      },
+      post_pesaje:{
+        color:'#00C853',
+        titulo:'Post-pesaje — contexto de cardio',
+        obligatorio:'Ninguno. Come, bebe, descansa.',
+        opcional:'Nada de cardio entre el pesaje y la pelea. El cuerpo necesita reponer glucógeno y recuperar el sistema nervioso, no gastar más energía.',
+        siNo:'Correcto.',
+        siPaso:'Sales vacío a la pelea. La rehidratación y la recarga de glucógeno son lo único que importa ahora.'
+      },
+      post_pelea:{
+        color:'#00C853',
+        titulo:'Post-pelea — contexto de cardio',
+        obligatorio:'Ninguno. Descanso real.',
+        opcional:'Semana 1: nada. Semana 2: caminatas suaves o natación muy tranquila (FC < 65%). La fatiga neural puede durar 2-3 semanas aunque te sientas bien por fuera.',
+        siNo:'Es lo correcto. El cuerpo viene de un esfuerzo enorme.',
+        siPaso:'Enlenteces la recuperación y aumentas el riesgo de lesión. El sistema nervioso no se ve pero también se agota.'
+      }
     };
-    var info=isPeaking?
-      {titulo:'Semana de peaking',txt:'NADA de cardio extra · El cuerpo necesita recuperarse para rendir al máximo · Un poco de activación suave antes de la pelea si quieres, nada más'}:
-      (msgs[fase]||null);
-    if(!info) return;
-    var cardioContent='<div style="padding:8px 12px 12px">';
-    cardioContent+='<div style="font-size:12px;font-weight:700;color:'+(isPeaking?'#FF6B35':'#4D9FFF')+';margin-bottom:6px">'+info.titulo+'</div>';
-    cardioContent+='<div style="font-size:12px;color:#A0B0C0;line-height:1.6">'+info.txt+'</div></div>';
-    html+=makeAccordion('cardio','🚴','Cardio recomendado',cardioContent);
+
+    var info=msgs[fase]||msgs['base'];
+
+    var cardioContent='<div style="padding:8px 12px 14px;display:flex;flex-direction:column;gap:10px">';
+    // Qué hay que hacer SÍ o SÍ
+    cardioContent+=
+      '<div style="background:rgba(0,200,83,.07);border-left:3px solid #00C853;border-radius:0 6px 6px 0;padding:7px 10px">'+
+        '<div style="font-size:10px;font-weight:900;color:#00C853;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">✅ Lo obligatorio hoy</div>'+
+        '<div style="font-size:12px;color:#A0B0C0;line-height:1.5">'+info.obligatorio+'</div>'+
+      '</div>';
+    // Opcional
+    cardioContent+=
+      '<div style="background:rgba(77,159,255,.05);border-left:3px solid rgba(77,159,255,.3);border-radius:0 6px 6px 0;padding:7px 10px">'+
+        '<div style="font-size:10px;font-weight:900;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">➕ Trabajo extra (opcional)</div>'+
+        '<div style="font-size:12px;color:#6E8090;line-height:1.5">'+info.opcional+'</div>'+
+      '</div>';
+    // Si no lo hago / si me paso
+    cardioContent+=
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+        '<div style="background:rgba(255,255,255,.02);border:1px solid #1A2A40;border-radius:7px;padding:7px 8px">'+
+          '<div style="font-size:9px;font-weight:900;color:#4A5568;margin-bottom:3px">❓ ¿Y si no lo hago?</div>'+
+          '<div style="font-size:11px;color:#6E8090;line-height:1.4">'+info.siNo+'</div>'+
+        '</div>'+
+        '<div style="background:rgba(255,107,53,.04);border:1px solid rgba(255,107,53,.15);border-radius:7px;padding:7px 8px">'+
+          '<div style="font-size:9px;font-weight:900;color:#FF6B35;margin-bottom:3px">⚠️ ¿Y si me paso?</div>'+
+          '<div style="font-size:11px;color:#A0B0C0;line-height:1.4">'+info.siPaso+'</div>'+
+        '</div>'+
+      '</div>';
+    cardioContent+='</div>';
+    html+=makeAccordion('cardio','🚴','Contexto cardio — ¿qué hago hoy?',cardioContent);
   })();
 
   // Estado guardado si ya completado hoy
