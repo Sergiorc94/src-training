@@ -4243,7 +4243,7 @@ function adminSemToggle(selId){
   if(wrap) wrap.style.display=(e2&&e2.value)?'flex':'none';
   // Actualizar color borde del select
   var sel1=document.getElementById('e-sem-'+d+'-1');
-  if(sel1){var SCOL={tecnica:'#FFB300',sparring:'#FF6B35',fuerza:'#4D9FFF',cardio:'#00E5FF',fisico:'#AB47BC',descanso:'#1A2A40'};sel1.style.borderColor=SCOL[sel1.value]||'#1A2A40';}
+  if(sel1){var SCOL={tecnica:'#FFB300',sparring:'#FF6B35',fuerza:'#4D9FFF',acondicionamiento:'#00E5FF',cardio:'#00E5FF',fisico:'#4D9FFF',descanso:'#1A2A40'};sel1.style.borderColor=SCOL[sel1.value]||'#1A2A40';}
   renderAdminSemPreview();
 }
 // Activa seguidas o separadas para un día
@@ -4262,8 +4262,8 @@ function renderAdminSemPreview(){
   var el=document.getElementById('admin-sem-preview');
   if(!el) return;
   var DIAS=[['1','L'],['2','M'],['3','X'],['4','J'],['5','V'],['6','S'],['0','D']];
-  var SCOL={tecnica:'#FFB300',sparring:'#FF6B35',fuerza:'#4D9FFF',cardio:'#00E5FF',fisico:'#AB47BC',descanso:'rgba(255,255,255,.05)'};
-  var SICON={tecnica:'🥋',sparring:'🥊',fuerza:'💪',cardio:'🏃',fisico:'🏋️',descanso:'😴'};
+  var SCOL={tecnica:'#FFB300',sparring:'#FF6B35',fuerza:'#4D9FFF',acondicionamiento:'#00E5FF',cardio:'#00E5FF',fisico:'#4D9FFF',descanso:'rgba(255,255,255,.05)'};
+  var SICON={tecnica:'🥋',sparring:'🥊',fuerza:'💪',acondicionamiento:'🏃',descanso:'😴',cardio:'🏃',fisico:'💪',gym:'💪'};
   var hoyDow=String(new Date().getDay());
   var html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">';
   DIAS.forEach(function(d){
@@ -5624,14 +5624,14 @@ async function adminTab(tab,btn){
           (function(){
             var ps=cl.plan_semanal?(typeof cl.plan_semanal==='string'?JSON.parse(cl.plan_semanal):cl.plan_semanal):{};
             var dias=[['1','LUN'],['2','MAR'],['3','MIÉ'],['4','JUE'],['5','VIE'],['6','SÁB'],['0','DOM']];
-            var opts=[['descanso','😴 Descanso'],['tecnica','🥋 Técnica'],['sparring','🥊 Sparring'],['fuerza','💪 Fuerza'],['cardio','🏃 Cardio'],['fisico','🏋️ Físico']];
-            var SESS_COLOR={tecnica:'#FFB300',sparring:'#FF6B35',fuerza:'#4D9FFF',cardio:'#00E5FF',fisico:'#AB47BC',descanso:'#2A3A50'};
+            var opts=[['descanso','😴 Descanso'],['tecnica','🥋 Técnica'],['sparring','🥊 Sparring'],['fuerza','💪 Fuerza'],['acondicionamiento','🏃 Acondicionamiento']];
+            var SESS_COLOR={tecnica:'#FFB300',sparring:'#FF6B35',fuerza:'#4D9FFF',acondicionamiento:'#00E5FF',cardio:'#00E5FF',fisico:'#4D9FFF',descanso:'#2A3A50'};
             var sel=function(id,val,extra){
               return '<select id="'+id+'" onchange="adminSemToggle(\''+id+'\')" '+
                 'style="width:100%;font-size:10px;padding:4px 2px;border-radius:8px;background:#0D1528;'+
                 'border:2px solid '+(val&&val!=='descanso'?(SESS_COLOR[val]||'#1A2A40'):'#1A2A40')+';'+
                 'color:#F0F4FF;text-align:center;margin-top:3px;cursor:pointer;outline:none" '+
-                'onchange="adminSemToggle(\''+id+'\');this.style.borderColor=this.value&&this.value!==\'descanso\'?({tecnica:\'#FFB300\',sparring:\'#FF6B35\',fuerza:\'#4D9FFF\',cardio:\'#00E5FF\',fisico:\'#AB47BC\'}[this.value]||\'#1A2A40\'):\'#1A2A40\'">'+
+                'onchange="adminSemToggle(\''+id+'\');this.style.borderColor=this.value&&this.value!==\'descanso\'?({tecnica:\'#FFB300\',sparring:\'#FF6B35\',fuerza:\'#4D9FFF\',acondicionamiento:\'#00E5FF\',cardio:\'#00E5FF\'}[this.value]||\'#1A2A40\'):\'#1A2A40\'">'+
                 (extra?'<option value="">—</option>':'')+
                 opts.map(function(o){return '<option value="'+o[0]+'"'+(val===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+
               '</select>';
@@ -5806,7 +5806,7 @@ function renderAdminCombateMacros(c){
     {id:'sparring', icon:'🥊',label:'Sparring',  color:'255,45,85'},
     {id:'ambos',    icon:'🔥',label:'Tec+Gym',   color:'255,107,53'},
     {id:'tecnica',  icon:'🥋',label:'Técnica',   color:'255,179,0'},
-    {id:'cardio',   icon:'🏃',label:'Cardio',    color:'0,229,255'},
+    {id:'cardio',   icon:'🏃',label:'Acond.',    color:'0,229,255'},
     {id:'gym',      icon:'🏋️',label:'Fuerza',   color:'77,159,255'},
     {id:'descanso', icon:'🛌',label:'Descanso',  color:'110,128,144'},
   ];
@@ -6561,13 +6561,15 @@ function renderSemanaCalendario(c){
   var DIAS_SHORT=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   var DIAS_FULL=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   var SESSION_INFO={
-    fuerza:   {icon:'💪', label:'Fuerza',    color:'#4D9FFF'},
-    tecnica:  {icon:'🥋', label:'Técnica',   color:'#FFB300'},
-    sparring: {icon:'🥊', label:'Sparring',  color:'#FF6B35'},
-    cardio:   {icon:'🏃', label:'Cardio',    color:'#00E5FF'},
-    fisico:   {icon:'🏋️', label:'Físico',  color:'#AB47BC'},
-    gym:      {icon:'🏋️', label:'Fuerza',  color:'#4D9FFF'}, // legacy alias
-    descanso: {icon:'😴', label:'Descanso',  color:'#4A5568'},
+    fuerza:          {icon:'💪', label:'Fuerza',           color:'#4D9FFF'},
+    tecnica:         {icon:'🥋', label:'Técnica',          color:'#FFB300'},
+    sparring:        {icon:'🥊', label:'Sparring',         color:'#FF6B35'},
+    acondicionamiento:{icon:'🏃',label:'Acondicionamiento',color:'#00E5FF'},
+    descanso:        {icon:'😴', label:'Descanso',         color:'#4A5568'},
+    // aliases legacy (valores guardados en BD)
+    cardio:          {icon:'🏃', label:'Acondicionamiento',color:'#00E5FF'},
+    fisico:          {icon:'💪', label:'Fuerza',           color:'#4D9FFF'},
+    gym:             {icon:'💪', label:'Fuerza',           color:'#4D9FFF'},
   };
 
   var hoyD=new Date();
@@ -6861,7 +6863,7 @@ function abrirDiaModal(idx){
     if(esDescanso) macros=cm.descanso||cm.tecnica;
     else {
       // La sesión de mayor demanda marca los macros
-      var prioMap={sparring:4,fuerza:3,fisico:3,tecnica:2,cardio:2,descanso:1};
+      var prioMap={sparring:4,fuerza:3,tecnica:2,acondicionamiento:2,cardio:2,fisico:3,descanso:1};
       var topSes=activas.slice().sort(function(a,b){return (prioMap[b]||1)-(prioMap[a]||1);})[0];
       macros=cm[topSes]||cm.tecnica;
     }
