@@ -4259,6 +4259,40 @@ function getVarianteEjercicio(patron, semana){
   if(!arr) return null;
   return arr[(semana-1)%arr.length];
 }
+// Sustituye el bloque "Aeróbico Base" embebido dentro de una sesión (ej: sesión C)
+// por el protocolo correspondiente cuando la fase/semana lo requiere.
+// Úsase en base sem 4+ para cambiar de A (base aeróbica) a B (VO2max).
+function applyProtocoloInline(sesion, proto, semana){
+  var s2=JSON.parse(JSON.stringify(sesion));
+  s2.bloques=s2.bloques.map(function(blq){
+    // Solo reemplazar bloques "Aeróbico Base" — nunca el "Regenerativo"
+    if(/^Aeróbico Base/i.test(blq.nombre)&&!/Regenerat/i.test(blq.nombre)){
+      if(proto==='B'){
+        blq.nombre='VO2max Potencia Aeróbica — Protocolo B (Sem.'+semana+')';
+        blq.min=30;
+        blq.ejs=[makeEj(
+          'VO2max — 6 rondas × 3min @90-95% FC / 3min recuperación activa (Sem.'+semana+')',
+          6,'3 min','—',
+          'Protocolo B activado desde la semana 4. Base aeróbica ya construida — ahora expandir el VO2max. '+
+          'Bicicleta de asalto, remo o cuerda. Si no sostienes la FC objetivo en las 6 rondas: vuelve a A una semana más.',
+          'Cardio'
+        )];
+      } else if(proto==='C'){
+        blq.nombre='Resistencia Láctica — Protocolo C (Sem.'+semana+')';
+        blq.min=20;
+        blq.ejs=[makeEj(
+          'Resistencia láctica — 5 rondas × 3min @85% FC / 1min descanso activo (Sem.'+semana+')',
+          5,'3 min','—',
+          'Camp. Aguantar la acidez del 4.º round se entrena aquí. La acidez que sientes en sparring duro = esto.',
+          'Cardio'
+        )];
+      }
+    }
+    return blq;
+  });
+  return s2;
+}
+
 // Sustituye "Patrón (VARÍA c/sem: ...)" por "Patrón — Sem.N: VarianteEspecífica"
 function applyLeyAcomodacion(sesion, semana){
   var s2=JSON.parse(JSON.stringify(sesion));
@@ -4332,10 +4366,13 @@ function getSesionGuia(c){
     var dm=plan.diasMap[dk]||plan.diasMap[Object.keys(plan.diasMap)[0]]||{1:'A',3:'B',5:'C'};
     var letra=dm[dow];
     var sesion=letra?sesiones.find(function(s){return s.id===letra;}):null;
-    // Ley de Acomodación: sustituir variante semanal en sesiones de p3
     var semActual=getSemanaEnFase(c);
+    // Ley de Acomodación: sustituir variante semanal en sesiones de p3
     if(perfil==='p3'&&sesion) sesion=applyLeyAcomodacion(sesion,semActual);
-    // Auto-seleccionar protocolo de acondicionamiento según fase/semana
+    // Protocolo aeróbico embebido dentro de la sesión (ej: bloque "Aeróbico Base" en sesión C)
+    // Base sem 4+ → Protocol B (VO2max) | Camp → Protocol C (ya aplicado por campify en PLANES_GUIA)
+    if(sesion&&fase==='base'&&semActual>=4) sesion=applyProtocoloInline(sesion,'B',semActual);
+    // Auto-seleccionar protocolo de acondicionamiento en día dedicado (Sesión D)
     if(sesion&&sesion.id==='D'){
       var proto=getProtocoloAcond(fase,semActual);
       if(proto){var aS=buildAcondSession(fase,proto,semActual);if(aS)sesion=aS;}
