@@ -4090,16 +4090,16 @@ const PLANES_GUIA=(function(){
       desc:'Intermedio/avanzado. 8-12 semanas de camp antes de cada pelea.',
       diasMap:{2:{1:'A',4:'B'},3:{1:'A',3:'B',5:'C'},4:{1:'A',3:'B',4:'D',5:'C'}},
       fases:{
-        base:{label:'Preparación Base (12+ semanas)',nota:'',
+        base:{label:'🏗️ Preparación Base (12+ semanas)',nota:'Fuerza máxima. Aeróbico base. Máximo volumen. La base de todo.',
           dias:{2:[p2A_base,p2B_base],3:[p2A_base,p2B_base,p2C_base],4:[p2A_base,p2B_base,p2D_base,p2C_base]}},
-        especial:{label:'Camp (8-12 semanas antes)',nota:'Camp: -1 serie en ejercicios principales · Acondicionamiento láctico · Vaciado de lactato siempre al final',
+        camp_cronico:{label:'⚔️ Camp — fase crónica (8-12 sem)',nota:'Volumen -15%, misma intensidad. Técnica prioritaria. Acondicionamiento láctico. Vaciado de lactato al final siempre.',
           dias:{2:[p2A_base,p2B_base],3:[p2A_base,p2B_base,p2C_base],4:[p2A_base,p2B_base,p2D_base,p2C_base]}},
-        competicion:{label:'Semana de Activación (-1 sem)',nota:'NO más cardio duro. NO más fuerza máxima. Solo activa el sistema nervioso.',
+        peaking:{label:'🎯 Peaking (semanas -3 a -2)',nota:'Método de contraste: fuerza pesada → explosivo inmediato. Sin acondicionamiento duro. Disipar fatiga.',
+          dias:{2:p2_peaking_s2,3:p2_peaking_s2,4:p2_peaking_s2}},
+        fight_week:{label:'🥊 Fight Week (semana -1)',nota:'Solo activación SNC. EMOM 12min. Sin nada intenso. Sin nada nuevo. Todo lo que serás ya lo eres.',
           dias:{2:p2_peaking_s1,3:p2_peaking_s1,4:p2_peaking_s1}},
-        transicion:{label:'Post-Pelea — Recuperación',nota:'1-2 semanas de descanso real. El cuerpo viene de un estrés enorme.',
-          dias:{2:p2_transicion,3:p2_transicion,4:p2_transicion}},
-        peaking:{label:'Peaking (-3 a -2 sem)',nota:'Método de contraste: fuerza → explosivo inmediato. Sin acondicionamiento duro.',
-          dias:{2:p2_peaking_s2,3:p2_peaking_s2,4:p2_peaking_s2}}
+        post_pelea:{label:'🔄 Post-Pelea / Recuperación',nota:'Sem 1: descanso completo. Sem 2: aeróbico suave. Sem 3: vuelta gradual muy ligera. Recuperación hormonal.',
+          dias:{2:p2_transicion,3:p2_transicion,4:p2_transicion}}
       }
     },
     p3:{
@@ -4108,16 +4108,16 @@ const PLANES_GUIA=(function(){
       desc:'Ciclos completos. Variación obligatoria del ejercicio principal cada semana (Ley de Acomodación).',
       diasMap:{3:{1:'A',3:'B',5:'C'},4:{1:'A',3:'B',4:'D',5:'C'},5:{1:'A',3:'B',4:'D',5:'C',6:'E'}},
       fases:{
-        base:{label:'Preparación Base Larga (16-20 semanas)',nota:'',
+        base:{label:'🏗️ Preparación Base Larga (16-20 semanas)',nota:'Máximo volumen. Variación obligatoria del ejercicio principal cada semana. Tests de rendimiento.',
           dias:{3:[p3A_base,p3B_base,p3C_base],4:[p3A_base,p3B_base,acond_dia,p3C_base],5:[p3A_base,p3B_base,acond_dia,p3C_base,p3E_sabado]}},
-        especial:{label:'Camp Profesional',nota:'Variación obligatoria cada semana · Ondas de carga en explosivos (55%→65%→75%) · Monitor FC en sparring',
+        camp_cronico:{label:'⚔️ Camp Profesional (12-8 sem)',nota:'Variación obligatoria cada semana · Ondas de carga en explosivos (55%→65%→75%) · Monitor FC en sparring (umbral 170-175 ppm).',
           dias:{3:[p3A_base,p3B_base,p3C_base],4:[p3A_base,p3B_base,acond_dia,p3C_base],5:[p3A_base,p3B_base,acond_dia,p3C_base,p3E_sabado]}},
-        competicion:{label:'Activación Final — Semana de Pelea',nota:'Solo activa el SNC. Sin fatiga. Sin nada nuevo. Todo lo que serás ya lo eres.',
+        peaking:{label:'🎯 Peaking 3 semanas',nota:'Sem -3: contraste inicial · Sem -2: solo contraste dominante · Sem -1: activación de fibras rápidas.',
+          dias:{3:p3_peaking_s2,4:p3_peaking_s2,5:p3_peaking_s2}},
+        fight_week:{label:'🥊 Fight Week — Activación Final',nota:'Solo activa el SNC. Sin fatiga. Sin nada nuevo. Todo lo que serás ya lo eres.',
           dias:{3:p2_peaking_s1,4:p2_peaking_s1,5:p2_peaking_s1}},
-        transicion:{label:'Post-Pelea — Recuperación',nota:'2-4 semanas. Recuperación física Y mental. Sin métricas de rendimiento.',
-          dias:{3:transicionPro,4:transicionPro,5:transicionPro}},
-        peaking:{label:'Peaking 3 semanas',nota:'Sem -3: contraste inicial · Sem -2: solo contraste · Sem -1: activación de fibras rápidas',
-          dias:{3:p3_peaking_s2,4:p3_peaking_s2,5:p3_peaking_s2}}
+        post_pelea:{label:'🔄 Post-Pelea — Recuperación',nota:'2-4 semanas. Recuperación física Y mental. Sin métricas de rendimiento. Recuperación hormonal progresiva.',
+          dias:{3:transicionPro,4:transicionPro,5:transicionPro}}
       }
     }
   };
@@ -4141,8 +4141,17 @@ function getSesionGuia(c){
     return {sesion:sesion, sesiones:sesiones, perfil:perfil, plan:plan, faseLabel:'', faseNota:'', dias:dk};
   } else {
     var fase=getFaseCombate(c);
-    // Map getFaseCombate result → fases keys
-    var fMap={base:'base',especial:'especial',competicion:'competicion',transicion:'transicion'};
+    // Map nuevas fases → claves en PLANES_GUIA.fases
+    var fMap={
+      base:'base',
+      camp_cronico:'camp_cronico',
+      peaking:'peaking',
+      fight_week:'fight_week',
+      post_pesaje:'post_pelea',  // usa sesiones de post_pelea (descanso activo)
+      post_pelea:'post_pelea',
+      // aliases legacy
+      especial:'camp_cronico', competicion:'peaking', transicion:'post_pelea'
+    };
     var fKey=fMap[fase]||'base';
     var faseData=plan.fases[fKey]||plan.fases['base'];
     faseLabel=faseData.label||'';
