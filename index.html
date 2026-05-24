@@ -5904,9 +5904,22 @@ async function adminTab(tab,btn){
         '<div class="field"><label>Nº comidas</label><select id="e-ncom">'+(
           [3,4,5,6].map(n=>'<option value="'+n+'"'+(cl.n_comidas==n?' selected':'')+'>'+n+'</option>').join('')
         )+'</select></div>'+
-        '<div class="field"><label>Objetivo</label><select id="e-obj">'+(
-          [['deficit','Déficit moderado (-400 kcal)'],['deficit_agresivo','Déficit agresivo (-600 kcal)'],['recomp','Recomposición (-250 kcal)'],['superavit','Superávit (+300 kcal)'],['volumen_hc','Volumen HC (+500 kcal)']].map(([v,l])=>'<option value="'+v+'"'+(cl.objetivo===v?' selected':'')+'>'+l+'</option>').join('')
-        )+'</select></div>'+
+        (cl.tipo_cliente==='combate'
+          ? '<div class="field" style="grid-column:1/-1">'+
+              '<label>🎯 Objetivo nutricional</label>'+
+              '<div style="background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.2);border-radius:8px;padding:8px 10px;font-size:11px;line-height:1.5;color:#A0B0C0">'+
+                '🤖 <b style="color:#00E5FF">Automático — calculado por fase</b><br>'+
+                '<span style="color:#6E8090">Base:</span> mantenimiento / ligero superávit &nbsp;·&nbsp; '+
+                '<span style="color:#6E8090">Camp:</span> mantenimiento &nbsp;·&nbsp; '+
+                '<span style="color:#6E8090">Fight Week:</span> déficit controlado &nbsp;·&nbsp; '+
+                '<span style="color:#6E8090">Post-pelea:</span> recuperación'+
+              '</div>'+
+              '<select id="e-obj" style="display:none"><option value="">auto</option></select>'+
+            '</div>'
+          : '<div class="field"><label>Objetivo</label><select id="e-obj">'+(
+              [['deficit','Déficit moderado (-400 kcal)'],['deficit_agresivo','Déficit agresivo (-600 kcal)'],['recomp','Recomposición (-250 kcal)'],['superavit','Superávit (+300 kcal)'],['volumen_hc','Volumen HC (+500 kcal)']].map(([v,l])=>'<option value="'+v+'"'+(cl.objetivo===v?' selected':'')+'>'+l+'</option>').join('')
+            )+'</select></div>'
+        )+
         '<div class="field"><label>Días entreno / semana</label><select id="e-dias-ent">'+
           [0,2,3,4,5,6].map(d=>'<option value="'+d+'"'+(cl.dias_entreno==d?' selected':'')+'>'+d+' días</option>').join('')+
         '</select></div>'+
@@ -6244,7 +6257,7 @@ async function guardarCfg(){
       carbos_objetivo:parseInt(document.getElementById('e-carb').value)||null,
       grasas_objetivo:parseInt(document.getElementById('e-gras').value)||null,
       n_comidas:parseInt(document.getElementById('e-ncom').value)||5,
-      objetivo:document.getElementById('e-obj').value,
+      objetivo:(document.getElementById('e-obj')||{}).value||null,
       notas_entrenador:document.getElementById('e-not').value.trim()||null,
       updated_at:new Date().toISOString()};
     await db.patch('clientes','id=eq.'+c.id,base);
@@ -6333,7 +6346,7 @@ function recalcCfgMacros(){
   var sexo=document.getElementById('e-sex').value||'H';
   var diasEnt=parseInt(document.getElementById('e-dias-ent').value)||3;
   var actByDays={0:1.2,2:1.35,3:1.45,4:1.55,5:1.65,6:1.725}[diasEnt]||1.375;
-  var act=actByDays,obj=document.getElementById('e-obj').value;
+  var act=actByDays,obj=(document.getElementById('e-obj')||{}).value||'recomp';
   if(!peso||!alt||!edad){toast('Rellena peso, altura y edad primero','err');return;}
   var bmr=sexo==='H'?(10*peso+6.25*alt-5*edad+5):(10*peso+6.25*alt-5*edad-161);
   var tdee=Math.round(bmr*act);
