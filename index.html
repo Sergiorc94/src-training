@@ -7445,17 +7445,75 @@ async function loadCamp(){
   });
   html+='</div>';
 
-  // Weekly training template
-  html+='<div style="border-top:1px solid rgba('+faseCol+',.15);padding-top:8px">';
-  html+='<div style="font-size:10px;font-weight:700;color:rgba('+faseCol+',.7);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Plantilla semanal ('+diasFuerza+' días gym)</div>';
-  html+='<div style="display:flex;gap:4px">';
-  DIAS_ES.forEach(function(d,dow){
-    var sesLetter=diasMap[dow+1]||null; // diasMap uses 1-7
-    var hasSes=!!sesLetter;
-    html+='<div style="flex:1;text-align:center;background:'+(hasSes?'rgba('+faseCol+',.12)':'rgba(0,0,0,.2)')+';border:1px solid '+(hasSes?'rgba('+faseCol+',.3)':'#1A2A40')+';border-radius:6px;padding:4px 2px">';
-    html+='<div style="font-size:9px;color:'+(hasSes?'rgba('+faseCol+',.8)':'#2A3A50')+';font-weight:700">'+d+'</div>';
-    html+='<div style="font-size:11px;font-weight:900;color:'+(hasSes?'rgba('+faseCol+',1)':'#1A2A40')+'">'+
-      (hasSes?sesLetter:'🛌')+'</div>';
+  // Weekly training template — con nombre real de cada sesión
+  var _guia=getSesionGuia(c);
+  var _sesiones=_guia?_guia.sesiones:[];
+  var _diasMapGuia=(_guia&&_guia.plan&&_guia.plan.diasMap&&_guia.plan.diasMap[_guia?_guia.dias:3])||diasMap;
+  var _planSem={};
+  try{_planSem=JSON.parse(c.plan_semanal||'{}');}catch(e){}
+  var _hoyDow=new Date().getDay(); // 0=Dom,1=Lun...
+  // Mapeo: índice forEach (0=Lun) → getDay() (1=Lun)
+  var _dowMap=[1,2,3,4,5,6,0]; // índice i → getDay()
+  // Etiqueta corta para la sesión de gym
+  function _shortNom(ses){
+    if(!ses) return '';
+    var n=ses.nombre.replace(/^\[Camp\]\s*/,'').replace(/\(PRO\)/i,'').replace(/\s*\(Sem\.\d+\)/,'').trim();
+    if(/Fuerza.*Tren\s*Inf/i.test(n)) return 'Fuerza Tren Inf';
+    if(/Fuerza.*Tren\s*Sup/i.test(n)) return 'Fuerza Tren Sup';
+    if(/Fuerza.*Cuerpo\s*Completo/i.test(n)) return 'Fuerza Completo';
+    if(/Potencia.Velocidad/i.test(n))  return 'Potencia-Velocidad';
+    if(/Protocolo\s+([ABCD])/i.test(n)){var m=n.match(/Protocolo\s+([ABCD])/i);return 'Acond. Protocolo '+m[1];}
+    if(/Acondicionamiento\s+Dedicado/i.test(n)) return 'Acondicionamiento';
+    if(/Acondicionamiento/i.test(n)) return 'Acondicionamiento';
+    if(/Peaking.*Contraste/i.test(n)||/Método\s+de\s+Contraste/i.test(n)) return 'Peaking — Contraste';
+    if(/Activación\s+Suave/i.test(n)) return 'Activación Suave';
+    if(/Recuperaci/i.test(n)) return 'Recuperación';
+    if(n.length>22) return n.substring(0,20)+'…';
+    return n;
+  }
+  // Color y nombre de sesión tipo (para días de técnica/sparring/etc)
+  var _STYPE={
+    tecnica:  {icon:'🥋',label:'Técnica deportiva',col:'255,179,0'},
+    sparring: {icon:'🥊',label:'Sparring',col:'255,107,53'},
+    fuerza:   {icon:'💪',label:'Fuerza',col:'77,159,255'},
+    acondicionamiento:{icon:'🏃',label:'Acondicionamiento',col:'0,229,255'},
+    cardio:   {icon:'🏃',label:'Acondicionamiento',col:'0,229,255'},
+    descanso: {icon:'🛌',label:'Descanso',col:'74,85,104'}
+  };
+  html+='<div style="border-top:1px solid rgba('+faseCol+',.15);padding-top:10px">';
+  html+='<div style="font-size:10px;font-weight:700;color:rgba('+faseCol+',.7);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Plantilla semanal</div>';
+  html+='<div style="display:flex;flex-direction:column;gap:4px">';
+  DIAS_ES.forEach(function(d,i){
+    var realDow=_dowMap[i];           // getDay() para este día
+    var mapKey=i+1;                   // diasMap usa 1=Lun...7=Dom
+    var sesLetter=_diasMapGuia[mapKey]||null;
+    var gymSes=sesLetter?_sesiones.find(function(s){return s.id===sesLetter;}):null;
+    var planEntry=_planSem[i]||null;
+    var isHoy=(realDow===_hoyDow);
+
+    var icon,label,col,extra='';
+    if(gymSes){
+      icon=gymSes.emoji||'💪';
+      label=_shortNom(gymSes);
+      col=faseCol;
+    } else if(planEntry&&planEntry.s&&planEntry.s[0]){
+      var st=_STYPE[planEntry.s[0]]||_STYPE.descanso;
+      icon=st.icon; label=st.label; col=st.col;
+      if(planEntry.s[1]){
+        var st2=_STYPE[planEntry.s[1]]||_STYPE.descanso;
+        extra=' <span style="font-size:9px;color:rgba('+st2.col+',.8)">+ '+st2.label+'</span>';
+      }
+    } else {
+      icon='🛌'; label='Descanso'; col='74,85,104';
+    }
+
+    html+='<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;'+
+      'background:'+(isHoy?'rgba('+col+',.15)':'rgba('+col+',.05)')+';'+
+      'border:1px solid '+(isHoy?'rgba('+col+',.5)':'rgba('+col+',.2)')+'">';
+    html+='<div style="font-size:11px;font-weight:900;color:rgba('+col+','+(isHoy?'1':'.6')+');width:28px;flex-shrink:0">'+d+'</div>';
+    html+='<div style="font-size:15px;flex-shrink:0">'+icon+'</div>';
+    html+='<div style="font-size:11px;font-weight:'+(isHoy?'800':'600')+';color:rgba('+col+','+(isHoy?'1':'.75')+')">'+label+extra+'</div>';
+    if(isHoy) html+='<div style="margin-left:auto;font-size:9px;font-weight:800;color:rgba('+col+',1);background:rgba('+col+',.15);padding:2px 6px;border-radius:4px">HOY</div>';
     html+='</div>';
   });
   html+='</div></div>';
