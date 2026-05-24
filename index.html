@@ -4097,15 +4097,24 @@ const PLANES_GUIA=(function(){
             return ej;
           });
         }
-        // Reemplazar aeróbico base por resistencia láctica (Protocolo C)
-        if(/Aeróbico Base/.test(blq.nombre)){
-          var lEj=g(
-            'Resistencia láctica — Protocolo C',5,
-            '3 min al 85% FC / 1 min descanso activo','—',
-            'Aguantar la acidez de los rounds duros. Umbral láctico. 5 rondas. Semanas 8-4 antes de la pelea.','Cardio'
+        // Sesión C (Viernes) en camp: aeróbico base → intervalos ALÁTICOS de potencia
+        // Documento SRC (camp 3 días): "el viernes cambia el acondicionamiento aeróbico largo
+        // por intervalos cortos de potencia (8 × 6-8 segundos al máximo / 3 minutos de descanso completo).
+        // La potencia explosiva es lo que más se pierde si no se mantiene durante el camp."
+        // NO es Protocol C (láctico) — son sprints ALÁTICOS con descanso COMPLETO
+        if(/^Aeróbico Base/.test(blq.nombre)&&!/Regenerat/i.test(blq.nombre)){
+          var alacEj=g(
+            'Intervalos de potencia alácticos — 8 × 6-8s máximo / 3min descanso completo',8,
+            '6-8 seg',
+            '—',
+            'DESCANSO COMPLETO (3min) entre sprints. Sistema aláctico puro. '+
+            'No confundir con el Protocolo C (láctico). '+
+            'Bicicleta de asalto, cuerda o sprint. La potencia explosiva es lo que más se pierde durante el camp. '+
+            'Solo funciona con recuperación COMPLETA — si no descansas, entrenas el sistema láctico, no el aláctico.',
+            'Cardio'
           );
-          blq.nombre='Resistencia Láctica (Protocolo C)';
-          blq.min=20; blq.ejs=[lEj];
+          blq.nombre='Potencia Alática (Camp — Intervalos cortos)';
+          blq.min=30; blq.ejs=[alacEj];
         }
         return blq;
       });
@@ -4369,10 +4378,9 @@ function getSesionGuia(c){
     var semActual=getSemanaEnFase(c);
     // Ley de Acomodación: sustituir variante semanal en sesiones de p3
     if(perfil==='p3'&&sesion) sesion=applyLeyAcomodacion(sesion,semActual);
-    // Protocolo aeróbico embebido dentro de la sesión (ej: bloque "Aeróbico Base" en sesión C)
-    // Base sem 4+ → Protocol B (VO2max) | Camp → Protocol C (ya aplicado por campify en PLANES_GUIA)
-    if(sesion&&fase==='base'&&semActual>=4) sesion=applyProtocoloInline(sesion,'B',semActual);
     // Auto-seleccionar protocolo de acondicionamiento en día dedicado (Sesión D)
+    // Los protocolos A/B/C/D son SOLO para el día dedicado de acondicionamiento
+    // El bloque "Aeróbico Base" embebido en la sesión C siempre es base aeróbica larga — no cambia
     if(sesion&&sesion.id==='D'){
       var proto=getProtocoloAcond(fase,semActual);
       if(proto){var aS=buildAcondSession(fase,proto,semActual);if(aS)sesion=aS;}
