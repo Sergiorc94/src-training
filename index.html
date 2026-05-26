@@ -9002,8 +9002,9 @@ function getPlatoOptsParaComida(mealIdx, misPlatos, slotType){
     });
     if(lastDif) html+='</optgroup>';
   }
-  // Resto (otras categorías, ordenado por dificultad)
-  if(resto.length){
+  // Resto (otras categorías) — NO mostrar para slots con contexto estricto de timing
+  var _slotEstricto=slotType&&['pre','post','intra','post_pre'].indexOf(slotType)!==-1;
+  if(resto.length&&!_slotEstricto){
     var lastCat='', lastDif2=0;
     html+='<optgroup label="── OTRAS OPCIONES ──" disabled></optgroup>';
     resto.forEach(function(e){
@@ -9128,8 +9129,8 @@ function renderNutriCliente(){
     var _slotLabel=_slotDef?(_slotDef.icon+' '+_slotDef.label):(CN[i]||'Comida '+(i+1));
     var _adminDefault=_cd?(_slotType?_cd[_slotType]:(_cd[CN[i]]||_cd['normal'])):null;
     var _tieneComida=com.alimentos&&com.alimentos.length>0;
-    // Auto-calcular plato óptimo si el slot está vacío
-    var _defaultPlato=_tieneComida?null:getDefaultPlatoForSlot(_slotType||'normal',{p:tP,c:tC,g:tG},_prefs,_adminDefault);
+    // Auto-calcular plato óptimo para todos los slots (rellenos o vacíos)
+    var _defaultPlato=getDefaultPlatoForSlot(_slotType||'normal',{p:tP,c:tC,g:tG},_prefs,_adminDefault);
 
     html+='<div class="cbk" id="cbk-'+i+'" style="margin-bottom:.75rem">'+
       // Header
@@ -9187,14 +9188,16 @@ function renderNutriCliente(){
         var _habitualBtn='';
         if(_defaultPlato){
           var _isAdmin=!!_adminDefault;
+          var _btnLabel=_isAdmin?'📌 Mi comida habitual':'🤖 Mejor opción para tus macros';
+          var _btnAction=_tieneComida?'Cambiar →':'Aplicar →';
+          var _btnAlpha=_tieneComida?'.04':'.06';
           _habitualBtn='<div onclick="onClientePlatoSelect('+i+',\''+_defaultPlato.replace(/'/g,"\\'").replace(/\n/g,'')+'\',' +tP+','+tC+','+tG+')" '+
-            'style="margin-bottom:8px;padding:8px 12px;background:rgba(0,200,83,.06);border:1px solid rgba(0,200,83,.2);border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px">'+
-            '<div style="font-size:18px">'+(_isAdmin?'📌':'🤖')+'</div>'+
+            'style="margin-bottom:8px;padding:8px 12px;background:rgba(0,200,83,'+_btnAlpha+');border:1px solid rgba(0,200,83,.2);border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px">'+
             '<div style="flex:1">'+
-              '<div style="font-size:11px;font-weight:700;color:#00C853">'+(_isAdmin?'Mi comida habitual':'Mejor opción para tus macros')+'</div>'+
+              '<div style="font-size:11px;font-weight:700;color:#00C853">'+_btnLabel+'</div>'+
               '<div style="font-size:10px;color:#4A5568;margin-top:1px">'+_defaultPlato.substring(0,50)+'</div>'+
             '</div>'+
-            '<div style="font-size:10px;color:#00C853;font-weight:700">Aplicar →</div>'+
+            '<div style="font-size:10px;color:#00C853;font-weight:700">'+_btnAction+'</div>'+
           '</div>';
         }
         return '<div class="cbkb">'+
@@ -10155,15 +10158,21 @@ async function loadEntrenoCombate(){
     if(/sombra|shadow.?box|shadow/i.test(n)) return 'sombra';
     if(/saco|heavy.?bag|bag/i.test(n)) return 'saco';
     if(/interval|hiit|rondas.*×.*s|×.*s\//i.test(n)) return 'intervalos';
+    if(/aeróbico|aerobico|aerobi|base aeróbic|base aerobic|trote|bicicleta|bici\b|ciclo|regenerat/i.test(n)) return 'aerobico';
     return 'fuerza';
   }
   // ── ETIQUETA TIPO EJERCICIO ───────────────────────────────────
   function ejTipoBadge(tipo){
     var map={
-      bike:{l:'🚴 Watts/FC',c:'0,229,255'},remo:{l:'🚣 Remo',c:'0,229,255'},
-      carrera:{l:'🏃 Carrera',c:'0,200,83'},cuerda:{l:'🪢 Cuerda',c:'255,179,0'},
-      sled:{l:'🛷 Sled',c:'255,107,53'},sombra:{l:'👊 Sombra',c:'171,71,188'},
-      saco:{l:'🥊 Saco',c:'255,45,85'},intervalos:{l:'⚡ Intervalos',c:'255,107,53'},
+      bike:    {l:'🚴 Watts/FC',    c:'0,229,255'},
+      remo:    {l:'🚣 Remo',        c:'0,229,255'},
+      carrera: {l:'🏃 Carrera',     c:'0,200,83'},
+      cuerda:  {l:'🪢 Cuerda',      c:'255,179,0'},
+      sled:    {l:'🛷 Sled',        c:'255,107,53'},
+      sombra:  {l:'👊 Sombra',      c:'171,71,188'},
+      saco:    {l:'🥊 Saco',        c:'255,45,85'},
+      intervalos:{l:'⚡ Intervalos',c:'255,107,53'},
+      aerobico:{l:'💚 Aeróbico',    c:'0,200,83'},
     };
     var x=map[tipo];
     return x?'<span style="background:rgba('+x.c+',.12);color:rgba('+x.c+',1);border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700">'+x.l+'</span>':'';
@@ -10179,7 +10188,8 @@ async function loadEntrenoCombate(){
       if(esCardio){
         arr.push({done:sg.done||false,tiempo:sg.tiempo||'',vatios:sg.vatios||'',fc:sg.fc||'',rpe:sg.rpe||0,_tipo:tipo});
       } else {
-        arr.push({done:sg.done||false,kg:sg.kg||'',reps:sg.reps||defaultReps||'',rpe:sg.rpe||0,_tipo:'fuerza'});
+        var _repsPrefill=sg.reps||(defaultReps&&/^\d+(\.\d+)?$/.test(String(defaultReps))?defaultReps:'');
+        arr.push({done:sg.done||false,kg:sg.kg||'',reps:_repsPrefill,rpe:sg.rpe||0,_tipo:'fuerza',_targetReps:String(defaultReps||'')});
       }
     }
     return arr;
@@ -11957,6 +11967,7 @@ function detectTipoEjercicio(nombre){
   if(/sombra|shadow.?box|shadow/i.test(n)) return 'sombra';
   if(/saco|heavy.?bag|bag/i.test(n)) return 'saco';
   if(/interval|hiit|rondas.*×.*s|×.*s\//i.test(n)) return 'intervalos';
+  if(/aeróbico|aerobico|aerobi|base aeróbic|base aerobic|trote|bicicleta|bici\b|ciclo|regenerat/i.test(n)) return 'aerobico';
   return 'fuerza';
 }
 
@@ -11983,14 +11994,15 @@ function renderSerieRow(diaIdx, ei, si, s, lastMax, diaType, ejNom, ejRir){
   if(esCardio){
     // CARDIO: tiempo / vatios / pulsaciones
     var camposCardio={
-      bike:    [{f:'tiempo',p:'seg',w:52},{f:'vatios',p:'W',w:48},{f:'fc',p:'ppm FC',w:52}],
-      remo:    [{f:'tiempo',p:'seg',w:52},{f:'vatios',p:'W',w:48},{f:'fc',p:'ppm FC',w:52}],
-      carrera: [{f:'tiempo',p:'seg',w:52},{f:'ritmo',p:'min/km',w:60},{f:'fc',p:'ppm FC',w:52}],
-      cuerda:  [{f:'tiempo',p:'seg',w:52},{f:'fc',p:'ppm FC',w:52}],
-      sled:    [{f:'tiempo',p:'seg',w:52},{f:'rpe',p:'RPE',w:40}],
-      sombra:  [{f:'tiempo',p:'seg',w:52},{f:'fc',p:'ppm FC',w:52}],
-      saco:    [{f:'tiempo',p:'seg',w:52},{f:'fc',p:'ppm FC',w:52}],
-      intervalos:[{f:'tiempo',p:'seg',w:52},{f:'fc',p:'ppm FC',w:52}],
+      bike:     [{f:'tiempo',p:'min',  w:48},{f:'vatios',p:'W',   w:48},{f:'fc',p:'ppm FC',w:52}],
+      remo:     [{f:'tiempo',p:'min',  w:48},{f:'vatios',p:'W',   w:48},{f:'fc',p:'ppm FC',w:52}],
+      carrera:  [{f:'tiempo',p:'min',  w:48},{f:'ritmo', p:'min/km',w:60},{f:'fc',p:'ppm FC',w:52}],
+      cuerda:   [{f:'tiempo',p:'min',  w:48},{f:'fc',p:'ppm FC',w:52}],
+      sled:     [{f:'tiempo',p:'seg',  w:48},{f:'rpe',p:'RPE',   w:40}],
+      sombra:   [{f:'tiempo',p:'seg',  w:48},{f:'fc',p:'ppm FC',w:52}],
+      saco:     [{f:'tiempo',p:'seg',  w:48},{f:'fc',p:'ppm FC',w:52}],
+      intervalos:[{f:'tiempo',p:'seg', w:48},{f:'fc',p:'ppm FC',w:52}],
+      aerobico: [{f:'tiempo',p:'min',  w:48},{f:'fc',p:'ppm FC',w:52}],
     };
     var campos=camposCardio[ejTipo]||camposCardio.intervalos;
     html+='<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+
@@ -12024,8 +12036,8 @@ function renderSerieRow(diaIdx, ei, si, s, lastMax, diaType, ejNom, ejRir){
         'style="width:60px;padding:5px 6px;background:#0D1528;border:1px solid '+(isSug?'rgba(0,85,255,.35)':'#1A2A40')+';border-radius:6px;color:'+(isSug?'#7AB8FF':'#F0F4FF')+';font-size:13px;font-weight:700;text-align:center" '+
         'oninput="'+(diaType==='combate'?'updateSerieCombate(\''+ejNomEsc+'\','+si+',\'kg\',this.value)':'updateSerie('+diaIdx+','+ei+','+si+',\'kg\',this.value)')+'">'+
       '<span style="color:#4A5568;font-size:11px">kg</span>'+
-      '<input type="number" placeholder="reps" value="'+(s.reps||'')+'" '+
-        'style="width:48px;padding:5px 6px;background:#0D1528;border:1px solid '+(isSug?'rgba(0,85,255,.35)':'#1A2A40')+';border-radius:6px;color:'+(isSug?'#7AB8FF':'#F0F4FF')+';font-size:13px;font-weight:700;text-align:center" '+
+      '<input type="number" placeholder="'+(s._targetReps||'reps')+'" value="'+(s.reps&&/^\d/.test(String(s.reps))?s.reps:'')+'" '+
+        'style="width:58px;padding:5px 6px;background:#0D1528;border:1px solid '+(isSug?'rgba(0,85,255,.35)':'#1A2A40')+';border-radius:6px;color:'+(isSug?'#7AB8FF':'#F0F4FF')+';font-size:13px;font-weight:700;text-align:center" '+
         'oninput="'+(diaType==='combate'?'updateSerieCombate(\''+ejNomEsc+'\','+si+',\'reps\',this.value)':'updateSerie('+diaIdx+','+ei+','+si+',\'reps\',this.value)')+'">'+
       '<span style="color:#4A5568;font-size:11px">rep</span>'+
       (isSug?'<span class="sug-badge" style="font-size:9px;color:#4D9FFF;background:rgba(0,85,255,.12);border:1px solid rgba(0,85,255,.25);border-radius:4px;padding:1px 4px;white-space:nowrap;flex-shrink:0">✦ sug</span>':'')+
