@@ -8500,16 +8500,19 @@ function renderTipoDiaCombate(){
   var planSem=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
   var dpHoy=planSem?parseDiaPlan(planSem[dow]):{sessions:[],tipo:null};
   var sesionesHoy=dpHoy.sessions.length?dpHoy.sessions:['tecnica'];
-  S.combatDiaTipo=sesionesHoy[0]; // tipo principal para macros
+  // Traduce tipos de plan_semanal → clave de macros (fuerza/acond → gym)
+  var toMacroTipo=function(s){return s==='fuerza'||s==='acondicionamiento'||s==='fisico'?'gym':s;};
+  S.combatDiaTipo=toMacroTipo(sesionesHoy[0]); // tipo principal para macros
   S.combatDiaTipoSesion=dpHoy.tipo; // seguidas / separadas
   // Para macros usar la sesión de mayor demanda del día
   var prioMap={sparring:6,ambos:5,tecnica:4,gym:3,cardio:2,descanso:1};
-  var tipoMacros=sesionesHoy.reduce(function(best,s){return (prioMap[s]||0)>(prioMap[best]||0)?s:best;},sesionesHoy[0]);
+  var tipoMacros=sesionesHoy.map(toMacroTipo).reduce(function(best,s){return (prioMap[s]||0)>(prioMap[best]||0)?s:best;},toMacroTipo(sesionesHoy[0]));
   var dm=m[tipoMacros]||m.tecnica;
 
   // Tarjetas de sesión asignada (una por sesión del día)
   sesionesHoy.forEach(function(sesId,idx){
-    var tipoHoy=tipos.find(function(t){return t.id===sesId;})||tipos[2];
+    var macroId=toMacroTipo(sesId);
+    var tipoHoy=tipos.find(function(t){return t.id===macroId;})||tipos.find(function(t){return t.id===sesId;})||tipos[2];
     html+='<div style="background:rgba('+hexToRgb(tipoHoy.color)+',.08);border:1.5px solid '+tipoHoy.color+';border-radius:10px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px">'+
       '<div style="font-size:28px">'+tipoHoy.icon+'</div>'+
       '<div style="flex:1">'+
@@ -8666,7 +8669,8 @@ function hexToRgb(hex){
 }
 
 function setCombatDiaTipo(tipo){
-  S.combatDiaTipo=tipo;
+  // Normalizar: fuerza/acondicionamiento → gym (claves de calcMacrosCombate)
+  S.combatDiaTipo=(tipo==='fuerza'||tipo==='acondicionamiento'||tipo==='fisico')?'gym':tipo;
   renderTipoDiaCombate();
   onConfigDiaChange();
 }
@@ -8986,7 +8990,8 @@ function getActiveObjetivos(){
   // COMBATE: usa macros calculados por tipo de día
   if(c.tipo_cliente==='combate'){
     if(!S.combatMacros) S.combatMacros=calcMacrosCombate(c);
-    var tipo=S.combatDiaTipo||'tecnica';
+    var _rawTipo=S.combatDiaTipo||'tecnica';
+    var tipo=(_rawTipo==='fuerza'||_rawTipo==='acondicionamiento'||_rawTipo==='fisico')?'gym':_rawTipo;
     var cm=S.combatMacros[tipo]||S.combatMacros.tecnica;
     // Si el admin configuró macros manuales, tienen preferencia
     if(c.kcal_objetivo&&c.kcal_objetivo>0&&tipo==='gym'){
