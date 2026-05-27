@@ -6462,6 +6462,8 @@ async function guardarCfg(){
           p_deporte:extra.deporte||null,
           p_nivel_combate:extra.nivel_combate||null,
           p_dias_prep_fisica:extra.dias_prep_fisica||null,
+          p_dias_tecnica:parseInt((document.getElementById('e-dias-tec')||{}).value)||null,
+          p_dias_sparring:parseInt((document.getElementById('e-dias-spar')||{}).value)||null,
           p_material_disponible:extra.material_disponible||null,
           p_fase_combate:extra.fase_combate||null
         });
@@ -7846,7 +7848,7 @@ async function loadCamp(){
     var mapKey=i+1;                   // diasMap usa 1=Lun...7=Dom
     var sesLetter=_diasMapGuia[mapKey]||null;
     var gymSes=sesLetter?_sesiones.find(function(s){return s.id===sesLetter;}):null;
-    var planEntry=_planSem[i]||null;
+    var planEntry=_planSem[realDow]||_planSem[String(realDow)]||null;
     var isHoy=(realDow===_hoyDow);
 
     var icon,label,col,extra='';
