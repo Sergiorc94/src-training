@@ -317,6 +317,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
       <div id="vc-alerts" style="margin-bottom:.75rem"></div>
       <div style="display:flex;gap:2px;background:#0A1020;border:1px solid #1A2A40;border-radius:8px;padding:4px;margin-bottom:1.25rem;overflow-x:auto">
         <button class="btn bp bsm" id="at-hoy" style="flex:1" onclick="adminTab('hoy',this)">Hoy</button>
+        <button class="btn bg bsm" id="at-nutri" style="flex:1" onclick="adminTab('nutri',this)">🥗 Nutrición</button>
         <button class="btn bg bsm" id="at-bien" style="flex:1" onclick="adminTab('bien',this)">🧠 Bienestar</button>
         <button class="btn bg bsm" id="at-prog" style="flex:1" onclick="adminTab('prog',this)">Progreso</button>
         <button class="btn bg bsm" id="at-ci" style="flex:1" onclick="adminTab('ci',this)">Check-ins</button>
@@ -5833,6 +5834,84 @@ async function adminTab(tab,btn){
             '<div class="empty">Sin registro hoy</div>')+
         '</div></div></div>';
     }catch(e){cont.innerHTML='<div class="empty">Error: '+e.message+'</div>';}
+  }
+  else if(tab==='nutri'){
+    // Nutrición completa del cliente — carga sus datos y renderiza la vista estándar
+    cont.innerHTML='<div style="text-align:center;padding:24px;color:#4A5568">⏳ Cargando nutrición...</div>';
+    try{
+      var nutriArr=await db.get('registros_nutricion','cliente_id=eq.'+c.id+'&fecha=eq.'+hoy());
+      var _savedUser=S.user, _savedRn=S.rn, _savedSemNutri=S._semNutri;
+      S.user=c;
+      S.rn=nutriArr&&nutriArr[0]||null;
+      var cutoffN=new Date();cutoffN.setDate(cutoffN.getDate()-14);
+      var semN=await db.get('registros_nutricion','cliente_id=eq.'+c.id+'&fecha=gte.'+cutoffN.toISOString().split('T')[0]+'&order=fecha.asc&limit=14');
+      S._semNutri=semN||[];
+      // Recalcular macros combate si aplica
+      if(c.tipo_cliente==='combate'){S.combatMacros=calcMacrosCombate(c);if(!S.combatDiaTipo)S.combatDiaTipo='tecnica';}
+      // Construir HTML de nutrición inline (sin depender de #nutri section)
+      var _ao=getActiveObjetivos();
+      var objK=_ao.k,objP=_ao.p,objC=_ao.c,objG=_ao.g;
+      var comidas=(S.rn&&S.rn.comidas)||[];
+      var totK=0,totP=0,totC=0,totG=0;
+      comidas.forEach(function(cm){(cm.alimentos||[]).forEach(function(a){totK+=a.kcal||0;totP+=a.p||0;totC+=a.c||0;totG+=a.g||0;});});
+      var pctK=objK>0?Math.min(100,Math.round(totK/objK*100)):0;
+      var macroBar='<div style="margin-bottom:12px">'+
+        '<div style="display:flex;justify-content:space-between;margin-bottom:4px">'+
+          '<span style="font-size:11px;font-weight:700;color:#4A5568">'+Math.round(totK)+' / '+objK+' kcal</span>'+
+          '<span style="font-size:11px;font-weight:700;color:'+(pctK>110?'#FF6B35':pctK>=90?'#00C853':'#FFB300')+'">'+pctK+'%</span>'+
+        '</div>'+
+        '<div style="height:6px;background:#0D1528;border-radius:3px"><div style="height:100%;width:'+pctK+'%;background:'+(pctK>110?'#FF6B35':pctK>=90?'#00C853':'#4D9FFF')+';border-radius:3px"></div></div>'+
+        '<div style="display:flex;gap:8px;margin-top:6px;font-size:11px;font-weight:700">'+
+          '<span style="color:#00E5FF">P: '+Math.round(totP)+'/'+objP+'g</span>'+
+          '<span style="color:#FFB300">C: '+Math.round(totC)+'/'+objC+'g</span>'+
+          '<span style="color:#F48FB1">G: '+Math.round(totG)+'/'+objG+'g</span>'+
+        '</div>'+
+      '</div>';
+      var nc=c.n_comidas||5;
+      var _slots=null;
+      if(c.tipo_cliente==='combate'){
+        var _psN=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
+        var _dowN=new Date().getDay();
+        var _dpHN=_psN?parseDiaPlan(_psN[_dowN]):{sessions:[],tipo:null};
+        _slots=getMealSlotsHoy(_dpHN.sessions,_dpHN.tipo,nc);
+      }
+      var comidasHtml='';
+      for(var ci2=0;ci2<nc;ci2++){
+        var cm2=comidas.find(function(x){return x.idx===ci2;})||{idx:ci2,alimentos:[]};
+        var slotT2=_slots?_slots[ci2]:null;
+        var slotD2=slotT2?SLOT_DEFS[slotT2]:null;
+        var slotLbl2=slotD2?(slotD2.icon+' '+slotD2.label):('Comida '+(ci2+1));
+        var slotCol2=slotD2?slotD2.color:'#4D9FFF';
+        var als2=cm2.alimentos||[];
+        var kcal2=als2.reduce(function(s,a){return s+(a.kcal||0);},0);
+        var prot2=als2.reduce(function(s,a){return s+(a.p||0);},0);
+        var hasF2=als2.length>0;
+        comidasHtml+='<div style="margin-bottom:8px;border-radius:10px;border:1px solid '+(hasF2?slotCol2+'44':'#1A2A40')+';overflow:hidden">'+
+          '<div style="padding:8px 12px;background:'+slotCol2+'11;display:flex;align-items:center;gap:8px">'+
+            '<span style="font-size:12px;font-weight:700;color:'+slotCol2+'">'+(ci2+1)+'. '+slotLbl2+'</span>'+
+            (hasF2?'<span style="margin-left:auto;font-size:11px;font-weight:700;color:'+slotCol2+'">'+Math.round(kcal2)+' kcal · P'+Math.round(prot2)+'g</span>':
+              '<span style="margin-left:auto;font-size:11px;color:#4A5568">Sin registro</span>')+
+          '</div>'+
+          (hasF2?'<div style="padding:6px 12px">'+
+            als2.map(function(a){
+              return '<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid #0D1528">'+
+                '<span style="color:#F0F4FF">'+a.nombre+'</span>'+
+                '<span style="color:#4A5568">'+(a.g||0)+'g · '+Math.round(a.kcal||0)+' kcal</span>'+
+              '</div>';
+            }).join('')+
+          '</div>':'');
+        if(cm2.plato&&!hasF2) comidasHtml+='<div style="padding:6px 12px;font-size:11px;color:#4A5568">Plato guardado: <span style="color:#F0F4FF">'+cm2.plato+'</span></div>';
+        comidasHtml+='</div>';
+      }
+      cont.innerHTML='<div class="card">'+
+        '<div class="ch">🥗 Nutrición de hoy — '+new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'})+
+          '<div style="margin-left:auto;font-size:11px;color:'+(S.rn&&S.rn.completado?'#00C853':'#FFB300')+'">'+(S.rn&&S.rn.completado?'✅ Completado':'⏳ Pendiente')+'</div>'+
+        '</div>'+
+        '<div class="cb">'+macroBar+comidasHtml+'</div>'+
+      '</div>';
+      // Restaurar estado del entrenador
+      S.user=_savedUser;S.rn=_savedRn;S._semNutri=_savedSemNutri;
+    }catch(e){cont.innerHTML='<div class="empty">Error cargando nutrición: '+e.message+'</div>';console.error(e);}
   }
   else if(tab==='bien'){
     try{
