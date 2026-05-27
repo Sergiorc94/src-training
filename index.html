@@ -17,6 +17,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
+html,body{max-width:100%;overflow-x:hidden}
 body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:100vh}
 #login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#05080F}
 .lbox{background:#0A1020;border:1px solid #1A2A40;border-radius:12px;padding:2rem;width:340px;text-align:center}
@@ -29,7 +30,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
 .lbtn{width:100%;padding:13px;background:#0055FF;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px;margin-top:4px}
 .lbtn:hover{background:#0044DD}
 .lerr{color:#FF1744;font-size:12px;margin-top:10px;display:none}
-#app{display:none}
+#app{display:none;max-width:100vw;overflow-x:hidden}
 .topbar{background:#070E1A;border-bottom:1px solid #1A2A40;padding:0 1.5rem;height:54px;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:50}
 .tlogo{font-size:22px;font-weight:900;color:#0055FF;letter-spacing:4px}
 .tname{font-size:13px;font-weight:700}
@@ -259,15 +260,15 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
 
 <div id="app">
   <!-- NAVBAR -->
-  <div class="nav" style="display:flex;align-items:center;gap:0;padding:0 1rem;padding-top:env(safe-area-inset-top,0px);background:#070E1A;border-bottom:1px solid #1A2A40;position:sticky;top:0;z-index:50;min-height:56px;box-shadow:0 2px 20px rgba(0,0,0,.4)">
-    <div style="display:flex;align-items:center;gap:10px;margin-right:auto">
+  <div class="nav" style="display:flex;align-items:center;gap:0;padding:0 1rem;padding-top:env(safe-area-inset-top,0px);background:#070E1A;border-bottom:1px solid #1A2A40;position:sticky;top:0;z-index:50;min-height:56px;box-shadow:0 2px 20px rgba(0,0,0,.4);width:100%;max-width:100vw;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
       <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:1px">SRC</div>
       <div style="display:flex;flex-direction:column;line-height:1.1">
         <div style="font-size:13px;font-weight:800;color:#F0F4FF" id="tname">—</div>
         <div id="tbadge" class="tbadge"></div>
       </div>
     </div>
-    <div id="tabs" style="display:flex;gap:0;overflow-x:auto;scrollbar-width:none"></div>
+    <div id="tabs" style="display:flex;gap:0;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0;margin:0 4px"></div>
     <button id="pwa-install-btn" onclick="pwaInstall()" style="display:none;align-items:center;gap:4px;background:rgba(0,85,255,.12);border:1px solid rgba(0,85,255,.3);color:#4D9FFF;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:4px;white-space:nowrap">⬇ Instalar</button>
     <button id="tbtn-salir" style="background:rgba(255,23,68,.08);border:1px solid rgba(255,23,68,.2);color:#FF1744;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:8px;white-space:nowrap">Salir</button>
   </div>
