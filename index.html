@@ -691,12 +691,58 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
 
   <!-- CLIENTE: INICIO -->
     <div class="sec" id="sec-inicio">
+
+      <!-- Banner cuestionario (si hay pendiente, siempre arriba) -->
       <div id="cuest-banner"></div>
+
+      <!-- 1. SALUDO — lo primero que ve el usuario -->
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:.9rem">
+        <div>
+          <div style="font-size:22px;font-weight:900;letter-spacing:2px" id="saludo"></div>
+          <div style="font-size:12px;color:#4A5568;margin-top:2px" id="ifecha"></div>
+        </div>
+        <!-- Botón de recordatorios discreto en la esquina -->
+        <button onclick="setupNotificaciones()" title="Activar recordatorios"
+          style="background:rgba(255,255,255,.04);border:1px solid #1A2A40;border-radius:8px;padding:6px 10px;color:#4A5568;font-size:14px;cursor:pointer;flex-shrink:0">
+          🔔
+        </button>
+      </div>
+
+      <!-- 2. CHECK-IN MATUTINO (solo combate) -->
       <div id="readiness-widget" style="margin-bottom:.75rem"></div>
+
+      <!-- 3. PESO HOY (solo combate) -->
+      <div id="peso-widget" style="margin-bottom:.75rem"></div>
+
+      <!-- 4. BANNER DE FASE / PLAN -->
       <div id="plan-banner" style="margin-bottom:.75rem"></div>
 
-      <!-- GUIA DE INICIO -->
-      <div id="guia-inicio" class="card" style="margin-bottom:.75rem;display:none">
+      <!-- 5. OBJETIVO DEL DÍA — macros + progreso nutricional -->
+      <div class="card">
+        <div class="ch">🎯 Objetivo del día</div>
+        <div class="cb">
+          <div class="g4" id="i-macros" style="margin-bottom:1rem"></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#4A5568;margin-bottom:4px">
+            <span>Completado hoy</span><span id="i-pct">0%</span>
+          </div>
+          <div class="pbar"><div class="pfill" id="i-prog" style="background:#0055FF;width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- 6. ENTRENAMIENTO HOY — acción principal del día -->
+      <div id="i-entreno-card"></div>
+
+      <!-- 7. RACHA — motivación justo tras el entrenamiento -->
+      <div id="i-streak-card" style="margin-bottom:.75rem"></div>
+
+      <!-- 8. MI SEMANA — vista semanal de contexto -->
+      <div id="i-semana-cal"></div>
+
+      <!-- 9. ESTADÍSTICAS — datos secundarios -->
+      <div class="g3" id="i-stats" style="margin-top:.75rem"></div>
+
+      <!-- 10. GUÍA DE INICIO (solo nuevos usuarios, oculta por defecto) -->
+      <div id="guia-inicio" class="card" style="margin-top:.75rem;display:none">
         <div class="ch">🚀 ¿Por dónde empiezo?</div>
         <div class="cb">
           <div style="display:flex;flex-direction:column;gap:10px">
@@ -725,37 +771,13 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
               <div style="margin-left:auto;color:#4A5568">→</div>
             </div>
           </div>
-          <button onclick="document.getElementById('guia-inicio').style.display='none';localStorage.setItem('guia_vista','1')" 
+          <button onclick="document.getElementById('guia-inicio').style.display='none';localStorage.setItem('guia_vista','1')"
             style="margin-top:.75rem;background:none;border:none;color:#4A5568;font-size:12px;cursor:pointer;width:100%">
             Entendido, no mostrar más
           </button>
         </div>
       </div>
 
-      <div style="margin-bottom:.75rem">
-        <div style="font-size:22px;font-weight:900;letter-spacing:2px" id="saludo"></div>
-        <div style="font-size:12px;color:#4A5568" id="ifecha"></div>
-      </div>
-      <div id="peso-widget" style="margin-bottom:.75rem"></div>
-      <div class="card">
-        <div class="ch">🎯 Objetivo del día</div>
-        <div class="cb">
-          <div class="g4" id="i-macros" style="margin-bottom:1rem"></div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:#4A5568;margin-bottom:4px">
-            <span>Completado hoy</span><span id="i-pct">0%</span>
-          </div>
-          <div class="pbar"><div class="pfill" id="i-prog" style="background:#0055FF;width:0%"></div></div>
-        </div>
-      </div>
-      <div class="g3" id="i-stats"></div>
-      <div id="i-semana-cal" style="margin-top:1rem"></div>
-      <div id="i-entreno-card" style="margin-top:.75rem"></div>
-      <div id="i-streak-card" style="margin-top:.75rem"></div>
-      <div style="margin-top:.75rem;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn bg bsm" onclick="setupNotificaciones()" style="flex:1;min-width:140px">
-          🔔 Activar recordatorios
-        </button>
-      </div>
     </div>
 
     <!-- COMBATE: TRAINING CAMP -->
