@@ -10856,20 +10856,7 @@ async function loadEntrenoCombate(){
     '</div>';
   }
 
-  // E2: Énfasis por deporte
-  var dep=c.deporte||'';
-  var isStr=/boxe|kickbox|muay|karate|taekwon/i.test(dep);
-  var isGrp=/bjj|judo|lucha|wrestl|grappl/i.test(dep);
-  var enfasisTxt=isStr?
-    '🥊 <b style="color:#F0F4FF">Hoy: velocidad INTENCIONAL en concéntrico</b> — aunque la barra vaya lenta, la intención siempre es moverla lo más rápido posible. RFD es tu marcador.':
-    isGrp?
-    '🤼 <b style="color:#F0F4FF">Hoy: fuerza máxima + isométricos</b> — la fuerza isométrica máxima correlaciona directamente con rendimiento en agarre y derribos. Aplica fuerza total.':
-    '⚡ <b style="color:#F0F4FF">Hoy: toda la curva fuerza-velocidad</b> — MMA necesita fuerza máxima para grappling y RFD para golpeos. No descuides ninguna zona.';
-  if(dep){
-    html+='<div style="background:rgba(77,159,255,.05);border:1px solid rgba(77,159,255,.15);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:11px;color:#A0B0C0;line-height:1.5">'+
-      enfasisTxt+
-    '</div>';
-  }
+  // (énfasis deporte eliminado — simplificado)
 
   // Día de descanso
   if(!sesion){
@@ -10998,21 +10985,9 @@ async function loadEntrenoCombate(){
     }
     return arr;
   }
-  // E3: Indicador curva fuerza-velocidad según patrón
-  function curvaBadge(patron){
-    var p=patron||'';
-    if(/potencia|olimpic|swing|salto|sprint/i.test(p)) return '<span style="background:rgba(255,107,53,.1);color:#FF6B35;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700">⚡ Potencia</span>';
-    if(/sentadill|deadlift|peso muerto|press|militar|remo|tiron.*v|jalon/i.test(p)||/bisagra|sentadilla|empuje v|tirar v/i.test(p)) return '<span style="background:rgba(77,159,255,.1);color:#4D9FFF;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700">💪 F. Máx</span>';
-    if(/rfd|velocidad|pliom|salto|lance/i.test(p)) return '<span style="background:rgba(171,71,188,.1);color:#AB47BC;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700">⚡ RFD</span>';
-    if(/isom/i.test(p)) return '<span style="background:rgba(0,229,255,.1);color:#00E5FF;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700">🔒 Isométrico</span>';
-    if(/anti|core|plank|plancha/i.test(p)) return '<span style="background:rgba(0,200,83,.1);color:#00C853;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700">🛡️ Anti-mov</span>';
-    return '';
-  }
   function tagBadges(d, rirAdj){
-    return '<span style="background:rgba(255,179,0,.1);color:#FFB300;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700">'+d.r+'</span>'+
-      (rirAdj!=='—'?'<span style="background:rgba(0,200,83,.1);color:#00C853;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700">'+rirAdj+'</span>':'')+
-      curvaBadge(d.patron)+
-      (d.patron?'<span style="background:rgba(110,102,91,.08);color:var(--text-3);border-radius:4px;padding:2px 7px;font-size:10px">'+d.patron+'</span>':'');
+    return '<span style="background:rgba(255,179,0,.12);color:#FFB300;border-radius:5px;padding:3px 8px;font-size:12px;font-weight:700">'+d.r+'</span>'+
+      (rirAdj&&rirAdj!=='—'?'<span style="background:rgba(0,200,83,.1);color:#00C853;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:600">'+rirAdj+'</span>':'');
   }
 
   sesion.bloques.forEach(function(bloque){
@@ -11138,7 +11113,7 @@ async function loadEntrenoCombate(){
       html+='</div></div>'; // cierra rondas + superserie block
 
     } else {
-      // ── EJERCICIO INDIVIDUAL ─────────────────────────────────
+      // ── EJERCICIO INDIVIDUAL (simplificado) ──────────────────
       bloque.ejs.forEach(function(ej){
         var d=ej[mat]||ej['basico'];
         var ejNom=d.nom;
@@ -11147,41 +11122,38 @@ async function loadEntrenoCombate(){
         var rirAdj=adjRIR(d);
         var seriesArr=buildSeriesArr(ejNom,sAdj,d.r);
         var progC=calcProgresion(ejNom,reCombateHistory||[],d.rir,d.r);
-
         var _guiaId='comb-'+ejGlobal;
-        html+='<div style="background:var(--surface-2);border-radius:8px;padding:10px 12px;margin-bottom:8px" id="'+ejId+'-block">'+
-          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'+
-            '<div style="flex:1;min-width:0">'+
-              '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
-                '<div style="font-size:13px;font-weight:700;color:var(--text)">'+ejNom+'</div>'+
-                ejTipoBadge(detectTipoEjercicio(ejNom))+
-                (getGuiaEj(ejNom)?'<button id="guia-btn-'+_guiaId+'" onclick="toggleGuiaEj(\''+_guiaId+'\')" style="flex-shrink:0;background:transparent;border:1px solid rgba(77,159,255,.25);border-radius:12px;padding:2px 7px;font-size:10px;font-weight:700;color:#4A5568;cursor:pointer;transition:all .2s" title="Cómo hacerlo">ℹ️</button>':'')+
-              '</div>'+
-              (d.nota?'<div style="font-size:11px;color:var(--gold);margin-top:2px">⚡ '+d.nota+'</div>':'')+
+        var todoDone=seriesArr.length>0&&seriesArr.every(function(s){return s.done;});
+
+        html+='<div style="background:var(--surface-2);border-radius:10px;padding:10px 12px;margin-bottom:8px;'+(todoDone?'opacity:.65':'')+'border:1.5px solid '+(todoDone?'#00C853':'transparent')+'" id="'+ejId+'-block">'+
+          // ── Nombre + badges en misma línea ──
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">'+
+            '<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'+
+              (todoDone?'<span style="color:#00C853;font-size:14px">✅</span>':'')+
+              '<div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.3">'+ejNom+'</div>'+
+              (getGuiaEj(ejNom)?'<button id="guia-btn-'+_guiaId+'" onclick="toggleGuiaEj(\''+_guiaId+'\')" style="flex-shrink:0;background:transparent;border:none;font-size:14px;cursor:pointer;opacity:.5;padding:0" title="Cómo hacerlo">ℹ️</button>':'')+
             '</div>'+
-            '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0;margin-left:6px">'+tagBadges(d,rirAdj)+'</div>'+
+            '<div style="display:flex;gap:4px;flex-shrink:0">'+tagBadges(d,rirAdj)+'</div>'+
           '</div>'+
-          renderGuiaEjHTML(ejNom,_guiaId);
+          // ── Nota cue ──
+          (d.nota?'<div style="font-size:11px;color:var(--text-3);margin-bottom:6px;padding-left:2px">'+d.nota+'</div>':'')+
+          renderGuiaEjHTML(ejNom,_guiaId)+
+          // ── Progresión ──
+          (progC?'<div style="font-size:11px;font-weight:700;color:'+(progC.accion==='subir'?'#00C853':progC.accion==='bajar'?'#FF6B6B':'#FFB300')+';margin-bottom:6px">'+progC.icon+' '+(progC.accion==='subir'?'Sube a '+progC.kg+'kg':progC.accion==='bajar'?'Baja a '+progC.kg+'kg':'Mantén '+progC.kg+'kg')+'</div>':'')+
+          // ── Series ──
+          '<div id="'+ejId+'-series" style="display:flex;flex-direction:column;gap:5px">';
 
-        if(progC){
-          html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:5px 8px;background:rgba('+
-            (progC.accion==='subir'?'0,200,83':progC.accion==='bajar'?'255,107,107':'255,179,0')+',.07);border-radius:6px;border:1px solid rgba('+
-            (progC.accion==='subir'?'0,200,83':progC.accion==='bajar'?'255,107,107':'255,179,0')+',.2)">'+
-            '<span>'+progC.icon+'</span>'+
-            '<span style="font-size:11px;font-weight:700;color:'+(progC.accion==='subir'?'#00C853':progC.accion==='bajar'?'#FF6B6B':'#FFB300')+'">'+
-              (progC.accion==='subir'?'Sube a '+progC.kg+'kg ('+progC.diff+')':progC.accion==='bajar'?'Ajusta a '+progC.kg+'kg ('+progC.diff+')':'Mantén '+progC.kg+'kg')+
-            '</span></div>';
-        }
-
-        html+='<div id="'+ejId+'-series" style="display:flex;flex-direction:column;gap:6px">';
         seriesArr.forEach(function(s,si){
           var combRow=renderSerieRow(0,0,si,s,0,'combate',ejNom);
           var nomE=ejNom.replace(/'/g,"\\'");
-          var doneBtn='<div style="display:flex;justify-content:flex-end;margin-top:2px">'+
-            '<button onclick="marcarSerieCombate(\''+nomE+'\','+si+',\''+ejId+'\')" id="'+ejId+'-done-'+si+'" '+
-              'style="padding:4px 12px;border-radius:6px;border:1.5px solid '+(s.done?'#00C853':'#1A2A40')+';background:'+(s.done?'rgba(0,200,83,.15)':'transparent')+';color:'+(s.done?'#00C853':'#4A5568')+';font-size:13px;cursor:pointer;font-weight:700">'+
-              (s.done?'✅ Hecha':'○ Marcar')+'</button></div>';
-          html+='<div id="'+ejId+'-s'+si+'" style="padding:6px 8px;background:'+(s.done?'rgba(0,200,83,.04)':'#0D1528')+';border:1.5px solid '+(s.done?'#00C853':'#1A2A40')+';border-radius:7px">'+combRow+doneBtn+'</div>';
+          html+='<div id="'+ejId+'-s'+si+'" style="padding:5px 8px;background:'+(s.done?'rgba(0,200,83,.06)':'rgba(0,0,0,.2)')+';border:1px solid '+(s.done?'rgba(0,200,83,.4)':'rgba(255,255,255,.05)')+';border-radius:7px">'+
+            combRow+
+            '<div style="display:flex;justify-content:flex-end;margin-top:4px">'+
+              '<button onclick="marcarSerieCombate(\''+nomE+'\','+si+',\''+ejId+'\')" id="'+ejId+'-done-'+si+'" '+
+                'style="padding:5px 16px;border-radius:7px;border:1.5px solid '+(s.done?'#00C853':'rgba(255,255,255,.1)')+';background:'+(s.done?'rgba(0,200,83,.15)':'rgba(255,255,255,.04)')+';color:'+(s.done?'#00C853':'#6E8090')+';font-size:12px;cursor:pointer;font-weight:700">'+
+                (s.done?'✅ Hecha':'Marcar')+'</button>'+
+            '</div>'+
+          '</div>';
         });
         html+='</div></div>';
       });
