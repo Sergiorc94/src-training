@@ -5555,7 +5555,7 @@ function filtrarPlatosPorPreferencias(platosArr, prefs){
 }
 
 // Obtiene el plato óptimo para un slot dado macros y preferencias
-function getDefaultPlatoForSlot(slotType, targets, prefs, adminDefault){
+function getDefaultPlatoForSlot(slotType, targets, prefs, adminDefault, exclude){
   // Admin default tiene prioridad absoluta
   if(adminDefault&&PLATOS[adminDefault]) return adminDefault;
 
@@ -5564,8 +5564,12 @@ function getDefaultPlatoForSlot(slotType, targets, prefs, adminDefault){
   var filtrados=prefs?filtrarPlatosPorPreferencias(platosSlot,prefs):platosSlot;
   if(!filtrados.length) filtrados=platosSlot; // fallback: sin filtro
 
+  // Excluir platos ya sugeridos en otros slots para evitar repetición
+  var sinRepetir=filtrados.filter(function(n){return !exclude||!exclude[n];});
+  if(!sinRepetir.length) sinRepetir=filtrados; // si todos están usados, permitir repetición
+
   // Puntuar por ajuste de macros (menor puntuación = mejor ajuste)
-  var scored=filtrados.map(function(nombre){
+  var scored=sinRepetir.map(function(nombre){
     try{
       var als=calcGramos(nombre,targets.p||20,targets.c||50,targets.g||10);
       if(!als||als._realP===undefined) return {nombre:nombre,score:999999};
@@ -9955,6 +9959,7 @@ function renderNutriCliente(){
   var colors=['#0055FF','#0D47A1','#1565C0','#1976D2','#2196F3','#42A5F5'];
   var cont=document.getElementById('n-comidas');
   var html='';
+  var _platosUsados={}; // registro de platos ya sugeridos para evitar repetición
 
   // Render EXACTLY nc comidas
   for(var i=0;i<nc;i++){
@@ -9983,8 +9988,9 @@ function renderNutriCliente(){
     var _slotLabel=_slotDef?(_slotDef.icon+' '+_slotDef.label):(CN[i]||'Comida '+(i+1));
     var _adminDefault=_cd?(_slotType?_cd[_slotType]:(_cd[CN[i]]||_cd['normal'])):null;
     var _tieneComida=com.alimentos&&com.alimentos.length>0;
-    // Auto-calcular plato óptimo para todos los slots (rellenos o vacíos)
-    var _defaultPlato=getDefaultPlatoForSlot(_slotType||'normal',{p:tP,c:tC,g:tG},_prefs,_adminDefault);
+    // Auto-calcular plato óptimo para todos los slots (rellenos o vacíos), excluyendo ya usados
+    var _defaultPlato=getDefaultPlatoForSlot(_slotType||'normal',{p:tP,c:tC,g:tG},_prefs,_adminDefault,_platosUsados);
+    if(_defaultPlato) _platosUsados[_defaultPlato]=true;
 
     html+='<div class="cbk" id="cbk-'+i+'" style="margin-bottom:.75rem">'+
       // Header
@@ -10053,8 +10059,9 @@ function renderNutriCliente(){
             '<div style="font-size:10px;color:#00C853;font-weight:700">'+_btnAction+'</div>'+
           '</div>';
         }
-        // Botón 2: Mejor opción automática (siempre, calculada sin override del admin)
-        var _autoPlato=getDefaultPlatoForSlot(_slotType||'normal',{p:tP,c:tC,g:tG},_prefs,null);
+        // Botón 2: Mejor opción automática (siempre, calculada sin override del admin, excluyendo usados)
+        var _autoPlato=getDefaultPlatoForSlot(_slotType||'normal',{p:tP,c:tC,g:tG},_prefs,null,_platosUsados);
+        if(_autoPlato) _platosUsados[_autoPlato]=true;
         if(_autoPlato&&_autoPlato!==_adminDefault){
           var _ap=_autoPlato.replace(/'/g,"\\'").replace(/\n/g,'');
           _habitualBtn+='<div onclick="onClientePlatoSelect('+i+',\''+_ap+'\','+tP+','+tC+','+tG+')" '+
