@@ -3581,12 +3581,16 @@ function adaptSRCSession(session,fase,semActual){
     var sets=block.sets||3;
     // Camp (Intensificación ATR): -1 serie en ejercicios con RIR definido (fuerza principal)
     if(isCamp && typeof sets==='number' && sets>1 && block.rir!==undefined) sets=Math.max(1,sets-1);
-    return {nom:nom,s:sets,r:r,rir:rir,nota:nota||'',guia:block.exercise_id||null};
+    // Envolver en formato que espera el render engine (ej[mat]||ej['basico'])
+    var d={nom:nom,s:sets,r:r,rir:rir,nota:nota||'',guia:block.exercise_id||null,desc:0};
+    return {nombre:nom,patron:'',cuerpo:d,basico:d,completo:d};
   });
   // Camp: añadir vaciado de lactato si no lo tiene ya
   if(isCamp && session.id && (session.id.includes('lower')||session.id.includes('upper'))){
-    if(!ejs.some(function(e){return e.guia==='lactate_drain';})){
-      ejs.push({nom:'Vaciado de Lactato',s:4,r:'15 seg / 90 seg descanso',rir:'—',nota:SRC_EX.lactate_drain.cues[0],guia:'lactate_drain'});
+    if(!ejs.some(function(e){return e.basico&&e.basico.guia==='lactate_drain';})){
+      var ld=SRC_EX.lactate_drain;
+      var ldD={nom:'Vaciado de Lactato',s:4,r:'15 seg / 90 seg descanso',rir:'—',nota:ld.cues[0],guia:'lactate_drain',desc:0};
+      ejs.push({nombre:'Vaciado de Lactato',patron:'',cuerpo:ldD,basico:ldD,completo:ldD});
     }
   }
   // Phase adaptation note (shown as banner)
@@ -10921,11 +10925,15 @@ async function loadEntrenoCombate(){
   }catch(e3){}
 
   // Cabecera sesión
-  document.getElementById('e-dia').textContent='Sesión '+sesion.id;
-  html+='<div class="card" style="margin-bottom:.75rem"><div class="ch">'+sesion.emoji+' Sesión '+sesion.id+' — '+sesion.nombre+
+  var sesLetra=_guia&&_guia.dias&&_guia.plan&&_guia.plan.diasMap&&_guia.plan.diasMap[_guia.dias]?
+    (Object.entries(_guia.plan.diasMap[_guia.dias]||{}).find(function(e){return e[1]&&_guia.sesiones&&_guia.sesiones[0]&&sesion.id===(_guia.sesiones.indexOf?_guia.sesiones[_diasMapActual[dow]?['A','B','C','D','E'].indexOf(_diasMapActual[dow]):-1]:null):null;})||['',''])[1]:'';
+  document.getElementById('e-dia').textContent=sesion.nombre;
+  html+='<div class="card" style="margin-bottom:.75rem"><div class="ch">'+sesion.emoji+' '+sesion.nombre+
     '<span style="margin-left:auto;font-size:10px;color:var(--text-3);text-transform:uppercase">'+
-      ({cuerpo:'Sin material',basico:'Mancuernas/KB',completo:'Gym completo'}[mat]||mat)+
-    '</span></div><div class="cb">';
+      (faseLabel?faseLabel:'💪 Gym')+
+    '</span></div><div class="cb">'+
+    (sesion.phaseNote?'<div style="font-size:11px;color:rgba(77,159,255,.9);background:rgba(77,159,255,.08);border-radius:7px;padding:7px 10px;margin-bottom:.75rem;line-height:1.5">'+sesion.phaseNote+'</div>':'')+
+    (sesion.warmup?'<div style="font-size:11px;color:var(--text-3);margin-bottom:.75rem;padding:6px 10px;background:rgba(255,255,255,.03);border-radius:6px;border-left:2px solid var(--gold)">🔆 <b>Calentamiento:</b> '+sesion.warmup+'</div>':'');
 
   // Índice global para IDs únicos
   var ejGlobal=0;
