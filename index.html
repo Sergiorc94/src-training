@@ -4523,47 +4523,99 @@ function adminChipCycle2(d){
 
 // ── Auto-distribuir días de gym según dias_prep_fisica ───────────────────────
 function adminAutoDistribuir(){
+  var diasTec =parseInt((document.getElementById('e-dias-tec') ||{}).value)||3;
+  var diasSpar=parseInt((document.getElementById('e-dias-spar')||{}).value)||1;
   var diasPrep=parseInt((document.getElementById('e-dias-prep')||{}).value)||3;
-  // Orden Mon→Dom (mismas claves que plan_semanal: 1=Lun…6=Sáb,0=Dom)
+  // Orden Mon→Dom (1=Lun…6=Sáb, 0=Dom)
   var ORDER=['1','2','3','4','5','6','0'];
-  // Días libres = no técnica, no sparring
-  var freeDays=ORDER.filter(function(d){
-    var chip=document.getElementById('chip-sem-'+d);
-    var st=chip?chip.dataset.state:'descanso';
-    return st!=='tecnica'&&st!=='sparring';
-  });
-  // Tipos de sesión gym según número de días
-  var GYM_TYPES={
-    2:['fuerza','fuerza'],
-    3:['fuerza','fuerza','acondicionamiento'],
-    4:['fuerza','fuerza','fuerza','acondicionamiento'],
-    5:['fuerza','fuerza','fuerza','fuerza','acondicionamiento']
-  };
-  var types=GYM_TYPES[diasPrep]||GYM_TYPES[3];
-  // Primero limpia todos los días libres (descanso)
-  freeDays.forEach(function(d){
+  var total=diasTec+diasSpar+diasPrep;
+  if(total>7){ toast('El total de sesiones ('+total+') supera los 7 días. Ajusta los valores.','err'); return; }
+
+  // ── Algoritmo de distribución inteligente ────────────────────────────
+  // Construir lista de sesiones ordenadas: primero técnicas (intercaladas),
+  // luego sparring (al final de la semana), luego gym en huecos
+  // Pasos:
+  // 1. Repartir técnica en días no consecutivos
+  // 2. Sparring preferiblemente al final (sáb/dom) o 2 días después de última técnica
+  // 3. Gym en los huecos que queden
+
+  // Puntuación de días (0=peor, 6=mejor) para colocar cada tipo
+  // técnica: preferimos distribuirla uniformemente (lun-mié-vie si son 3)
+  // sparring: preferimos fin de semana o último día de técnica
+  // gym: los huecos
+
+  // Paso 1: Índices disponibles (0-6 = Lun-Dom)
+  var dias=[0,1,2,3,4,5,6]; // índices internos
+  var asign={}; // idx → tipo
+
+  // Función de reparto uniforme: devuelve 'count' índices repartidos en 7 días
+  function repartir(count, offset){
+    var res=[];
+    for(var i=0;i<count;i++){
+      res.push(Math.round(i*(7-1)/(Math.max(count-1,1)))+offset);
+    }
+    // normalizar a 0-6
+    return res.map(function(x){return Math.min(6,Math.max(0,x));});
+  }
+
+  // Asignar técnica (distribuir uniformemente)
+  var tecIdx=repartir(diasTec,0);
+  tecIdx.forEach(function(i){ asign[i]='tecnica'; });
+
+  // Asignar sparring: preferir días DESPUÉS de técnica (recuperación mínima 1 día)
+  // y hacia el final de la semana
+  var usados=Object.keys(asign).map(Number);
+  var libres=dias.filter(function(i){return usados.indexOf(i)===-1;});
+  // Ordenar libres de mayor a menor (fin de semana primero para sparring)
+  var libresDesc=libres.slice().sort(function(a,b){return b-a;});
+  for(var si=0;si<diasSpar;si++){
+    if(libresDesc.length){
+      var d=libresDesc.shift();
+      asign[d]='sparring';
+      usados.push(d);
+    }
+  }
+
+  // Asignar gym en huecos restantes, preferir no consecutivos con técnica pesada
+  libres=dias.filter(function(i){return Object.keys(asign).map(Number).indexOf(i)===-1;});
+  // Acondicionamiento al final del bloque gym, fuerza al principio
+  var gymTypes=[];
+  for(var gi=0;gi<diasPrep;gi++){
+    gymTypes.push(gi<diasPrep-1?'fuerza':'acondicionamiento');
+  }
+  // Si solo 1 gym: fuerza
+  if(diasPrep===1) gymTypes=['fuerza'];
+
+  for(var pi=0;pi<diasPrep&&pi<libres.length;pi++){
+    asign[libres[pi]]=gymTypes[pi]||'fuerza';
+  }
+
+  // ── Aplicar asignación a los selects y chips ─────────────────────────
+  // Primero limpia todo
+  ORDER.forEach(function(d,idx){
     var s1=document.getElementById('e-sem-'+d+'-1');
-    if(s1) s1.value='descanso';
     var s2=document.getElementById('e-sem-'+d+'-2');
+    if(s1) s1.value='descanso';
     if(s2) s2.value='';
   });
-  // Asigna gym a los primeros N días libres
-  var gymDays=freeDays.slice(0,diasPrep);
-  gymDays.forEach(function(d,i){
-    var tipo=types[i]||'fuerza';
-    var s1=document.getElementById('e-sem-'+d+'-1');
-    if(s1) s1.value=tipo;
+  // Aplica asignaciones (idx 0=Lun=key'1', 1=Mar=key'2'…6=Dom=key'0')
+  var idxToKey=['1','2','3','4','5','6','0'];
+  Object.keys(asign).forEach(function(idx){
+    var key=idxToKey[parseInt(idx)];
+    var tipo=asign[idx];
+    var s1=document.getElementById('e-sem-'+key+'-1');
+    if(!s1) return;
+    if(tipo==='tecnica'||tipo==='sparring'){
+      s1.value=tipo;
+    } else {
+      s1.value=tipo; // fuerza / acondicionamiento
+    }
   });
-  // Actualizar chips visualmente
+
   adminSyncChipsFromSelects();
   renderAdminSemPreview();
-  // Aviso si no hay suficientes días libres
-  if(freeDays.length<diasPrep){
-    var falta=diasPrep-freeDays.length;
-    var msg='⚠️ Solo hay '+freeDays.length+' día'+(freeDays.length!==1?'s':'')+' libre'+(freeDays.length!==1?'s':'')+
-      ' para '+diasPrep+' sesiones de gym.\nQuitan '+falta+' día'+(falta!==1?'s':'')+' de técnica/sparring para hacer espacio.';
-    setTimeout(function(){alert(msg);},50);
-  }
+  toast('✅ Semana distribuida: '+diasTec+' técnica · '+diasSpar+' sparring · '+diasPrep+' gym ('+
+    (7-total)+' descanso'+(7-total===1?'':'s')+')', 'ok');
 }
 
 // Sincroniza el estado visual de chips con los valores de los selects ocultos
@@ -6034,6 +6086,9 @@ async function adminTab(tab,btn){
           '<div class="field"><label>🥋 Días técnica / semana</label><select id="e-dias-tec">'+
             [1,2,3,4,5,6].map(function(d){return '<option value="'+d+'"'+((cl.dias_tecnica||3)===d?' selected':'')+'>'+d+' días</option>';}).join('')+
           '</select></div>'+
+          '<div class="field"><label>🥊 Días sparring / semana</label><select id="e-dias-spar">'+
+            [[0,'0 (sin sparring)'],[1,'1 día'],[2,'2 días'],[3,'3 días']].map(function(x){return '<option value="'+x[0]+'"'+((cl.dias_sparring||1)===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
+          '</select></div>'+
           '<div class="field"><label>⏱️ Horas técnica / sesión</label><select id="e-horas-tec">'+
             [[1,'1h'],[1.5,'1h 30min'],[2,'2h'],[2.5,'2h 30min'],[3,'3h']].map(function(x){return '<option value="'+x[0]+'"'+((parseFloat(cl.horas_tecnica)||1.5)===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+
           '</select></div>'+
@@ -6113,7 +6168,7 @@ async function adminTab(tab,btn){
               '<button type="button" onclick="adminAutoDistribuir()" '+
               'style="width:100%;padding:10px 0;border-radius:10px;border:2px solid #4D9FFF;background:rgba(77,159,255,.1);'+
               'color:#4D9FFF;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:12px;letter-spacing:.3px">'+
-              '🤖 Distribuir automáticamente las sesiones de rendimiento físico</button>';
+              '🤖 Distribuir semana completa (técnica + sparring + gym)</button>';
             // ── Hidden selects — guardarCfg() reads these ──
             html+='<div style="display:none">';
             dias.forEach(function(d){
@@ -6357,6 +6412,7 @@ async function guardarCfg(){
       deporte:document.getElementById('e-deporte')?document.getElementById('e-deporte').value||null:null,
       nivel_combate:document.getElementById('e-nivel-combate')?document.getElementById('e-nivel-combate').value||null:null,
       dias_prep_fisica:document.getElementById('e-dias-prep')?parseInt(document.getElementById('e-dias-prep').value)||3:null,
+      dias_sparring:document.getElementById('e-dias-spar')?parseInt(document.getElementById('e-dias-spar').value)||1:null,
       material_disponible:document.getElementById('e-material')?document.getElementById('e-material').value||null:null,
       fase_combate:document.getElementById('e-fase-combate')?document.getElementById('e-fase-combate').value||null:null,
       plan_semanal:(function(){
