@@ -8579,15 +8579,19 @@ function renderTipoDiaCombate(){
     html+=makeAccordion('timing','⏱️','Timing — qué comer y cuándo hoy',renderTimingNutri(c,S.combatDiaTipo));
   }
 
-  // Protocolo post-pesaje (siempre disponible como referencia)
-  html+=makeAccordion('postpesaje','🏆','Protocolo post-pesaje',buildPostPesajeContent(c));
+  // Protocolo post-pesaje — solo cuando la pelea está cerca (≤21 días) o ya es fight week/post-pesaje
+  var fase=getFaseCombate(c);
+  var mostrarPostPesaje=isFW||fase==='post_pesaje'||fase==='fight_week'||(dpNum>0&&dpNum<=21);
+  if(mostrarPostPesaje){
+    html+=makeAccordion('postpesaje','🏆','Protocolo post-pesaje',buildPostPesajeContent(c));
+  }
 
   // Planificador de corte (si tiene fecha + categoría)
   var corteHtml=renderCortePeso(c);
   if(corteHtml) html+=makeAccordion('corte','⚖️','Planificador de corte de peso',corteHtml);
 
-  // Fight week como referencia (fuera de fight week)
-  if(!isFW&&dpNum>7){
+  // Fight week como referencia — solo cuando queden 8-21 días (cerca pero aún no en FW)
+  if(!isFW&&dpNum>7&&dpNum<=21){
     html+=makeAccordion('fwref','🥊','Protocolo fight week (referencia)',buildFightWeekRef(c));
   }
 
