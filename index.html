@@ -3734,16 +3734,73 @@ var _SRC_ADV={
 };
 
 // ── Planes v2: sistema → días → sesiones ordenadas ────────────────
+// SRC_PLANS — indexado por nivel → fase ATR → días disponibles
+// La distribución semanal (qué sesión va cada día) cambia según la fase:
+//   Acumulación:     ROJO + ROJO + VERDE  (construir base aeróbica)
+//   Intensificación: ROJO + ROJO + ROJO   (máxima intensidad, acond. aláctico = rojo)
+//   Transformación:  ROJO-VERDE-ROJO-VERDE (alternado estricto, nunca juntos)
+//   Realización:     solo 1 microdosis neural (el override en getSesionGuia lo gestiona)
+//   Recuperación:    solo movilidad
 var SRC_PLANS={
   beginner:{
-    2:{sessions:['beg_full_body_A','beg_full_body_B'],                                              diasMap:{1:'A',4:'B'}},
-    3:{sessions:['beg_lower_core','beg_upper_power','beg_full_conditioning'],                        diasMap:{1:'A',3:'B',5:'C'}},
-    4:{sessions:['beg_lower_core','beg_upper_power','beg_conditioning_day','beg_full_mobility'],     diasMap:{1:'A',3:'B',5:'C',6:'D'}}
+    accumulation:{
+      2:{sessions:['beg_full_body_A','beg_full_body_B'],                                                    diasMap:{1:'A',4:'B'}},
+      3:{sessions:['beg_lower_core','beg_upper_power','beg_full_conditioning'],                              diasMap:{1:'A',3:'B',5:'C'}},
+      4:{sessions:['beg_lower_core','beg_upper_power','beg_conditioning_day','beg_full_mobility'],           diasMap:{1:'A',3:'B',5:'C',6:'D'}}
+    },
+    intensification:{
+      // 3 días ROJO: acondicionamiento pasa a aláctico (proto B = día ROJO energético)
+      2:{sessions:['beg_full_body_A','beg_full_body_B'],                                                    diasMap:{1:'A',4:'B'}},
+      3:{sessions:['beg_lower_core','beg_upper_power','beg_conditioning_day'],                               diasMap:{1:'A',3:'B',5:'C'}},
+      4:{sessions:['beg_lower_core','beg_upper_power','beg_conditioning_day','beg_full_conditioning'],       diasMap:{1:'A',3:'B',5:'C',6:'D'}}
+    },
+    transformation:{
+      // ROJO-VERDE-ROJO: fuerza y glucolítico NUNCA el mismo día
+      2:{sessions:['beg_full_body_A','beg_full_body_B'],                                                    diasMap:{1:'A',4:'B'}},
+      3:{sessions:['beg_lower_core','beg_conditioning_day','beg_upper_power'],                               diasMap:{1:'A',3:'B',5:'C'}},
+      4:{sessions:['beg_lower_core','beg_conditioning_day','beg_upper_power','beg_full_mobility'],           diasMap:{1:'A',3:'B',5:'C',6:'D'}}
+    },
+    realization:{
+      // Solo 1 sesión (microdosis neural, override en getSesionGuia)
+      2:{sessions:['beg_full_body_A'],diasMap:{3:'A'}},
+      3:{sessions:['beg_full_body_A'],diasMap:{3:'A'}},
+      4:{sessions:['beg_full_body_A'],diasMap:{3:'A'}}
+    },
+    recovery:{
+      2:{sessions:['beg_full_mobility'],diasMap:{2:'A',5:'A'}},
+      3:{sessions:['beg_full_mobility'],diasMap:{2:'A',4:'A',6:'A'}},
+      4:{sessions:['beg_full_mobility'],diasMap:{2:'A',4:'A',6:'A'}}
+    }
   },
   advanced:{
-    2:{sessions:['adv_lower_max','adv_upper_max'],                                                   diasMap:{1:'A',4:'B'}},
-    3:{sessions:['adv_lower_max','adv_upper_max','adv_power_velocity'],                              diasMap:{1:'A',3:'B',5:'C'}},
-    4:{sessions:['adv_lower_max','adv_upper_max','adv_conditioning_dedicated','adv_power_velocity'], diasMap:{1:'A',3:'B',4:'D',5:'C'}}
+    accumulation:{
+      // 2-3 ROJO + 1 VERDE: base de fuerza + base aeróbica
+      2:{sessions:['adv_lower_max','adv_upper_max'],                                                         diasMap:{1:'A',4:'B'}},
+      3:{sessions:['adv_lower_max','adv_upper_max','adv_power_velocity'],                                    diasMap:{1:'A',3:'B',5:'C'}},
+      4:{sessions:['adv_lower_max','adv_upper_max','adv_conditioning_dedicated','adv_power_velocity'],       diasMap:{1:'A',3:'B',4:'D',5:'C'}}
+    },
+    intensification:{
+      // 3 ROJO + 1 VERDE: fuerza máxima + aláctico, conditioning sube al 4º día
+      2:{sessions:['adv_lower_max','adv_upper_max'],                                                         diasMap:{1:'A',4:'B'}},
+      3:{sessions:['adv_lower_max','adv_upper_max','adv_power_velocity'],                                    diasMap:{1:'A',3:'B',5:'C'}},
+      4:{sessions:['adv_lower_max','adv_upper_max','adv_power_velocity','adv_conditioning_dedicated'],       diasMap:{1:'A',3:'B',5:'C',6:'D'}}
+    },
+    transformation:{
+      // ROJO-VERDE-ROJO-VERDE: potencia y glucolítico alternando estrictamente
+      2:{sessions:['adv_lower_max','adv_upper_max'],                                                         diasMap:{1:'A',4:'B'}},
+      3:{sessions:['adv_lower_max','adv_conditioning_dedicated','adv_upper_max'],                            diasMap:{1:'A',3:'B',5:'C'}},
+      4:{sessions:['adv_lower_max','adv_conditioning_dedicated','adv_upper_max','adv_power_velocity'],       diasMap:{1:'A',3:'B',5:'C',6:'D'}}
+    },
+    realization:{
+      2:{sessions:['adv_lower_max'],diasMap:{3:'A'}},
+      3:{sessions:['adv_lower_max'],diasMap:{3:'A'}},
+      4:{sessions:['adv_lower_max'],diasMap:{3:'A'}}
+    },
+    recovery:{
+      2:{sessions:['beg_full_mobility'],diasMap:{2:'A',5:'A'}},
+      3:{sessions:['beg_full_mobility'],diasMap:{2:'A',4:'A',6:'A'}},
+      4:{sessions:['beg_full_mobility'],diasMap:{2:'A',4:'A',6:'A'}}
+    }
   }
 };
 
@@ -3858,10 +3915,13 @@ function getSesionGuia(c){
   var perfil=getNivelPerfil(c);
   var sysKey=perfil==='p1'?'beginner':'advanced';
   var dias=Math.min(4,Math.max(2,parseInt(c.dias_prep_fisica)||3));
-  var planDef=SRC_PLANS[sysKey][dias]||SRC_PLANS[sysKey][3];
-  if(!planDef) return null;
   var fase=getFaseCombate(c);
   var semActual=getSemanaEnFase(c);
+  // Seleccionar distribución semanal según la fase ATR
+  var atrKey=FASE_TO_ATR[fase]||'accumulation';
+  var plansByAtr=SRC_PLANS[sysKey][atrKey]||SRC_PLANS[sysKey]['accumulation'];
+  var planDef=plansByAtr[dias]||plansByAtr[3];
+  if(!planDef) return null;
 
   // Mapa dow → letra
   var customMap=getCustomDiasMap(c,dias);
