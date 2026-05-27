@@ -10912,8 +10912,7 @@ async function loadEntrenoCombate(){
   }catch(e3){}
 
   // Cabecera sesión
-  var sesLetra=_guia&&_guia.dias&&_guia.plan&&_guia.plan.diasMap&&_guia.plan.diasMap[_guia.dias]?
-    (Object.entries(_guia.plan.diasMap[_guia.dias]||{}).find(function(e){return e[1]&&_guia.sesiones&&_guia.sesiones[0]&&sesion.id===(_guia.sesiones.indexOf?_guia.sesiones[_diasMapActual[dow]?['A','B','C','D','E'].indexOf(_diasMapActual[dow]):-1]:null):null;})||['',''])[1]:'';
+  var sesLetra='';
   document.getElementById('e-dia').textContent=sesion.nombre;
   html+='<div class="card" style="margin-bottom:.75rem"><div class="ch">'+sesion.emoji+' '+sesion.nombre+
     '<span style="margin-left:auto;font-size:10px;color:var(--text-3);text-transform:uppercase">'+
