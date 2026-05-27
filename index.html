@@ -9213,8 +9213,19 @@ function renderNutriCliente(){
   if(_esCombate){
     var _ps=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
     var _dow=new Date().getDay();
-    var _dpH=_ps?parseDiaPlan(_ps[_dow]):{sessions:[],tipo:null};
-    _slots=getMealSlotsHoy(_dpH.sessions,_dpH.tipo,nc);
+    var _dpH=_ps?parseDiaPlan(_ps[_dow]):null;
+    if(_dpH&&_dpH.sessions.length){
+      // Plan configurado: usar sesiones del día
+      _slots=getMealSlotsHoy(_dpH.sessions,_dpH.tipo,nc);
+    } else {
+      // Sin plan o día sin sesión: usar tipo de día del selector (S.combatDiaTipo)
+      var _sesionHoy=S.combatDiaTipo||'tecnica';
+      if(_sesionHoy==='descanso'){
+        _slots=getMealSlotsHoy([],null,nc); // día descanso → solo slots normales
+      } else {
+        _slots=getMealSlotsHoy([_sesionHoy],null,nc); // día entreno → pre/post
+      }
+    }
   }
   // ── Preferencias del cuestionario ────────────────────────────────────
   var _prefs=null;
@@ -9330,20 +9341,43 @@ function renderNutriCliente(){
             }).join('')+
             '</div></div>';
         }
-        // Botón de comida habitual (si hay defecto y la comida está vacía)
+        // Botones de sugerencia: (1) comida habitual del admin + (2) mejor opción automática
         var _habitualBtn='';
-        if(_defaultPlato){
-          var _isAdmin=!!_adminDefault;
-          var _btnLabel=_isAdmin?'📌 Mi comida habitual':'🤖 Mejor opción para tus macros';
-          var _btnAction=_tieneComida?'Cambiar →':'Aplicar →';
-          var _btnAlpha=_tieneComida?'.04':'.06';
-          _habitualBtn='<div onclick="onClientePlatoSelect('+i+',\''+_defaultPlato.replace(/'/g,"\\'").replace(/\n/g,'')+'\',' +tP+','+tC+','+tG+')" '+
-            'style="margin-bottom:8px;padding:8px 12px;background:rgba(0,200,83,'+_btnAlpha+');border:1px solid rgba(0,200,83,.2);border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px">'+
+        var _btnAction=_tieneComida?'Cambiar →':'Aplicar →';
+        // Botón 1: Mi comida habitual (solo si el admin configuró un plato por defecto)
+        if(_adminDefault&&PLATOS[_adminDefault]){
+          var _adm=_adminDefault.replace(/'/g,"\\'").replace(/\n/g,'');
+          _habitualBtn+='<div onclick="onClientePlatoSelect('+i+',\''+_adm+'\','+tP+','+tC+','+tG+')" '+
+            'style="margin-bottom:6px;padding:8px 12px;background:rgba(0,200,83,.06);border:1px solid rgba(0,200,83,.2);border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px">'+
             '<div style="flex:1">'+
-              '<div style="font-size:11px;font-weight:700;color:#00C853">'+_btnLabel+'</div>'+
-              '<div style="font-size:10px;color:#4A5568;margin-top:1px">'+_defaultPlato.substring(0,50)+'</div>'+
+              '<div style="font-size:11px;font-weight:700;color:#00C853">📌 Mi comida habitual</div>'+
+              '<div style="font-size:10px;color:#4A5568;margin-top:1px">'+_adminDefault.substring(0,50)+'</div>'+
             '</div>'+
             '<div style="font-size:10px;color:#00C853;font-weight:700">'+_btnAction+'</div>'+
+          '</div>';
+        }
+        // Botón 2: Mejor opción automática (siempre, calculada sin override del admin)
+        var _autoPlato=getDefaultPlatoForSlot(_slotType||'normal',{p:tP,c:tC,g:tG},_prefs,null);
+        if(_autoPlato&&_autoPlato!==_adminDefault){
+          var _ap=_autoPlato.replace(/'/g,"\\'").replace(/\n/g,'');
+          _habitualBtn+='<div onclick="onClientePlatoSelect('+i+',\''+_ap+'\','+tP+','+tC+','+tG+')" '+
+            'style="margin-bottom:8px;padding:8px 12px;background:rgba(77,159,255,.04);border:1px solid rgba(77,159,255,.2);border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px">'+
+            '<div style="flex:1">'+
+              '<div style="font-size:11px;font-weight:700;color:#4D9FFF">🤖 Mejor opción para tus macros</div>'+
+              '<div style="font-size:10px;color:#4A5568;margin-top:1px">'+_autoPlato.substring(0,50)+'</div>'+
+            '</div>'+
+            '<div style="font-size:10px;color:#4D9FFF;font-weight:700">'+_btnAction+'</div>'+
+          '</div>';
+        } else if(_autoPlato&&!_adminDefault){
+          // Sin comida habitual: mostrar solo el auto
+          var _ap2=_autoPlato.replace(/'/g,"\\'").replace(/\n/g,'');
+          _habitualBtn+='<div onclick="onClientePlatoSelect('+i+',\''+_ap2+'\','+tP+','+tC+','+tG+')" '+
+            'style="margin-bottom:8px;padding:8px 12px;background:rgba(77,159,255,.06);border:1px solid rgba(77,159,255,.25);border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px">'+
+            '<div style="flex:1">'+
+              '<div style="font-size:11px;font-weight:700;color:#4D9FFF">🤖 Mejor opción para tus macros</div>'+
+              '<div style="font-size:10px;color:#4A5568;margin-top:1px">'+_autoPlato.substring(0,50)+'</div>'+
+            '</div>'+
+            '<div style="font-size:10px;color:#4D9FFF;font-weight:700">'+_btnAction+'</div>'+
           '</div>';
         }
         return '<div class="cbkb">'+
