@@ -4856,9 +4856,8 @@ function adminChipCycle(d){
   var chip=document.getElementById('chip-sem-'+d);
   if(!chip) return;
   var cur=chip.dataset.state||'descanso';
-  // Ciclo: descanso→tecnica→sparring→descanso
-  // Si el chip estaba en estado gym (fuerza/acondicionamiento), vuelve a descanso
-  var NEXT={descanso:'tecnica',tecnica:'sparring',sparring:'descanso',fuerza:'descanso',acondicionamiento:'descanso'};
+  // Ciclo: descanso→tecnica→sparring→acondicionamiento→descanso
+  var NEXT={descanso:'tecnica',tecnica:'sparring',sparring:'acondicionamiento',acondicionamiento:'descanso',fuerza:'descanso'};
   var next=NEXT[cur]||'descanso';
   var CD={
     descanso:         {ico:'😴',lbl:'Descanso',  bg:'rgba(255,255,255,.03)',border:'#1A2A40',color:'#4A5568'},
