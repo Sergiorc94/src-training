@@ -3474,52 +3474,97 @@ function getFaseCombate(c){
   return 'base';
 }
 // ═══════════════════════════════════════════════════════════════════
-// SRC PERFORMANCE — SISTEMAS DE ENTRENAMIENTO v2.0
-// Sergio Rodriguez Cudero — src_training_systems.json
+// SRC PERFORMANCE — SISTEMAS DE ENTRENAMIENTO v2.0 — MODELO ATR
+// Acumulación | Intensificación | Transformación | Realización
+// Sergio Rodriguez Cudero — src_training_systems_v2.json
 // ═══════════════════════════════════════════════════════════════════
 
-// ── Librería de ejercicios (lookup por ID) ────────────────────────
-var SRC_EX={
-  goblet_squat:      {name:'Sentadilla Goblet',                      patron:'Sentadilla', cues:['Pecho arriba en todo momento','Rodillas hacia los dedos gordos','Si redondeas la espalda: baja el peso']},
-  trap_bar_deadlift: {name:'Peso Muerto Hexagonal',                  patron:'Bisagra',    cues:['Empuja el suelo hacia abajo, no levantes el peso','Espalda neutra','Caderas y hombros suben a la vez']},
-  bulgarian_split:   {name:'Sentadilla Búlgara',                     patron:'Sentadilla', cues:['Rodilla delantera detrás de la cadera','Si pierdes el equilibrio: reduce el peso o usa solo tu cuerpo']},
-  rdl:               {name:'Peso Muerto Rumano (RDL)',                patron:'Bisagra',    cues:['Barra pegada a los muslos','Para antes de que la espalda redondee','Caderas atrás, no hacia abajo']},
-  hip_thrust:        {name:'Hip Thrust — Empuje de Cadera',          patron:'Glúteo',     cues:['Glúteo apretado arriba al máximo','No hiperlordosis lumbar','Empuja con los talones']},
-  kb_swing:          {name:'Swing de Kettlebell',                    patron:'Potencia',   cues:['Caderas atrás — no es una sentadilla','Explosión de cadera arriba','Glúteo apretado en la cima']},
-  push_up:           {name:'Flexiones de Brazos',                    patron:'Empuje',     cues:['Si no llegas al suelo: eleva las manos en un banco','Primero la técnica, luego el suelo']},
-  db_press:          {name:'Press con Mancuernas (Hombros)',         patron:'Empuje',     cues:['Muñecas neutras en todo momento','No inclinar la espalda hacia atrás','Control total en la bajada']},
-  db_row:            {name:'Remo con Mancuerna',                     patron:'Tirón',      cues:['Tira el codo hacia atrás, no la mano','No rotar la cadera','Espalda recta y paralela al suelo']},
-  pull_up:           {name:'Dominadas / Jalón al Pecho',             patron:'Tirón',      cues:['Tira los codos hacia los bolsillos','No balancear el cuerpo','Si haces más de 10: añade peso']},
-  plank:             {name:'Plancha Frontal',                        patron:'Core',       cues:['Si cae la cadera: para. Calidad sobre tiempo','Glúteo activo','Cuando llegues a 40 seg: añade peso']},
-  side_plank:        {name:'Plancha Lateral',                        patron:'Core',       cues:['Si falla: apoya la rodilla de abajo','Resiste que te "doblen" lateralmente']},
-  pallof_press:      {name:'Press de Pallof',                        patron:'Core',       cues:['Empuja lento y controlado','El core trabaja para NO girar']},
-  farmer_carry:      {name:'Caminata Cargada (Farmer Carry)',        patron:'Control',    cues:['Hombros hacia atrás y abajo','Pecho arriba','Pasos cortos y controlados']},
-  box_jump:          {name:'Salto al Cajón',                         patron:'Pliometría', cues:['Aterrizaje con los dos pies a la vez','SILENCIOSO','Bajar del cajón caminando, NUNCA saltando hacia abajo']},
-  med_ball_throw:    {name:'Lanzamiento de Balón Medicinal',         patron:'Potencia',   cues:['Potencia de cadera primero','No caer hacia delante']},
-  aerobic_base:      {name:'Aeróbico Base',                          patron:'Cardio',     cues:['FC 65-70% del máximo','Si no puedes hablar: vas demasiado rápido']},
-  lactic_intervals:  {name:'Intervalos de Resistencia',             patron:'Cardio',     cues:['FC al 85% durante el intervalo','El minuto de descanso es suave, no parado']},
-  alactic_intervals: {name:'Intervalos de Potencia',                patron:'Cardio',     cues:['Recuperación COMPLETA entre sprints','Sin descanso completo no hay potencia']},
-  lactate_drain:     {name:'Vaciado de Lactato',                     patron:'Cardio',     cues:['No es cardio extra — es eliminar residuos de la sesión','4×15s máx / 90s descanso completo']},
-  joint_circles:     {name:'Círculos Articulares',                   patron:'Movilidad',  cues:['Muy lento, máxima tensión muscular durante el movimiento','Rango activo, no pasivo']},
-  jefferson_curl:    {name:'Jefferson Curl (Flexión de Columna)',     patron:'Movilidad',  cues:['Carga muy ligera — el objetivo es la movilidad','Muy lento, vértebra a vértebra']},
-  back_squat:        {name:'Sentadilla (varía c/sem)',               patron:'Sentadilla', cues:['Varía cada semana: cajón / frontal / libre','Misma carga, diferente ángulo']},
-  landmine_press:    {name:'Press de Landmine Rotacional',           patron:'Potencia',   cues:['Máxima velocidad en el empuje','Pie trasero → cadera → rotación → mano']},
-  kb_swing_band:     {name:'Swing KB con Banda (Velocidad Máxima)', patron:'Potencia',   cues:['Carga moderada + 25% tensión de banda','Máxima intención — elimina la fase de desaceleración']},
-  contrast_squat:    {name:'Sentadilla → Salto al Cajón (Contraste)',patron:'Pliometría', cues:['Sin descanso entre sentadilla y salto','SNC activado = más explosividad inmediata','4 min entre rondas']},
-  lateral_med_ball:  {name:'Lanzamiento Lateral Balón (Derribo)',   patron:'Potencia',   cues:['Empuje lateral + rotación oblicuos = motor del derribo','4×5 por lado']},
-  shoulder_prev:     {name:'Prevención Hombro (Y-W-T + Rot. Ext.)', patron:'Prevención', cues:['5 min aquí ahorran meses de rehabilitación']},
-  emom_swing:        {name:'EMOM 12 min — Swing KB × 10',           patron:'Cardio',     cues:['Cada minuto × 10 swings','Descansa el tiempo que sobre del minuto']},
+// ── Mapeo fase combate → ATR ──────────────────────────────────────
+var FASE_TO_ATR={
+  base:'accumulation', camp_cronico:'intensification',
+  peaking:'transformation', fight_week:'realization',
+  post_pesaje:'recovery', post_pelea:'recovery'
 };
 
-// ── Helper: crea objeto ejercicio en formato compatible con el render ─
-function _mkEj(nom,s,r,rir,nota,patron){
-  var d={nom:nom,s:s,r:r,rir:rir||'—',nota:nota||''};
-  return {nombre:nom,patron:patron||'Fuerza',cuerpo:d,basico:d,completo:d};
-}
+// ── Perfiles de atleta ────────────────────────────────────────────
+var ATR_PROFILES={
+  hulk:   {name:'Hulk 💪',   desc:'Alta fuerza, baja velocidad. Transformación: Fast Force dominante.'},
+  flash:  {name:'Flash ⚡',  desc:'Alta velocidad, baja fuerza. Acumulación: base de fuerza prioritaria.'},
+  superman:{name:'Superman 🦸',desc:'Equilibrado en alto nivel. Necesita ajuste fino.'},
+  halcon: {name:'Halcón 🦅', desc:'Equilibrado, base sólida. Todo sube a la vez. El principiante suele ser Halcón.'}
+};
 
-// ── Convierte sesión JSON (new) → formato bloques (render engine) ──
+// ── Clasificación de días ─────────────────────────────────────────
+var DIA_COLOR={
+  red:   {label:'🔴 Día ROJO',   desc:'Neural. Fuerza máxima, potencia, velocidad, aláctico.'},
+  green: {label:'🟢 Día VERDE',  desc:'Energético. Aeróbico, glucolítico, resistencia.'},
+  yellow:{label:'🟡 Día AMARILLO',desc:'Recuperación activa. Movilidad, técnica suave.'}
+};
+
+// ── Librería de ejercicios ────────────────────────────────────────
+var SRC_EX={
+  // Lower
+  goblet_squat:        {name:'Sentadilla Goblet',                cues:['Pecho arriba en todo momento','Rodillas hacia los dedos gordos','Si redondeas la espalda: baja el peso']},
+  trap_bar_deadlift:   {name:'Peso Muerto Barra Hexagonal',      cues:['Empuja el suelo hacia abajo','Espalda neutra','Caderas y hombros suben a la vez']},
+  back_squat:          {name:'Sentadilla (varía cada semana)',    cues:['S1: hasta cajón / S2: frontal / S3: libre / S4: vuelta con más carga','Cambia cada semana para no estancarte']},
+  bulgarian_split_squat:{name:'Sentadilla Búlgara',              cues:['Rodilla delantera detrás de la cadera','Pecho arriba','Detecta asimetrías entre piernas']},
+  rdl:                 {name:'Peso Muerto Rumano (RDL)',          cues:['La barra pegada a los muslos','Para antes de que la espalda redondee','Caderas atrás']},
+  rdl_isometric:       {name:'RDL con Isométrico Final',         cues:['5 seg bajando + 20-30 seg aguantando en máximo estiramiento','Construye flexibilidad y fuerza a la vez']},
+  hip_thrust:          {name:'Hip Thrust',                       cues:['Glúteo apretado arriba','No exagerar el arco lumbar','Empuja con los talones']},
+  kb_swing:            {name:'Swing de Kettlebell',              cues:['Caderas atrás — no es una sentadilla','Explosión de cadera arriba','Glúteo apretado en la cima']},
+  kb_swing_band:       {name:'Swing KB con Banda',               cues:['Carga moderada + 25% tensión de banda','El cuerpo sigue acelerando todo el recorrido — máxima velocidad']},
+  // Upper push
+  push_up:             {name:'Flexiones de Brazos',              cues:['Si no llegas al suelo: eleva las manos en un banco','Calidad absoluta en cada rep']},
+  db_overhead_press:   {name:'Press con Mancuernas (Hombros)',   cues:['Muñecas neutras','No inclinar la espalda hacia atrás']},
+  bench_press:         {name:'Press Pesado (varía cada semana)', cues:['S1: banca / S2: mancuernas inclinado / S3: agarre estrecho / S4: vuelta a S1','Escápulas apretadas hacia atrás y abajo']},
+  landmine_rotational: {name:'Press de Landmine Rotacional',     cues:['Cadena: pie trasero → cadera → rotación → mano','Máxima velocidad','Específico para golpeo y grappling']},
+  // Upper pull
+  db_row:              {name:'Remo con Mancuerna',               cues:['Tira el codo, no la mano','No rotar la cadera','Espalda recta']},
+  pull_up:             {name:'Dominadas',                        cues:['Tira los codos hacia los bolsillos','No balancear el cuerpo','Si haces más de 10: añade peso']},
+  weighted_pull_up:    {name:'Dominadas Lastradas',              cues:['Siempre 3:1 tirón/empuje','RIR 0-1']},
+  // Core
+  plank:               {name:'Plancha Frontal',                  cues:['Si cae la cadera: para','Cuando llegues a 40 seg: añade peso']},
+  side_plank:          {name:'Plancha Lateral',                  cues:['Si falla: apoya la rodilla de abajo']},
+  pallof_press:        {name:'Press de Pallof',                  cues:['El core trabaja para NO girar','Empuja lento']},
+  farmer_carry:        {name:'Caminata Cargada (Farmer Carry)',  cues:['Hombros hacia atrás y abajo','Pecho arriba','Pasos cortos y controlados']},
+  // Power
+  box_jump:            {name:'Salto al Cajón',                   cues:['Aterrizaje SILENCIOSO','Bajar del cajón caminando, nunca saltando hacia abajo']},
+  med_ball_throw:      {name:'Lanzamiento de Balón Medicinal',   cues:['Potencia de cadera primero','No caer hacia delante']},
+  med_ball_slam_push:  {name:'Slam + Empuje de Balón Medicinal', cues:['Potencia igual en slam y empuje','No caer hacia delante']},
+  contrast_method:     {name:'Método de Contraste',              cues:['Fuerza pesada → explosivo inmediato sin descanso','4 min de descanso entre rondas','Ej: sentadilla 85-90% × 2-3 → salto cajón × 3']},
+  lateral_push_throw:  {name:'Lanzamiento Lateral (Derribo)',    cues:['Empuje lateral + rotación de caderas = motor del derribo']},
+  // Conditioning
+  aerobic_base:        {name:'Aeróbico Base',                    cues:['FC 65-70% del máximo','Si no puedes hablar: vas demasiado rápido']},
+  vo2max_intervals:    {name:'Intervalos VO2max',                cues:['6 series × 3 min al 90-95% / 3 min descanso activo','Solo después de 3-4 semanas de base aeróbica']},
+  lactic_intervals:    {name:'Intervalos Glucolíticos (Combate)',cues:['FC al 85% durante el intervalo','Replica el formato real del combate']},
+  alactic_sprints:     {name:'Sprints Alácticos',                cues:['8 × 6-8 seg al máximo + 3 min descanso COMPLETO','Sin recuperación completa no hay potencia']},
+  lactate_drain:       {name:'Vaciado de Lactato',               cues:['No es cardio extra — es eliminar residuos de la sesión','4 × 15 seg máx / 90 seg descanso']},
+  alactic_lactic_prog: {name:'Progresión Aláctico-Láctico',      cues:['B1:10s/60s×4 → B2:15s/45s×4 → B3:20s/30s×4 → B4:30s/20s×4','Entrena la transición entre sistemas energéticos']},
+  emom_swings:         {name:'EMOM 12 min — Swings',             cues:['Cada minuto × 10 swings','Potencia de cadera sostenida']},
+  neural_microdose:    {name:'Microdosis Neural',                 cues:['Máxima intención. Volumen mínimo.','EMOM 12 min + 5 saltos + 3 cajón + 5 broad jumps']},
+  // Prevention & Mobility
+  joint_circles:       {name:'Círculos Articulares',             cues:['Muy lento','Tobillo → rodilla → cadera → hombro']},
+  jefferson_curl:      {name:'Jefferson Curl',                   cues:['Carga muy ligera — objetivo: movilidad','Muy lento, vértebra a vértebra']},
+  shoulder_prevention: {name:'Prevención de Hombro',             cues:['Y-W-T × 15 + rotación externa × 15','5 min aquí ahorran meses de rehabilitación']},
+  neck_isometric:      {name:'Isométrico de Cuello',             cues:['3 series × 20 seg','Más fuerza de cuello = menor aceleración ante un golpe']},
+  // Legacy aliases
+  bulgarian_split:     {name:'Sentadilla Búlgara',               cues:['Rodilla delantera detrás de la cadera','Pecho arriba']},
+  db_press:            {name:'Press con Mancuernas',             cues:['Muñecas neutras','No inclinar la espalda hacia atrás']},
+  landmine_press:      {name:'Press de Landmine Rotacional',     cues:['Cadena: pie trasero → cadera → rotación → mano','Máxima velocidad']},
+  kb_swing_band_leg:   {name:'Swing KB con Banda',               cues:['Carga moderada + 25% tensión de banda','Máxima velocidad']},
+  contrast_squat:      {name:'Método de Contraste',              cues:['Fuerza pesada → explosivo inmediato sin descanso','4 min entre rondas']},
+  lateral_med_ball:    {name:'Lanzamiento Lateral (Derribo)',    cues:['Empuje lateral + rotación de caderas']},
+  shoulder_prev:       {name:'Prevención de Hombro',             cues:['Y-W-T × 15 + rotación externa × 15']},
+  emom_swing:          {name:'EMOM 12 min — Swings',             cues:['Cada minuto × 10 swings']},
+};
+
+// ── Convierte sesión JSON → formato bloques (render engine) — v2 ATR ─
 function adaptSRCSession(session,fase,semActual){
-  if(!session||!session.blocks) return null;
+  if(!session) return null;
+  if(!session.blocks) return null;
+  var atr=FASE_TO_ATR[fase]||'accumulation';
+  var isCamp=(atr==='intensification');
+
   var ejs=session.blocks.map(function(block){
     var ex=SRC_EX[block.exercise_id]||null;
     var nom=block.name_display||(ex?ex.name:(block.exercise_id||'Ejercicio'));
@@ -3531,159 +3576,170 @@ function adaptSRCSession(session,fase,semActual){
       nom+=' (Sem.'+semActual+': '+varStr+')';
       nota=(nota?nota+' · ':'')+block.variation_rotation[idx];
     }
-    if(ex&&ex.cues&&ex.cues.length&&!nota) nota=ex.cues.join(' · ');
+    if(ex&&ex.cues&&ex.cues.length&&!nota) nota=ex.cues[0];
     var rir=typeof block.rir!=='undefined'?block.rir:'—';
-    return _mkEj(nom,block.sets,r,rir,nota,ex?ex.patron:'Fuerza');
+    var sets=block.sets||3;
+    // Camp (Intensificación ATR): -1 serie en ejercicios con RIR definido (fuerza principal)
+    if(isCamp && typeof sets==='number' && sets>1 && block.rir!==undefined) sets=Math.max(1,sets-1);
+    return {nom:nom,s:sets,r:r,rir:rir,nota:nota||'',guia:block.exercise_id||null};
   });
-  // Camp: −1 serie por ejercicio principal + vaciado de lactato al final
-  if(fase==='camp_cronico'){
-    ejs=ejs.map(function(ej){
-      var d=Object.assign({},ej.cuerpo);
-      if(typeof d.s==='number'&&d.s>1) d.s=d.s-1;
-      return _mkEj(d.nom,d.s,d.r,d.rir,d.nota,ej.patron);
-    });
-    if(!ejs.some(function(e){return /vaciado/i.test(e.nombre);})){
-      ejs.push(_mkEj('Vaciado de Lactato — 4×15s máx / 90s descanso',4,'15 seg','—','No es cardio — elimina el ácido láctico acumulado en la sesión','Cardio'));
+  // Camp: añadir vaciado de lactato si no lo tiene ya
+  if(isCamp && session.id && (session.id.includes('lower')||session.id.includes('upper'))){
+    if(!ejs.some(function(e){return e.guia==='lactate_drain';})){
+      ejs.push({nom:'Vaciado de Lactato',s:4,r:'15 seg / 90 seg descanso',rir:'—',nota:SRC_EX.lactate_drain.cues[0],guia:'lactate_drain'});
     }
   }
+  // Phase adaptation note (shown as banner)
+  var atrLabel={accumulation:'🔵 Acumulación',intensification:'🔴 Intensificación',transformation:'🟠 Transformación',realization:'⭐ Realización'}[atr]||'';
+  var phaseNote=(session.phase_adaptations&&session.phase_adaptations[atr])||'';
+  var colorEmoji=session.color==='green'?'🔥':session.color==='yellow'?'🔄':session.color==='red'?'💪':'💪';
   var minEst=Math.ceil(session.blocks.length*4+15);
-  return {id:session.id,nombre:session.name||session.id,emoji:session.emoji||'💪',warmup:session.warmup||'',
-          bloques:[{nombre:session.name||'Sesión',min:minEst,ejs:ejs}]};
+  return {id:session.id,nombre:session.name||session.id,emoji:colorEmoji,
+          warmup:session.warmup||'5 min movilidad articular',
+          atrLabel:atrLabel,phaseNote:phaseNote,
+          bloques:[{nombre:'',min:minEst,ejs:ejs}]};
 }
 
-// ── Datos de sesiones: PRINCIPIANTE ──────────────────────────────
+// ── Datos de sesiones v2: PRINCIPIANTE (ATR) ─────────────────────
 var _SRC_BEG={
-  full_body_A:{id:'full_body_A',name:'Cuerpo Completo A',emoji:'💪',
+  beg_full_body_A:{id:'beg_full_body_A',name:'Cuerpo Completo A',color:'red',
     warmup:'5 min círculos articulares (tobillo, rodilla, cadera, hombro) + 2 min respiración abdominal tumbado',
+    phase_adaptations:{accumulation:'RIR 3-4. Aprende la técnica. Volumen moderado.',intensification:'RIR 1-2. Sube el peso. Mismo volumen.',transformation:'Velocidad intencional máxima. Añade 5 min de saltos al final.'},
     blocks:[
-      {order:1,exercise_id:'goblet_squat',  sets:3,reps:'8',         rest_seconds:120,rir:3,notes:'Si redondeas la espalda: baja el peso'},
-      {order:2,exercise_id:'trap_bar_deadlift',sets:3,reps:'6',      rest_seconds:120,rir:3,notes:'Empuja el suelo hacia abajo. Espalda neutra.'},
-      {order:3,exercise_id:'push_up',       sets:3,reps:'8-10',      rest_seconds:90, rir:3,notes:'Si no llegas al suelo: eleva las manos en un banco'},
-      {order:4,exercise_id:'db_row',        sets:3,reps:'10 c/lado', rest_seconds:90, rir:3,notes:'Tira el codo hacia atrás. No rotar la cadera.'},
-      {order:5,exercise_id:'plank',         sets:3,reps:'25 seg',    rest_seconds:60,       notes:'Si cae la cadera: para. Calidad sobre tiempo.'},
-      {order:6,exercise_id:'aerobic_base',  sets:1,reps:'10 min',    rest_seconds:0,         notes:'Ritmo al que puedas mantener una conversación'}
+      {order:1,exercise_id:'goblet_squat',       sets:3,reps:'8',         rest_seconds:120,rir:3},
+      {order:2,exercise_id:'trap_bar_deadlift',  sets:3,reps:'6',         rest_seconds:120,rir:3},
+      {order:3,exercise_id:'push_up',            sets:3,reps:'8-10',      rest_seconds:90, rir:3},
+      {order:4,exercise_id:'db_row',             sets:3,reps:'10 c/lado', rest_seconds:90, rir:3},
+      {order:5,exercise_id:'plank',              sets:3,reps:'25 seg',    rest_seconds:60},
+      {order:6,exercise_id:'aerobic_base',       sets:1,reps:'10 min',    rest_seconds:0,  notes:'Solo Acumulación. En Transformación: 5 min de saltos.'}
     ]},
-  full_body_B:{id:'full_body_B',name:'Cuerpo Completo B + Movilidad',emoji:'🦵',
+  beg_full_body_B:{id:'beg_full_body_B',name:'Cuerpo Completo B',color:'red',
     warmup:'5 min círculos articulares + 2 min respiración abdominal',
     blocks:[
-      {order:1,exercise_id:'bulgarian_split',sets:3,reps:'8 c/lado', rest_seconds:120,rir:3,notes:'Si pierdes el equilibrio: reduce el peso o usa solo tu cuerpo'},
-      {order:2,exercise_id:'rdl',            sets:3,reps:'8',         rest_seconds:120,rir:3,notes:'Para antes de que la espalda redondee'},
-      {order:3,exercise_id:'db_press',       sets:3,reps:'10',        rest_seconds:90, rir:3,notes:'Muñecas neutras. No inclinar la espalda hacia atrás.'},
-      {order:4,exercise_id:'pull_up',        sets:3,reps:'6-8',       rest_seconds:90, rir:3,notes:'Con banda si hace falta. Si haces más de 10: añade peso.'},
-      {order:5,exercise_id:'hip_thrust',     sets:3,reps:'10',        rest_seconds:90,       notes:'Glúteo apretado arriba. Explosivo subiendo, lento bajando.'},
-      {order:6,exercise_id:'joint_circles',  sets:1,reps:'10 min',    rest_seconds:0,         notes:'Tobillo → rodilla → cadera → hombro. Muy lento.'}
+      {order:1,exercise_id:'bulgarian_split_squat',sets:3,reps:'8 c/lado',rest_seconds:120,rir:3},
+      {order:2,exercise_id:'rdl',                sets:3,reps:'8',         rest_seconds:120,rir:3},
+      {order:3,exercise_id:'db_overhead_press',  sets:3,reps:'10',        rest_seconds:90, rir:3},
+      {order:4,exercise_id:'pull_up',            sets:3,reps:'6-8',       rest_seconds:90, rir:3},
+      {order:5,exercise_id:'hip_thrust',         sets:3,reps:'10',        rest_seconds:90},
+      {order:6,exercise_id:'joint_circles',      sets:1,reps:'10 min',    rest_seconds:0}
     ]},
-  lower_core:{id:'lower_core',name:'Tren Inferior + Core',emoji:'🦵',
+  beg_lower_core:{id:'beg_lower_core',name:'Tren Inferior + Core',color:'red',
     warmup:'5 min círculos articulares (tobillo, rodilla, cadera) + 2 min respiración abdominal',
     blocks:[
-      {order:1,exercise_id:'goblet_squat',   sets:3,reps:'8',         rest_seconds:120,rir:3,notes:'Rodillas sobre los dedos gordos. Pecho arriba.'},
-      {order:2,exercise_id:'trap_bar_deadlift',sets:3,reps:'6',       rest_seconds:120,rir:3,notes:'Caderas y hombros suben juntos.'},
-      {order:3,exercise_id:'bulgarian_split',sets:3,reps:'8 c/lado',  rest_seconds:90, rir:3,notes:'Detecta si una pierna es más débil. Trabájala igual.'},
-      {order:4,exercise_id:'hip_thrust',     sets:3,reps:'10',        rest_seconds:90,       notes:'Movimiento explosivo subiendo, lento bajando.'},
-      {order:5,exercise_id:'plank',          sets:3,reps:'25-30 seg', rest_seconds:60,       notes:'Glúteo activo. Si cae la cadera: para.'},
-      {order:6,exercise_id:'pallof_press',   sets:3,reps:'10 c/lado', rest_seconds:60,       notes:'El core trabaja para NO girar. Empuja lento.'},
-      {order:7,exercise_id:'side_plank',     sets:3,reps:'20 seg c/lado',rest_seconds:60,    notes:'Si falla: apoya la rodilla de abajo.'}
+      {order:1,exercise_id:'goblet_squat',           sets:3,reps:'8',         rest_seconds:120,rir:3},
+      {order:2,exercise_id:'trap_bar_deadlift',      sets:3,reps:'6',         rest_seconds:120,rir:3},
+      {order:3,exercise_id:'bulgarian_split_squat',  sets:3,reps:'8 c/lado',  rest_seconds:90, rir:3},
+      {order:4,exercise_id:'hip_thrust',             sets:3,reps:'10',        rest_seconds:90},
+      {order:5,exercise_id:'plank',                  sets:3,reps:'25-30 seg', rest_seconds:60},
+      {order:6,exercise_id:'pallof_press',           sets:3,reps:'10 c/lado', rest_seconds:60},
+      {order:7,exercise_id:'side_plank',             sets:3,reps:'20 seg c/lado',rest_seconds:60}
     ]},
-  upper_jumps:{id:'upper_jumps',name:'Tren Superior + Saltos',emoji:'💪',
+  beg_upper_power:{id:'beg_upper_power',name:'Tren Superior + Potencia',color:'red',
     warmup:'5 min círculos de hombros + colgar de barra 30 seg + 5 flexiones lentas',
     blocks:[
-      {order:1,exercise_id:'push_up',        sets:3,reps:'8-10',      rest_seconds:90, rir:3,notes:'Cuerpo recto. Codos a 45°. Calidad absoluta en cada rep.'},
-      {order:2,exercise_id:'db_row',         sets:3,reps:'10 c/lado', rest_seconds:90, rir:3,notes:'Tira el codo. Siempre más tirón que empuje.'},
-      {order:3,exercise_id:'db_press',       sets:3,reps:'10',        rest_seconds:90, rir:3,notes:'Muñecas neutras. No inclinar la espalda.'},
-      {order:4,exercise_id:'pull_up',        sets:3,reps:'6-8',       rest_seconds:90, rir:3,notes:'Codos hacia los bolsillos. Con banda si hace falta.'},
-      {order:5,exercise_id:'box_jump',       sets:3,reps:'5',         rest_seconds:120,      notes:'Aterrizaje SILENCIOSO. Bajar del cajón caminando.'},
-      {order:6,exercise_id:'med_ball_throw', sets:3,reps:'8',         rest_seconds:90,       notes:'Potencia de cadera primero. No caer hacia delante.'}
+      {order:1,exercise_id:'push_up',                sets:3,reps:'8-10',      rest_seconds:90, rir:3},
+      {order:2,exercise_id:'db_row',                 sets:3,reps:'10 c/lado', rest_seconds:90, rir:3},
+      {order:3,exercise_id:'db_overhead_press',      sets:3,reps:'10',        rest_seconds:90, rir:3},
+      {order:4,exercise_id:'pull_up',                sets:3,reps:'6-8',       rest_seconds:90, rir:3},
+      {order:5,exercise_id:'box_jump',               sets:3,reps:'5',         rest_seconds:120,notes:'Aterrizaje SILENCIOSO. Bajar del cajón caminando.'},
+      {order:6,exercise_id:'med_ball_throw',         sets:3,reps:'8',         rest_seconds:90}
     ]},
-  light_conditioning:{id:'light_conditioning',name:'Cuerpo Completo Ligero + Acondicionamiento',emoji:'🔥',
+  beg_full_conditioning:{id:'beg_full_conditioning',name:'Cuerpo Completo Ligero + Acondicionamiento',color:'yellow_green',
     warmup:'5 min movilidad articular',
+    notes:'Día de calidad técnica y base energética. No de intensidad.',
     blocks:[
-      {order:1,exercise_id:'kb_swing',       sets:4,reps:'10',        rest_seconds:90,       notes:'Técnica perfecta. Caderas atrás, no es una sentadilla.'},
-      {order:2,exercise_id:'goblet_squat',   sets:3,reps:'6',         rest_seconds:120,      notes:'Con 3 segundos de pausa abajo. Menos peso que el lunes.'},
-      {order:3,exercise_id:'farmer_carry',   sets:4,reps:'25 metros', rest_seconds:90,       notes:'Hombros hacia atrás. Pasos cortos y controlados.'},
-      {order:4,exercise_id:'db_press',       sets:3,reps:'10',        rest_seconds:90, rir:3,notes:'De pie. Glúteo apretado. No inclinar hacia atrás.'},
-      {order:5,exercise_id:'pull_up',        sets:3,reps:'máximo bueno',rest_seconds:90,     notes:'Para antes de que la técnica falle.'},
-      {order:6,exercise_id:'aerobic_base',   sets:1,reps:'20 min',    rest_seconds:0,        notes:'Deberías poder hablar frases completas.'}
+      {order:1,exercise_id:'kb_swing',               sets:4,reps:'10',        rest_seconds:90},
+      {order:2,exercise_id:'goblet_squat',           sets:3,reps:'6',         rest_seconds:120,notes:'3 seg de pausa abajo. Menos peso que el lunes.'},
+      {order:3,exercise_id:'farmer_carry',           sets:4,reps:'25 metros', rest_seconds:90},
+      {order:4,exercise_id:'pull_up',                sets:3,reps:'máximo bueno',rest_seconds:90},
+      {order:5,exercise_id:'aerobic_base',           sets:1,reps:'20 min',    rest_seconds:0,  notes:'Acumulación: 20 min aeróbico. Transformación: 5 rondas × 3 min glucolítico + 1 min descanso.'}
     ]},
-  light_mobility:{id:'light_mobility',name:'Cuerpo Completo Ligero + Movilidad',emoji:'🔄',
-    warmup:'5 min movilidad articular',
-    blocks:[
-      {order:1,exercise_id:'kb_swing',       sets:4,reps:'10',        rest_seconds:90,       notes:'Técnica perfecta. Día de calidad.'},
-      {order:2,exercise_id:'goblet_squat',   sets:3,reps:'6',         rest_seconds:120,      notes:'Con 3 segundos de pausa abajo.'},
-      {order:3,exercise_id:'farmer_carry',   sets:4,reps:'25 metros', rest_seconds:90,       notes:'Hombros hacia atrás. Pasos controlados.'},
-      {order:4,exercise_id:'db_row',         sets:3,reps:'10 c/lado', rest_seconds:90,       notes:'Más tirón que empuje siempre.'},
-      {order:5,exercise_id:'joint_circles',  sets:1,reps:'20 min',    rest_seconds:0,        notes:'Tobillo → rodilla → cadera → columna → hombro.'},
-      {order:6,exercise_id:'jefferson_curl', sets:2,reps:'6',         rest_seconds:90,       notes:'Carga muy ligera. Objetivo: movilidad. Muy lento.'}
-    ]},
-};
-
-// ── Datos de sesiones: AVANZADO ───────────────────────────────────
-var _SRC_ADV={
-  adv_lower:{id:'adv_lower',name:'Fuerza Máxima Tren Inferior + Potencia',emoji:'🏋️',
-    warmup:'12-15 min: movilidad articular completa + 2 min respiración abdominal + 4-5 saltos al cajón (activación SNC)',
-    blocks:[
-      {order:1,exercise_id:'box_jump',       sets:5,reps:'3',         rest_seconds:120,      notes:'Activación SNC. Máxima intención. Aterrizaje silencioso.'},
-      {order:2,exercise_id:'back_squat',     name_display:'Sentadilla (varía c/sem)',
-        variation_rotation:['Sem 1: Sentadilla hasta cajón','Sem 2: Sentadilla frontal','Sem 3: Sentadilla libre','Sem 4: Vuelve a cajón con más carga'],
-        sets:5,reps:'3',rest_seconds:240,rir:1,notes:'Cambia el tipo cada semana para no estancarte.'},
-      {order:3,exercise_id:'trap_bar_deadlift',name_display:'Peso Muerto (varía c/sem)',
-        variation_rotation:['Sem 1: Peso muerto sumo','Sem 2: Barra hexagonal','Sem 3: Convencional','Sem 4: Con déficit'],
-        sets:4,reps:'3',rest_seconds:180,rir:1,notes:'Saca la holgura de la barra antes de tirar. Barra pegada al cuerpo.'},
-      {order:4,exercise_id:'bulgarian_split',sets:3,reps:'8 c/lado',  rest_seconds:90, rir:2,notes:'Misma carga en ambas piernas. Si una es más débil: dale prioridad.'},
-      {order:5,exercise_id:'rdl',            name_display:'RDL con Isométrico al Final',
-        sets:3,reps:'5 + 20 seg isométrico',rest_seconds:90,               notes:'Baja 5 seg lento + aguanta 20 seg en máximo estiramiento. Flexibilidad y fuerza a la vez.'},
-      {order:6,exercise_id:'plank',          name_display:'Core 3 Planos (Plancha + Pallof + Lateral)',
-        sets:3,reps:'25s + 10c/lado + 20s/lado',rest_seconds:60,           notes:'Los 3 ejercicios sin descanso entre ellos.'},
-      {order:7,exercise_id:'lactate_drain',  sets:4,reps:'15 seg máx / 90 seg descanso',rest_seconds:0,notes:'Al final. No es cardio — elimina el ácido láctico acumulado.'}
-    ]},
-  adv_upper:{id:'adv_upper',name:'Fuerza Máxima Tren Superior + Potencia',emoji:'💥',
-    warmup:'12 min: colgar de barra 30 seg + círculos de hombros + 10 Y-W-T con banda + 5 lanzamientos de balón medicinal',
-    blocks:[
-      {order:1,exercise_id:'push_up',        name_display:'Press Pesado (varía c/sem)',
-        variation_rotation:['Sem 1: Press de banca','Sem 2: Press mancuernas inclinado','Sem 3: Press banca agarre estrecho','Sem 4: Vuelve a S1'],
-        sets:5,reps:'3',rest_seconds:240,rir:1,notes:'Escápulas apretadas hacia atrás y abajo.'},
-      {order:2,exercise_id:'pull_up',        name_display:'Tirón Pesado (varía c/sem)',
-        variation_rotation:['Sem 1: Dominadas lastradas','Sem 2: Remo con barra','Sem 3: Dominadas agarre neutro','Sem 4: Remo con mancuernas pesadas'],
-        sets:4,reps:'4-5',rest_seconds:180,rir:1,notes:'3:1 tirón/empuje. Por cada serie de empuje, 3 de tirón.'},
-      {order:3,exercise_id:'landmine_press', sets:6,reps:'3 c/lado',  rest_seconds:90,       notes:'Máxima velocidad. Pie trasero → cadera → rotación → mano.'},
-      {order:4,exercise_id:'med_ball_throw', name_display:'Slam + Empuje de Balón Medicinal',
-        sets:4,reps:'6',rest_seconds:90,                                    notes:'Potencia igual en el slam y en el empuje. No caer hacia delante.'},
-      {order:5,exercise_id:'db_row',         name_display:'Remo Horizontal (volumen)',
-        sets:3,reps:'10-12',rest_seconds:90,rir:2,                          notes:'Hombros hacia atrás en cada repetición.'},
-      {order:6,exercise_id:'shoulder_prev',  sets:3,reps:'15 Y-W-T + 15 rot. ext.',rest_seconds:60,notes:'5 min aquí ahorran meses de rehabilitación.'},
-      {order:7,exercise_id:'emom_swing',     sets:1,reps:'12 min',    rest_seconds:0,        notes:'Cada minuto × 10 swings. Potencia de cadera sostenida.'}
-    ]},
-  adv_power:{id:'adv_power',name:'Potencia-Velocidad + Acondicionamiento Base',emoji:'⚡',
-    warmup:'5 min movilidad articular + 5 lanzamientos de balón medicinal',
-    blocks:[
-      {order:1,exercise_id:'kb_swing_band',  sets:8,reps:'3',         rest_seconds:60,       notes:'Carga moderada + 25% tensión de banda. Máxima intención.'},
-      {order:2,exercise_id:'landmine_press', sets:6,reps:'3 c/lado',  rest_seconds:90,       notes:'Menos peso que el martes. Más velocidad. Si hay resistencia: baja el peso.'},
-      {order:3,exercise_id:'contrast_squat', name_display:'Sentadilla Búlgara → Salto al Cajón (Contraste)',
-        sets:4,reps:'2 búlgaras + 3 saltos',rest_seconds:240,              notes:'Sin descanso entre sentadilla y salto. SNC activado = más explosividad inmediata.'},
-      {order:4,exercise_id:'lateral_med_ball',sets:4,reps:'5 c/lado', rest_seconds:120,      notes:'Reproduce el motor del derribo. Empuje lateral + rotación = double leg.'},
-      {order:5,exercise_id:'aerobic_base',   sets:1,reps:'25-30 min', rest_seconds:0,        notes:'Ritmo conversacional. Motor aeróbico que sostiene los rounds tardíos.'},
-      {order:6,exercise_id:'joint_circles',  sets:1,reps:'10 min',    rest_seconds:0,        notes:'Al final, cuando el tejido está caliente. Mejor momento para ganar movilidad.'}
-    ]},
-  adv_conditioning:{id:'adv_conditioning',name:'Acondicionamiento Dedicado',emoji:'🔥',
+  beg_conditioning_day:{id:'beg_conditioning_day',name:'Acondicionamiento Específico',color:'green',
     warmup:'5 min movilidad articular suave',
     options:[
-      {id:'A',name:'Base Aeróbica',           protocol:'30 min continuos en bicicleta, trote o cuerda a ritmo conversacional. FC 65-70%.',use_when:'Las primeras semanas. Si acabas muy cansado en los últimos rounds.'},
-      {id:'B',name:'Potencia Aeróbica Máxima',protocol:'6 series × 3 min al 90-95% FC máx / 3 min descanso activo suave.',          use_when:'Después de 3-4 semanas de base aeróbica. Cuando la base ya está construida.'},
-      {id:'C',name:'Resistencia al Ácido Láctico',protocol:'5 rondas × 3 min fuertes (FC 85%) / 1 min descanso activo.',           use_when:'Semanas 8-4 antes de la pelea. Cuando el camp empieza.'},
-      {id:'D',name:'EDT — Densidad de Entrenamiento',protocol:'2 ejercicios alternados × 5 reps durante 20 min sin parar. Cuenta el total. La próxima vez supera ese número.',use_when:'Primeras semanas de base, antes del camp.'}
+      {id:'A',name:'Base Aeróbica',              protocol:'25 min continuos. FC 65-70%. Ritmo conversacional.',                               phase:'accumulation',  use_when:'Siempre las primeras semanas. Si acabas muy cansado en los rounds.'},
+      {id:'B',name:'Intervalos de Potencia (Aláctico)',protocol:'8 × 6-8 seg al máximo + 3 min de descanso COMPLETO.',                       phase:'intensification',use_when:'Si te falta la primera explosión del round.'},
+      {id:'C',name:'Intervalos Glucolíticos (Combate)',protocol:'5 rondas × 3 min fuerte (FC 85%) + 1 min descanso activo.',                 phase:'transformation', use_when:'Si te quedas sin aire en los rounds medios.'}
+    ]},
+  beg_full_mobility:{id:'beg_full_mobility',name:'Cuerpo Completo Ligero + Movilidad',color:'yellow',
+    warmup:'5 min movilidad articular',
+    blocks:[
+      {order:1,exercise_id:'kb_swing',               sets:4,reps:'10',        rest_seconds:90},
+      {order:2,exercise_id:'goblet_squat',           sets:3,reps:'6',         rest_seconds:120,notes:'Con pausa de 3 seg abajo.'},
+      {order:3,exercise_id:'farmer_carry',           sets:4,reps:'25 metros', rest_seconds:90},
+      {order:4,exercise_id:'db_row',                 sets:3,reps:'10 c/lado', rest_seconds:90},
+      {order:5,exercise_id:'joint_circles',          sets:1,reps:'20 min',    rest_seconds:0},
+      {order:6,exercise_id:'jefferson_curl',         sets:2,reps:'6',         rest_seconds:90,notes:'Carga muy ligera. Objetivo: movilidad. Muy lento.'}
     ]},
 };
 
-// ── Mapas de planes: sistema → días → sesiones ordenadas ──────────
+// ── Datos de sesiones v2: AVANZADO (ATR) ─────────────────────────
+var _SRC_ADV={
+  adv_lower_max:{id:'adv_lower_max',name:'Fuerza Máxima Tren Inferior',color:'red',
+    warmup:'12-15 min: movilidad articular completa + 2 min respiración abdominal + 5 saltos al cajón (activación SNC)',
+    phase_adaptations:{accumulation:'RIR 3. Volumen alto. Aprende las variantes. Sin llegar al límite.',intensification:'RIR 0-1. 85-90% del máximo. Varía el ejercicio principal cada semana. Vaciado de lactato al final.',transformation:'Añade método de contraste. Sentadilla pesada → salto inmediato. RIR 1.',realization:'Solo método de contraste. 3 rondas. Nada más.'},
+    blocks:[
+      {order:1,exercise_id:'box_jump',               sets:5,reps:'3',         rest_seconds:120,notes:'Activación SNC. Solo en Intensificación y Transformación. En Acumulación: omitir.'},
+      {order:2,exercise_id:'back_squat',name_display:'Sentadilla (varía cada semana)',
+        variation_rotation:['S1: Sentadilla hasta cajón','S2: Sentadilla frontal','S3: Sentadilla libre','S4: Vuelve a S1 con más carga'],
+        sets:5,reps:'3',rest_seconds:240,rir:1},
+      {order:3,exercise_id:'trap_bar_deadlift',name_display:'Peso Muerto (varía cada semana)',
+        variation_rotation:['S1: Peso muerto sumo','S2: Barra hexagonal','S3: Convencional','S4: Con déficit'],
+        sets:4,reps:'3',rest_seconds:180,rir:1},
+      {order:4,exercise_id:'bulgarian_split_squat',  sets:3,reps:'8 c/lado',  rest_seconds:90, rir:2},
+      {order:5,exercise_id:'rdl_isometric',          sets:3,reps:'5 + 20 seg isométrico',rest_seconds:90,notes:'5 seg bajando + 20 seg aguantando en máximo estiramiento.'},
+      {order:6,name_display:'Core en 3 Planos',exercise_id:'plank',sets:3,reps:'25 seg + 10 c/lado + 20 seg c/lado',rest_seconds:60,notes:'Plancha + Pallof + Lateral sin descanso entre ellos.'},
+      {order:7,exercise_id:'lactate_drain',           sets:4,reps:'15 seg / 90 seg descanso',rest_seconds:0,notes:'Solo en Intensificación y Transformación.'}
+    ]},
+  adv_upper_max:{id:'adv_upper_max',name:'Fuerza Máxima Tren Superior + Potencia',color:'red',
+    warmup:'12 min: colgar de barra 30 seg + círculos de hombros + Y-W-T con banda × 10 + 5 lanzamientos balón medicinal',
+    blocks:[
+      {order:1,exercise_id:'bench_press',name_display:'Press Pesado (varía cada semana)',
+        variation_rotation:['S1: Press de banca','S2: Press mancuernas inclinado','S3: Press banca agarre estrecho','S4: Vuelta a S1'],
+        sets:5,reps:'3',rest_seconds:240,rir:1},
+      {order:2,exercise_id:'weighted_pull_up',name_display:'Tirón Pesado (varía cada semana)',
+        variation_rotation:['S1: Dominadas lastradas','S2: Remo con barra','S3: Dominadas agarre neutro','S4: Remo mancuernas pesadas'],
+        sets:4,reps:'4-5',rest_seconds:180,rir:1,notes:'Siempre 3:1 tirón/empuje.'},
+      {order:3,exercise_id:'landmine_rotational',    sets:6,reps:'3 c/lado',  rest_seconds:90,notes:'Máxima velocidad. Específico para golpeo y grappling.'},
+      {order:4,exercise_id:'med_ball_slam_push',     sets:4,reps:'6',         rest_seconds:90},
+      {order:5,exercise_id:'db_row',                 sets:3,reps:'10-12',     rest_seconds:90,rir:2},
+      {order:6,exercise_id:'shoulder_prevention',    sets:3,reps:'Y-W-T × 15 + rot. ext. × 15',rest_seconds:60},
+      {order:7,exercise_id:'neck_isometric',         sets:3,reps:'20 seg',    rest_seconds:60},
+      {order:8,exercise_id:'emom_swings',            sets:1,reps:'12 min',    rest_seconds:0,notes:'Solo en Acumulación e Intensificación.'}
+    ]},
+  adv_power_velocity:{id:'adv_power_velocity',name:'Potencia-Velocidad + Acondicionamiento',color:'red',
+    warmup:'5 min movilidad articular + 5 lanzamientos balón medicinal',
+    notes:'Carga moderada, velocidad máxima. Todo se mueve lo más rápido posible.',
+    phase_adaptations:{accumulation:'Sustituye el contraste por swings con banda + 25 min aeróbico base al final.',intensification:'Añade sprints alácticos antes del contraste.',transformation:'Protocolo completo. Contraste + glucolítico específico al final.',realization:'Solo el contraste. 3 rondas. Movilidad al final.'},
+    blocks:[
+      {order:1,exercise_id:'kb_swing_band',          sets:8,reps:'3',         rest_seconds:60},
+      {order:2,exercise_id:'landmine_rotational',    sets:6,reps:'3 c/lado',  rest_seconds:90,notes:'Menos peso que el miércoles. Más velocidad.'},
+      {order:3,exercise_id:'contrast_method',name_display:'Sentadilla Búlgara → Salto al Cajón (Contraste)',sets:4,reps:'2 búlgaras + 3 saltos',rest_seconds:240},
+      {order:4,exercise_id:'lateral_push_throw',     sets:4,reps:'5 c/lado',  rest_seconds:120},
+      {order:5,exercise_id:'lactic_intervals',       sets:1,reps:'5 rondas × 3 min / 1 min descanso',rest_seconds:0,notes:'Solo en Transformación. En otras fases: 25 min aeróbico base.'},
+      {order:6,exercise_id:'joint_circles',          sets:1,reps:'10 min',    rest_seconds:0}
+    ]},
+  adv_conditioning_dedicated:{id:'adv_conditioning_dedicated',name:'Acondicionamiento Dedicado',color:'green',
+    warmup:'5 min movilidad articular suave',
+    options:[
+      {id:'A',name:'Base Aeróbica',                  protocol:'30 min continuos. FC 65-70%. Ritmo conversacional.',                                         phase:'accumulation'},
+      {id:'B',name:'VO2max — Potencia Aeróbica',     protocol:'6 series × 3 min al 90-95% / 3 min descanso activo.',                                        phase:'intensification'},
+      {id:'C',name:'Glucolítico de Combate',         protocol:'5 rondas × 3-5 min fuerte (FC 85%) / 1 min descanso. Replica el formato de tu competición.',  phase:'transformation'},
+      {id:'D',name:'Aláctico-Láctico (Progresión)',  protocol:'B1:10s/60s×4 → B2:15s/45s×4 → B3:20s/30s×4 → B4:30s/20s×4.',                              phase:'transformation_advanced',use_when:'Cuando el peleador ya tiene buena base glucolítica.'}
+    ]},
+};
+
+// ── Planes v2: sistema → días → sesiones ordenadas ────────────────
 var SRC_PLANS={
   beginner:{
-    2:{sessions:['full_body_A','full_body_B'],            diasMap:{1:'A',4:'B'}},
-    3:{sessions:['lower_core','upper_jumps','light_conditioning'], diasMap:{1:'A',3:'B',5:'C'}},
-    4:{sessions:['lower_core','upper_jumps','adv_conditioning','light_mobility'], diasMap:{1:'A',3:'B',5:'C',6:'D'}}
+    2:{sessions:['beg_full_body_A','beg_full_body_B'],                                              diasMap:{1:'A',4:'B'}},
+    3:{sessions:['beg_lower_core','beg_upper_power','beg_full_conditioning'],                        diasMap:{1:'A',3:'B',5:'C'}},
+    4:{sessions:['beg_lower_core','beg_upper_power','beg_conditioning_day','beg_full_mobility'],     diasMap:{1:'A',3:'B',5:'C',6:'D'}}
   },
   advanced:{
-    2:{sessions:['adv_lower','adv_upper'],                diasMap:{1:'A',4:'B'}},
-    3:{sessions:['adv_lower','adv_upper','adv_power'],    diasMap:{1:'A',3:'B',5:'C'}},
-    4:{sessions:['adv_lower','adv_upper','adv_conditioning','adv_power'], diasMap:{1:'A',3:'B',4:'D',5:'C'}}
+    2:{sessions:['adv_lower_max','adv_upper_max'],                                                   diasMap:{1:'A',4:'B'}},
+    3:{sessions:['adv_lower_max','adv_upper_max','adv_power_velocity'],                              diasMap:{1:'A',3:'B',5:'C'}},
+    4:{sessions:['adv_lower_max','adv_upper_max','adv_conditioning_dedicated','adv_power_velocity'], diasMap:{1:'A',3:'B',4:'D',5:'C'}}
   }
 };
 
@@ -3695,9 +3751,9 @@ function _getSRCSession(id){
 var RUTINAS_COMBATE=(function(){
   var s=function(id){return adaptSRCSession(_getSRCSession(id)||{id:id,name:id,blocks:[]},'base',1);};
   return {
-    d2:[s('full_body_A'),s('full_body_B')],
-    d3:[s('lower_core'),s('upper_jumps'),s('light_conditioning')],
-    d4:[s('lower_core'),s('upper_jumps'),s('light_conditioning'),s('light_mobility')]
+    d2:[s('beg_full_body_A'),s('beg_full_body_B')],
+    d3:[s('beg_lower_core'),s('beg_upper_power'),s('beg_full_conditioning')],
+    d4:[s('beg_lower_core'),s('beg_upper_power'),s('beg_conditioning_day'),s('beg_full_mobility')]
   };
 })();
 
@@ -3757,11 +3813,15 @@ function getSemanaEnFase(c){
 }
 
 // Protocolo de acondicionamiento recomendado por fase/semana
+// ATR: A=Acumulación, B=Intensificación, C=Transformación, D=Transformación avanzada
 function getProtocoloAcond(fase,semana){
-  if(fase==='base')         return semana>=4?'B':'A';
-  if(fase==='camp_cronico') return 'C';
-  if(fase==='post_pelea')   return 'A';
-  return null;
+  var atr=FASE_TO_ATR[fase]||'accumulation';
+  if(atr==='accumulation')    return 'A';
+  if(atr==='intensification') return 'B';
+  if(atr==='transformation')  return semana&&semana>=3?'D':'C'; // D cuando ya hay base glucolítica
+  if(atr==='realization')     return null;  // Sin acondicionamiento en fight week
+  if(atr==='recovery')        return 'A';
+  return 'A';
 }
 
 // p1=principiante, p2=avanzado (p3 legacy → p2)
@@ -3819,13 +3879,14 @@ function getSesionGuia(c){
                sets:1,reps:selOpt.protocol,notes:selOpt.use_when}]};
   }
 
-  // Fight week: activación específica
+  // Realización (Fight Week): microdosis neural — NO glucolítico
   if(fase==='fight_week'){
-    sesionRaw={id:'fight_week',name:'Activación Fight Week — EMOM 12 min',emoji:'🥊',
+    sesionRaw={id:'fight_week',name:'Microdosis Neural — Realización',color:'red',
       warmup:'10 min movilidad articular completa. Sin apresurarse.',
       blocks:[
-        {order:1,exercise_id:'emom_swing',    sets:1,reps:'12 min',  notes:'Cada minuto: 2 sentadillas ligeras + 3 swings KB + 2 movimientos de suelo. Máxima intención, mínimo volumen.'},
-        {order:2,exercise_id:'joint_circles', sets:1,reps:'15 min',  notes:'Movilidad articular + respiración nasal. El cuerpo ya está listo.'}
+        {order:1,exercise_id:'neural_microdose',sets:1,reps:'12 min EMOM',notes:'Cada min: 2 sentadillas ligeras + 3 swings KB + 2 movimientos de suelo. Máxima intención, mínimo volumen.'},
+        {order:2,exercise_id:'box_jump',        sets:1,reps:'5 saltos + 3 cajón + 5 broad jumps',notes:'Velocidad máxima. Aterrizaje silencioso.'},
+        {order:3,exercise_id:'joint_circles',   sets:1,reps:'15 min',notes:'Movilidad articular + respiración nasal. El cuerpo ya está listo. No intentes mejorar.'}
       ]};
   }
 
@@ -3834,13 +3895,20 @@ function getSesionGuia(c){
     var raw=_getSRCSession(id);
     return raw&&!raw.options?adaptSRCSession(raw,fase,semActual):null;
   }).filter(Boolean);
+
+  var atr=FASE_TO_ATR[fase]||'accumulation';
+  var atrLabels={accumulation:'🔵 Acumulación',intensification:'🔴 Intensificación',transformation:'🟠 Transformación',realization:'⭐ Realización',recovery:'🟡 Recuperación'};
+  var atrNotas={
+    accumulation:'Volumen moderado-alto. RIR 3-4. Construye la base. Técnica perfecta antes que carga.',
+    intensification:'Intensidad alta. RIR 0-1 en ejercicios principales. Vaciado de lactato al final. Varía el ejercicio principal cada semana.',
+    transformation:'Fuerza → velocidad. Días ROJO: potencia y contraste. Días VERDE: glucolítico específico. No mezclar en la misma sesión.',
+    realization:'Microdosis neurales. Cero glucolítico. El cuerpo llega limpio energéticamente. No intentes mejorar aquí.',
+    recovery:'Recuperación real. Movilidad y aeróbico suave. Sin carga intensa.'
+  };
   var planLabel=(perfil==='p1'?'🥊 Principiante/Intermedio':'🏆 Avanzado')+' — Plan '+dias+' días';
-  var faseLabel=fase==='camp_cronico'?'Camp — Fase Específica':fase==='peaking'?'Semana de Activación':fase==='fight_week'?'Fight Week':'';
-  var faseNota=fase==='camp_cronico'?'1 serie menos por ejercicio principal. Vaciado de lactato al final. Intervalos lácticos en acondicionamiento.':
-               fase==='peaking'?'Volumen reducido al 50%. Mantén la carga. Llega activado y sin fatiga acumulada.':'';
   return {sesion:sesion,sesiones:allSessions,perfil:perfil,
           plan:{label:planLabel,emoji:perfil==='p1'?'🥊':'🏆',diasMap:{[dias]:diasMap}},
-          faseLabel:faseLabel,faseNota:faseNota,dias:dias,semActual:semActual};
+          faseLabel:atrLabels[atr]||'',faseNota:atrNotas[atr]||'',dias:dias,semActual:semActual};
 }
 
 // ── PLACEHOLDER (reemplazado por SRC_SYSTEMS arriba) ──────────────
