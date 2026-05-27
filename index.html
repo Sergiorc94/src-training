@@ -693,7 +693,6 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
     <div class="sec" id="sec-inicio">
       <div id="cuest-banner"></div>
       <div id="readiness-widget" style="margin-bottom:.75rem"></div>
-      <div id="peso-widget" style="margin-bottom:.75rem"></div>
       <div id="plan-banner" style="margin-bottom:.75rem"></div>
 
       <!-- GUIA DE INICIO -->
@@ -733,10 +732,11 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         </div>
       </div>
 
-      <div style="margin-bottom:1.25rem">
+      <div style="margin-bottom:.75rem">
         <div style="font-size:22px;font-weight:900;letter-spacing:2px" id="saludo"></div>
         <div style="font-size:12px;color:#4A5568" id="ifecha"></div>
       </div>
+      <div id="peso-widget" style="margin-bottom:.75rem"></div>
       <div class="card">
         <div class="ch">🎯 Objetivo del día</div>
         <div class="cb">
@@ -6924,23 +6924,21 @@ async function loadInicio(){
           var diff=parseFloat(((rp.peso||0)-c.peso_categoria).toFixed(1));
           kgFaltan=diff>0?'+'+diff+'kg':diff===0?'✅ En peso':diff+'kg';
         }
-        pesoWidget.innerHTML='<div class="card">'+
-          '<div class="ch">⚖️ Peso hoy'+(diasPelea?'<div style="margin-left:auto;font-size:13px;font-weight:800;color:'+alertColor+'">'+diasPelea+' para la pelea</div>':'')+
-          '</div>'+
-          '<div class="cb">'+
-            '<div style="display:flex;align-items:center;gap:12px;margin-bottom:.75rem">'+
-              '<input type="number" id="peso-input" step="0.1" placeholder="'+(rp?rp.peso:'ej. 77.5')+'" value="'+(rp?rp.peso:'')+'" '+
-                'style="flex:1;padding:14px 16px;background:var(--surface-2);border:1.5px solid var(--border);border-radius:10px;'+
-                'color:var(--text);font-size:22px;font-weight:800;text-align:center;outline:none;font-family:var(--mono)">'+
-              '<span style="font-size:16px;color:var(--text-3);font-weight:700">kg</span>'+
-              '<button onclick="guardarPeso()" style="padding:12px 20px;background:linear-gradient(135deg,rgba(232,184,107,1),rgba(184,137,90,1));'+
-                'border:none;border-radius:10px;color:#000;font-size:14px;font-weight:800;cursor:pointer">Guardar</button>'+
+        pesoWidget.innerHTML=
+          '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px">'+
+            '<span style="font-size:18px">⚖️</span>'+
+            '<div style="display:flex;flex-direction:column;flex:1;min-width:0">'+
+              '<div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Peso hoy</div>'+
+              (c.peso_categoria?'<div style="font-size:11px;color:var(--text-3)">Cat: <strong style="color:var(--text-2)">'+c.peso_categoria+'kg</strong>'+(kgFaltan?' · <span style="font-weight:700;color:'+(kgFaltan.startsWith('+')?'var(--danger)':kgFaltan==='✅ En peso'?'var(--lime)':'#FFB300')+'">'+kgFaltan+'</span>':'')+'</div>':'')+
             '</div>'+
-            (c.peso_categoria?'<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-3)">'+
-              '<span>Categoría: <strong style="color:var(--text-2)">'+c.peso_categoria+'kg</strong></span>'+
-              (kgFaltan?'<span style="font-weight:700;color:'+(kgFaltan.startsWith('+')?'var(--danger)':kgFaltan==='✅ En peso'?'var(--lime)':'#FFB300')+'">'+kgFaltan+'</span>':'')+'</div>':'')+
-          '</div>'+
-        '</div>';
+            (diasPelea?'<div style="font-size:12px;font-weight:800;color:'+alertColor+';white-space:nowrap">'+diasPelea+' 🥊</div>':'')+
+            '<input type="number" id="peso-input" step="0.1" placeholder="'+(rp?rp.peso:'77.5')+'" value="'+(rp?rp.peso:'')+'" '+
+              'style="width:72px;padding:7px 10px;background:var(--surface-2);border:1.5px solid var(--border);border-radius:8px;'+
+              'color:var(--text);font-size:16px;font-weight:800;text-align:center;outline:none;font-family:var(--mono)">'+
+            '<span style="font-size:13px;color:var(--text-3);font-weight:700">kg</span>'+
+            '<button onclick="guardarPeso()" style="padding:7px 14px;background:linear-gradient(135deg,rgba(232,184,107,1),rgba(184,137,90,1));'+
+              'border:none;border-radius:8px;color:#000;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap">Guardar</button>'+
+          '</div>';
       }catch(e){pesoWidget.innerHTML='';}
     } else {
       pesoWidget.innerHTML='';
