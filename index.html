@@ -13293,35 +13293,54 @@ function renderWaterCard(vasos){
   vasos=vasos||0;
   var card=document.getElementById('agua-card');
   if(!card) return;
-  var meta=8;
-  var dots='';
-  for(var i=0;i<meta;i++){
-    dots+='<div style="width:22px;height:22px;border-radius:50%;background:'+(i<vasos?'#4D9FFF':'#1A2A40')+
-      ';border:1.5px solid '+(i<vasos?'#4D9FFF':'#2A3A50')+
-      ';display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .2s">'+
-      (i<vasos?'💧':'')+
-    '</div>';
+  // Meta: peso×35ml (mínimo 2.5L, máximo 4L) — o 10 vasos (2.5L) si no hay peso
+  var c=S.user;
+  var pesoKg=parseFloat((c&&c.peso_inicial)||0);
+  var metaMl=pesoKg>0?Math.min(4000,Math.max(2500,Math.round(pesoKg*35/250)*250)):2500;
+  var metaVasos=Math.round(metaMl/250); // vasos de 250ml
+  var totalMl=vasos*250;
+  var totalL=(totalMl/1000).toFixed(1);
+  var metaL=(metaMl/1000).toFixed(1);
+  var pct=Math.min(100,Math.round(totalMl/metaMl*100));
+  var col=vasos>=metaVasos?'#00C853':pct>=70?'#FFB300':'#4D9FFF';
+  // Segmentos de barra (cada 250ml = 1 segmento, hasta 24 = 6L)
+  var maxVasos=24;
+  var segs='';
+  for(var i=0;i<maxVasos;i++){
+    var filled=i<vasos;
+    var isMeta=i===metaVasos-1;
+    segs+='<div style="flex:1;height:8px;border-radius:2px;'+
+      'background:'+(filled?col:'#1A2A40')+';'+
+      'border-right:'+(isMeta?'2px solid #F0F4FF':'none')+';'+
+      'min-width:2px;transition:background .15s"></div>';
   }
   card.innerHTML='<div style="background:#0A1020;border:1px solid #1A2A40;border-radius:10px;padding:12px;height:100%">'+
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
       '<div style="font-size:13px;font-weight:700;color:#F0F4FF">💧 Hidratación</div>'+
-      '<div style="font-size:10px;color:#4A5568">meta '+meta+' vasos</div>'+
+      '<div style="font-size:10px;color:#4A5568">meta '+metaL+' L</div>'+
     '</div>'+
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
-      '<button onclick="ajustarAgua(-1)" style="width:32px;height:32px;border-radius:50%;background:#1A2A40;border:1px solid #2A3A50;color:#F0F4FF;font-size:20px;cursor:pointer;font-weight:700;line-height:1;flex-shrink:0">−</button>'+
-      '<div style="text-align:center">'+
-        '<div style="font-size:34px;font-weight:900;color:'+(vasos>=meta?'#00C853':'#4D9FFF')+';line-height:1">'+vasos+'</div>'+
-        '<div style="font-size:10px;color:#4A5568;margin-top:2px">'+(vasos*250)+' ml</div>'+
-      '</div>'+
-      '<button onclick="ajustarAgua(1)" style="width:32px;height:32px;border-radius:50%;background:rgba(77,159,255,0.15);border:1px solid rgba(77,159,255,0.3);color:#4D9FFF;font-size:20px;cursor:pointer;font-weight:700;line-height:1;flex-shrink:0">+</button>'+
+    // Número grande
+    '<div style="display:flex;align-items:flex-end;gap:6px;margin-bottom:8px">'+
+      '<div style="font-size:38px;font-weight:900;color:'+col+';line-height:1">'+totalL+'</div>'+
+      '<div style="font-size:13px;color:#4A5568;padding-bottom:4px">L / '+metaL+' L</div>'+
+      (vasos>=metaVasos?'<div style="margin-left:auto;font-size:16px">✅</div>':
+        '<div style="margin-left:auto;font-size:11px;font-weight:700;color:'+col+'">'+pct+'%</div>')+
     '</div>'+
-    '<div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:center">'+dots+'</div>'+
+    // Barra segmentada
+    '<div style="display:flex;gap:2px;margin-bottom:10px">'+segs+'</div>'+
+    // Controles: − botones de +250ml/+500ml/+1L +
+    '<div style="display:flex;gap:5px;align-items:center">'+
+      '<button onclick="ajustarAgua(-1)" style="width:30px;height:30px;border-radius:8px;background:#1A2A40;border:1px solid #2A3A50;color:#F0F4FF;font-size:18px;cursor:pointer;font-weight:700;flex-shrink:0;line-height:1">−</button>'+
+      '<button onclick="ajustarAgua(1)" style="flex:1;height:30px;border-radius:8px;background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.25);color:#4D9FFF;font-size:11px;font-weight:700;cursor:pointer">+250ml</button>'+
+      '<button onclick="ajustarAgua(2)" style="flex:1;height:30px;border-radius:8px;background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.25);color:#4D9FFF;font-size:11px;font-weight:700;cursor:pointer">+500ml</button>'+
+      '<button onclick="ajustarAgua(4)" style="flex:1;height:30px;border-radius:8px;background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.25);color:#4D9FFF;font-size:11px;font-weight:700;cursor:pointer">+1L</button>'+
+    '</div>'+
   '</div>';
 }
 
 async function ajustarAgua(delta){
   var actuales=(S.rn&&S.rn.agua_vasos)||0;
-  var nuevos=Math.max(0,Math.min(20,actuales+delta));
+  var nuevos=Math.max(0,Math.min(24,actuales+delta)); // 24 vasos × 250ml = 6L máximo
   renderWaterCard(nuevos);
   if(!S.rn) S.rn={};
   S.rn.agua_vasos=nuevos;
