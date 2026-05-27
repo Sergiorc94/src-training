@@ -4989,8 +4989,8 @@ function adminChipCycle(d){
   var chip=document.getElementById('chip-sem-'+d);
   if(!chip) return;
   var cur=chip.dataset.state||'descanso';
-  // Ciclo: descanso→tecnica→sparring→acondicionamiento→descanso
-  var NEXT={descanso:'tecnica',tecnica:'sparring',sparring:'acondicionamiento',acondicionamiento:'descanso',fuerza:'descanso'};
+  // Ciclo: descanso→tecnica→fuerza→sparring→acondicionamiento→descanso
+  var NEXT={descanso:'tecnica',tecnica:'fuerza',fuerza:'sparring',sparring:'acondicionamiento',acondicionamiento:'descanso'};
   var next=NEXT[cur]||'descanso';
   var CD={
     descanso:         {ico:'😴',lbl:'Descanso',  bg:'rgba(255,255,255,.03)',border:'#1A2A40',color:'#4A5568'},
@@ -5152,7 +5152,7 @@ function adminAutoDistribuir(){
   // Orden Mon→Dom (1=Lun…6=Sáb, 0=Dom)
   var ORDER=['1','2','3','4','5','6','0'];
   var total=diasTec+diasSpar+diasPrep;
-  if(total>7){ toast('El total de sesiones ('+total+') supera los 7 días. Ajusta los valores.','err'); return; }
+  if(total>6){ toast('El total de sesiones ('+total+') no deja días de descanso. Reduce algún valor (máximo 6 días activos).','err'); return; }
 
   // ── Algoritmo de distribución inteligente ────────────────────────────
   // Construir lista de sesiones ordenadas: primero técnicas (intercaladas),
@@ -7064,6 +7064,22 @@ async function guardarCfg(){
   const c=S.ca;
   try{
     // Campos originales — siempre funcionan
+    // plan_semanal: leer de chips/selects ocultos
+    var planSemObj={};
+    [0,1,2,3,4,5,6].forEach(function(d){
+      var e1=document.getElementById('e-sem-'+d+'-1');
+      var e2=document.getElementById('e-sem-'+d+'-2');
+      var col=document.getElementById('e-sem-col-'+d);
+      if(e1){
+        var s=[e1.value];
+        if(e2&&e2.value) s.push(e2.value);
+        var entry={s:s};
+        if(s.length>1) entry.t=(col&&col.dataset.tipo)||'seguidas';
+        planSemObj[d]=entry;
+      }
+    });
+    var planSemJson=Object.keys(planSemObj).length?JSON.stringify(planSemObj):null;
+
     const base={nombre:document.getElementById('e-nom').value.trim(),apellido:document.getElementById('e-ape').value.trim()||null,
       peso_inicial:parseFloat(document.getElementById('e-peso').value)||null,
       altura:parseFloat(document.getElementById('e-alt').value)||null,
@@ -7076,6 +7092,7 @@ async function guardarCfg(){
       n_comidas:parseInt(document.getElementById('e-ncom').value)||5,
       objetivo:(document.getElementById('e-obj')||{}).value||null,
       notas_entrenador:document.getElementById('e-not').value.trim()||null,
+      plan_semanal:planSemJson,
       updated_at:new Date().toISOString()};
     await db.patch('clientes','id=eq.'+c.id,base);
     Object.assign(S.ca,base);
@@ -7134,7 +7151,6 @@ async function guardarCfg(){
         p_semanas_protocolo:extra.semanas_protocolo,
         p_tipo_plan:extra.tipo_plan||null,
         p_tipo_cliente:extra.tipo_cliente||'fitness',
-        p_plan_semanal:extra.plan_semanal||null,
         p_comidas_defecto:extra.comidas_defecto||null
       };
       // Campos exclusivos de combate — solo si el cliente es combate
@@ -7153,7 +7169,7 @@ async function guardarCfg(){
       }
       await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify(rpcPayload)});
       Object.assign(S.ca,extra);
-    }catch(e2){console.warn('Error guardando extras:',e2.message);}
+    }catch(e2){toast('⚠️ Error guardando extras: '+e2.message,'err');console.warn('Error guardando extras:',e2);}
 
     toast('✅ Guardado','ok');loadAdmin();
   }catch(e){toast('Error: '+e.message,'err');}
