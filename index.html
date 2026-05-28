@@ -3566,11 +3566,27 @@ function adaptSRCSession(session,fase,semActual){
   var atr=FASE_TO_ATR[fase]||'accumulation';
   var isCamp=(atr==='intensification');
 
+  // Filtra notas multi-fase → solo muestra la de la fase actual
+  function filterNota(nota, atr){
+    if(!nota) return '';
+    var labels={accumulation:'Acumulación',intensification:'Intensificación',transformation:'Transformación',realization:'Realización',recovery:'Recuperación'};
+    // Detecta si la nota tiene formato "FaseX: texto. FaseY: texto."
+    if(!/[A-ZÁÉÍÓÚ]\w+ción:\s/.test(nota)) return nota;
+    var cur=labels[atr]||'';
+    var re=new RegExp(cur+':\\s*([^.]+\\.?)','i');
+    var m=nota.match(re);
+    if(m) return m[1].trim().replace(/\.$/,'');
+    // Si la fase actual no aparece en la nota multifase → ocultar
+    return '';
+  }
+
   var ejs=session.blocks.map(function(block){
     var ex=SRC_EX[block.exercise_id]||null;
     var nom=block.name_display||(ex?ex.name:(block.exercise_id||'Ejercicio'));
     var r=typeof block.reps==='number'?String(block.reps):(block.reps||'');
-    var nota=block.notes||'';
+    // Si el bloque tiene reps por fase, usar el de la fase actual
+    if(block.phase_reps&&block.phase_reps[atr]) r=block.phase_reps[atr];
+    var nota=filterNota(block.notes||'',atr);
     if(block.variation_rotation&&block.variation_rotation.length){
       var idx=((semActual-1)%block.variation_rotation.length);
       var varStr=block.variation_rotation[idx].replace(/^Sem\s*\d+:\s*/i,'');
@@ -3616,7 +3632,9 @@ var _SRC_BEG={
       {order:3,exercise_id:'push_up',            sets:3,reps:'8-10',      rest_seconds:90, rir:3},
       {order:4,exercise_id:'db_row',             sets:3,reps:'10 c/lado', rest_seconds:90, rir:3},
       {order:5,exercise_id:'plank',              sets:3,reps:'25 seg',    rest_seconds:60},
-      {order:6,exercise_id:'aerobic_base',       sets:1,reps:'10 min',    rest_seconds:0,  notes:'Solo Acumulación. En Transformación: 5 min de saltos.'}
+      {order:6,exercise_id:'aerobic_base',       sets:1,reps:'10 min',    rest_seconds:0,
+       phase_reps:{accumulation:'10 min trote suave — FC 65-70%. Puedes hablar mientras.',transformation:'5 min de saltos — box jump o multisaltos. Máxima altura, aterrizaje silencioso.',recovery:'10 min suave. Sin esfuerzo.'},
+       notes:''}
     ]},
   beg_full_body_B:{id:'beg_full_body_B',name:'Cuerpo Completo B',color:'red',
     warmup:'5 min círculos articulares + 2 min respiración abdominal',
@@ -3625,7 +3643,7 @@ var _SRC_BEG={
       {order:2,exercise_id:'rdl',                sets:3,reps:'8',         rest_seconds:120,rir:3},
       {order:3,exercise_id:'db_overhead_press',  sets:3,reps:'10',        rest_seconds:90, rir:3},
       {order:4,exercise_id:'pull_up',            sets:3,reps:'6-8',       rest_seconds:90, rir:3},
-      {order:5,exercise_id:'hip_thrust',         sets:3,reps:'10',        rest_seconds:90},
+      {order:5,exercise_id:'hip_thrust',         sets:3,reps:'10',        rest_seconds:90,rir:3},
       {order:6,exercise_id:'joint_circles',      sets:1,reps:'10 min',    rest_seconds:0}
     ]},
   beg_lower_core:{id:'beg_lower_core',name:'Tren Inferior + Core',color:'red',
@@ -3634,7 +3652,7 @@ var _SRC_BEG={
       {order:1,exercise_id:'goblet_squat',           sets:3,reps:'8',         rest_seconds:120,rir:3},
       {order:2,exercise_id:'trap_bar_deadlift',      sets:3,reps:'6',         rest_seconds:120,rir:3},
       {order:3,exercise_id:'bulgarian_split_squat',  sets:3,reps:'8 c/lado',  rest_seconds:90, rir:3},
-      {order:4,exercise_id:'hip_thrust',             sets:3,reps:'10',        rest_seconds:90},
+      {order:4,exercise_id:'hip_thrust',             sets:3,reps:'10',        rest_seconds:90,rir:3},
       {order:5,exercise_id:'plank',                  sets:3,reps:'25-30 seg', rest_seconds:60},
       {order:6,exercise_id:'pallof_press',           sets:3,reps:'10 c/lado', rest_seconds:60},
       {order:7,exercise_id:'side_plank',             sets:3,reps:'20 seg c/lado',rest_seconds:60}
@@ -3657,7 +3675,9 @@ var _SRC_BEG={
       {order:2,exercise_id:'goblet_squat',           sets:3,reps:'6',         rest_seconds:120,notes:'3 seg de pausa abajo. Menos peso que el lunes.'},
       {order:3,exercise_id:'farmer_carry',           sets:4,reps:'25 metros', rest_seconds:90},
       {order:4,exercise_id:'pull_up',                sets:3,reps:'máximo bueno',rest_seconds:90},
-      {order:5,exercise_id:'aerobic_base',           sets:1,reps:'20 min',    rest_seconds:0,  notes:'Acumulación: 20 min aeróbico. Transformación: 5 rondas × 3 min glucolítico + 1 min descanso.'}
+      {order:5,exercise_id:'aerobic_base',           sets:1,reps:'20 min',    rest_seconds:0,
+       phase_reps:{accumulation:'20 min continuo — FC 65-70%. Puedes hablar mientras.',intensification:'8 × 6-8 seg al máximo + 3 min descanso completo entre cada uno.',transformation:'5 rondas × 3 min fuerte (FC 85%) + 1 min descanso activo.',recovery:'15 min suave. Sin agitarte.'},
+       notes:''}
     ]},
   beg_conditioning_day:{id:'beg_conditioning_day',name:'Acondicionamiento Específico',color:'green',
     warmup:'5 min movilidad articular suave',
@@ -3684,7 +3704,9 @@ var _SRC_ADV={
     warmup:'12-15 min: movilidad articular completa + 2 min respiración abdominal + 5 saltos al cajón (activación SNC)',
     phase_adaptations:{accumulation:'RIR 3. Volumen alto. Aprende las variantes. Sin llegar al límite.',intensification:'RIR 0-1. 85-90% del máximo. Varía el ejercicio principal cada semana. Vaciado de lactato al final.',transformation:'Añade método de contraste. Sentadilla pesada → salto inmediato. RIR 1.',realization:'Solo método de contraste. 3 rondas. Nada más.'},
     blocks:[
-      {order:1,exercise_id:'box_jump',               sets:5,reps:'3',         rest_seconds:120,notes:'Activación SNC. Solo en Intensificación y Transformación. En Acumulación: omitir.'},
+      {order:1,exercise_id:'box_jump',               sets:5,reps:'3',         rest_seconds:120,
+       phase_reps:{accumulation:'Omitir hoy.',intensification:'3 saltos al cajón — máxima explosión, aterrizaje silencioso.',transformation:'3 saltos al cajón — máxima explosión, aterrizaje silencioso.',realization:'3 saltos al cajón — máxima explosión, aterrizaje silencioso.'},
+       notes:'Activación SNC — máxima intención.'},
       {order:2,exercise_id:'back_squat',name_display:'Sentadilla (varía cada semana)',
         variation_rotation:['S1: Sentadilla hasta cajón','S2: Sentadilla frontal','S3: Sentadilla libre','S4: Vuelve a S1 con más carga'],
         sets:5,reps:'3',rest_seconds:240,rir:1},
@@ -3694,7 +3716,9 @@ var _SRC_ADV={
       {order:4,exercise_id:'bulgarian_split_squat',  sets:3,reps:'8 c/lado',  rest_seconds:90, rir:2},
       {order:5,exercise_id:'rdl_isometric',          sets:3,reps:'5 + 20 seg isométrico',rest_seconds:90,notes:'5 seg bajando + 20 seg aguantando en máximo estiramiento.'},
       {order:6,name_display:'Core en 3 Planos',exercise_id:'plank',sets:3,reps:'25 seg + 10 c/lado + 20 seg c/lado',rest_seconds:60,notes:'Plancha + Pallof + Lateral sin descanso entre ellos.'},
-      {order:7,exercise_id:'lactate_drain',           sets:4,reps:'15 seg / 90 seg descanso',rest_seconds:0,notes:'Solo en Intensificación y Transformación.'}
+      {order:7,exercise_id:'lactate_drain',           sets:4,reps:'15 seg / 90 seg descanso',rest_seconds:0,
+       phase_reps:{accumulation:'Omitir hoy. Haz 10 min de movilidad articular.',intensification:'4 × 15 seg sprint + 90 seg descanso completo. Vacía el lactato.',transformation:'4 × 15 seg sprint + 90 seg descanso completo. Vacía el lactato.',realization:'Omitir.'},
+       notes:''}
     ]},
   adv_upper_max:{id:'adv_upper_max',name:'Fuerza Máxima Tren Superior + Potencia',color:'red',
     warmup:'12 min: colgar de barra 30 seg + círculos de hombros + Y-W-T con banda × 10 + 5 lanzamientos balón medicinal',
@@ -3710,7 +3734,9 @@ var _SRC_ADV={
       {order:5,exercise_id:'db_row',                 sets:3,reps:'10-12',     rest_seconds:90,rir:2},
       {order:6,exercise_id:'shoulder_prevention',    sets:3,reps:'Y-W-T × 15 + rot. ext. × 15',rest_seconds:60},
       {order:7,exercise_id:'neck_isometric',         sets:3,reps:'20 seg',    rest_seconds:60},
-      {order:8,exercise_id:'emom_swings',            sets:1,reps:'12 min',    rest_seconds:0,notes:'Solo en Acumulación e Intensificación.'}
+      {order:8,exercise_id:'emom_swings',            sets:1,reps:'12 min',    rest_seconds:0,
+       phase_reps:{accumulation:'12 min EMOM — cada min: 10 swings kettlebell. Ritmo aeróbico.',intensification:'12 min EMOM — cada min: 10 swings kettlebell. Ritmo aeróbico.',transformation:'Omitir. Haz movilidad articular 10 min.',realization:'Omitir.'},
+       notes:''}
     ]},
   adv_power_velocity:{id:'adv_power_velocity',name:'Potencia-Velocidad + Acondicionamiento',color:'red',
     warmup:'5 min movilidad articular + 5 lanzamientos balón medicinal',
@@ -3721,7 +3747,9 @@ var _SRC_ADV={
       {order:2,exercise_id:'landmine_rotational',    sets:6,reps:'3 c/lado',  rest_seconds:90,notes:'Menos peso que el miércoles. Más velocidad.'},
       {order:3,exercise_id:'contrast_method',name_display:'Sentadilla Búlgara → Salto al Cajón (Contraste)',sets:4,reps:'2 búlgaras + 3 saltos',rest_seconds:240},
       {order:4,exercise_id:'lateral_push_throw',     sets:4,reps:'5 c/lado',  rest_seconds:120},
-      {order:5,exercise_id:'lactic_intervals',       sets:1,reps:'5 rondas × 3 min / 1 min descanso',rest_seconds:0,notes:'Solo en Transformación. En otras fases: 25 min aeróbico base.'},
+      {order:5,exercise_id:'lactic_intervals',       sets:1,reps:'5 rondas × 3 min',rest_seconds:0,
+       phase_reps:{accumulation:'25 min aeróbico base — FC 65-70%. Trota sin agitarte.',intensification:'25 min aeróbico base — FC 65-70%. Trota sin agitarte.',transformation:'5 rondas × 3 min fuerte (FC 85%) + 1 min descanso activo.',recovery:'15 min suave. Recuperación activa.'},
+       notes:''},
       {order:6,exercise_id:'joint_circles',          sets:1,reps:'10 min',    rest_seconds:0}
     ]},
   adv_conditioning_dedicated:{id:'adv_conditioning_dedicated',name:'Acondicionamiento Dedicado',color:'green',
@@ -3940,8 +3968,8 @@ function getSesionGuia(c){
     var selOpt=sesionRaw.options.find(function(o){return o.id===proto;})||sesionRaw.options[0];
     sesionRaw={id:sesionRaw.id+'_'+selOpt.id,name:selOpt.name,emoji:'🔥',
       warmup:sesionRaw.warmup||'5 min movilidad articular suave',
-      blocks:[{order:1,name_display:selOpt.name+' — '+selOpt.protocol,exercise_id:'aerobic_base',
-               sets:1,reps:selOpt.protocol,notes:selOpt.use_when}]};
+      blocks:[{order:1,name_display:selOpt.name,exercise_id:'aerobic_base',
+               sets:1,reps:selOpt.protocol,notes:selOpt.use_when||''}]};
   }
 
   // Realización (Fight Week): microdosis neural — NO glucolítico
