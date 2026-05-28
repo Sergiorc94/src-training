@@ -570,6 +570,40 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <div class="field" style="grid-column:1/-1"><label>🚫 Alimentos que NO quieres ver en tu plan</label>
             <textarea id="q-evitar" placeholder="Ej: cebolla, pimiento, coliflor, queso... separa con comas" style="height:50px;resize:none"></textarea>
           </div>
+          <div class="field" style="grid-column:1/-1"><label>🌾 ¿Qué carbohidratos comes habitualmente?</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-arroz" value="arroz" style="accent-color:#FFB300">🍚 Arroz</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-pasta" value="pasta" style="accent-color:#FFB300">🍝 Pasta</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-patata" value="patata" style="accent-color:#FFB300">🥔 Patata</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-pan" value="pan" style="accent-color:#FFB300">🍞 Pan</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-avena" value="avena" style="accent-color:#FFB300">🌾 Avena</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-fruta" value="fruta" style="accent-color:#FFB300">🍌 Fruta</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-tortitas" value="tortitas" style="accent-color:#FFB300">🥞 Tortitas de arroz</label>
+            </div>
+          </div>
+          <div class="field"><label>⏰ ¿A qué hora entrenas habitualmente?</label>
+            <input type="time" id="q-nut-hora-entreno" value="19:00">
+          </div>
+          <div class="field"><label>📅 ¿Tu horario de entreno varía cada día?</label>
+            <select id="q-nut-horario-varia">
+              <option value="no">No, siempre a la misma hora</option>
+              <option value="si">Sí, varía — lo ajusto cada día</option>
+            </select>
+          </div>
+          <div class="field"><label>⚖️ ¿Tienes báscula de cocina en casa?</label>
+            <select id="q-nut-bascula">
+              <option value="si">Sí, peso los alimentos</option>
+              <option value="no">No, prefiero cantidades aproximadas</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:1/-1"><label>💊 ¿Qué suplementos usas? (opcional)</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-sup-proteina" value="proteina" style="accent-color:#9C6FFF">🥛 Proteína en polvo</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-sup-creatina" value="creatina" style="accent-color:#9C6FFF">💪 Creatina</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-sup-cafeina" value="cafeina" style="accent-color:#9C6FFF">☕ Cafeína</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-sup-ninguno" value="ninguno" style="accent-color:#9C6FFF">🚫 Ninguno</label>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -939,6 +973,9 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <button class="btn bs bsm" id="btn-ncompleto">✅ Marcar día completado</button>
         </div>
       </div>
+
+      <!-- CHECK-IN SEMANAL NUTRICIÓN (visible solo Dom/Lun si combate) -->
+      <div id="nutri-checkin-card" style="display:none"></div>
     </div>
 
     <!-- CLIENTE: ENTRENO -->
@@ -5865,6 +5902,24 @@ async function loadCuestionario(){
     }
   }
 
+  // ── PREFILL CAMPOS NUTRICIÓN ───────────────────────────────────
+  var _qdAll=c.cuestionario_datos||{};
+  if(_qdAll.nut_hora_entreno){var _he=document.getElementById('q-nut-hora-entreno');if(_he)_he.value=_qdAll.nut_hora_entreno;}
+  if(_qdAll.nut_horario_varia){var _hv=document.getElementById('q-nut-horario-varia');if(_hv)_hv.value=_qdAll.nut_horario_varia;}
+  if(_qdAll.nut_bascula){var _hb=document.getElementById('q-nut-bascula');if(_hb)_hb.value=_qdAll.nut_bascula;}
+  if(_qdAll.carbos_favoritos&&_qdAll.carbos_favoritos.forEach){
+    _qdAll.carbos_favoritos.forEach(function(k){var el=document.getElementById('q-cf-'+k);if(el)el.checked=true;});
+  }
+  if(_qdAll.nut_suplementos&&_qdAll.nut_suplementos.forEach){
+    _qdAll.nut_suplementos.forEach(function(k){var el=document.getElementById('q-sup-'+k);if(el)el.checked=true;});
+  }
+  if(_qdAll.proteinas_favoritas&&_qdAll.proteinas_favoritas.forEach){
+    _qdAll.proteinas_favoritas.forEach(function(k){var el=document.getElementById('q-pf-'+k);if(el)el.checked=true;});
+  }
+  // General fields
+  var _gFill={'q-alergias':'alergias','q-comida':'como_come','q-ncomidas':'n_comidas','q-tipo-dieta':'tipo_dieta','q-evitar':'alimentos_evitar','q-dieta-prev':'dieta_previa'};
+  Object.keys(_gFill).forEach(function(fid){var val=_qdAll[_gFill[fid]];if(val){var el=document.getElementById(fid);if(el)el.value=val;}});
+
   // ── MOSTRAR / OCULTAR FORMULARIO ───────────────────────────────
   var qwrap=document.getElementById('q-form-wrap');
   if(qwrap) qwrap.style.display=c.cuestionario_completado?'none':'';
@@ -6391,6 +6446,124 @@ async function verCliente(id){
 }
 
 // ══════════════════════════════════════════════════════
+// ADMIN — EDITOR DE OPCIONES NUTRICIONALES
+// ══════════════════════════════════════════════════════
+
+function adminRenderOpcionesEditor(opts, c){
+  var html='';
+  var _colors=['#4D9FFF','#FFB300','#AB47BC'];
+  if(opts.opciones&&opts.opciones.length){
+    html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🍽️ Opciones del día</div>';
+    opts.opciones.forEach(function(op,i){
+      var mac=op.macros||{};
+      html+='<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:10px;padding:10px 12px;margin-bottom:8px">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+          '<span style="font-size:11px;font-weight:900;color:'+(_colors[i]||'#4D9FFF')+'">OPCIÓN '+(i+1)+'</span>'+
+          '<span style="font-size:11px;color:#F0F4FF;font-weight:700;flex:1">'+op.nombre+'</span>'+
+          '<button onclick="adminEditarOpcion('+i+')" style="font-size:10px;padding:2px 8px;border-radius:4px;background:#1A2A40;border:1px solid #2A3A50;color:#8899AA;cursor:pointer">Editar</button>'+
+        '</div>'+
+        '<div style="font-size:10px;color:#4A5568;margin-bottom:4px">'+op.ingredientes+'</div>'+
+        '<div style="font-size:10px;font-weight:700;display:flex;gap:8px">'+
+          '<span style="color:#7986CB">'+mac.k+' kcal</span>'+
+          '<span style="color:#00E5FF">P:'+mac.p+'g</span>'+
+          '<span style="color:#FFB300">C:'+mac.c+'g</span>'+
+          '<span style="color:#F48FB1">G:'+mac.g+'g</span>'+
+        '</div>'+
+      '</div>';
+    });
+  }
+  // Pre/Post
+  if(opts.pre_completo||opts.pre_rapido||opts.post_entreno){
+    html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">⚡ Pre/Post entreno</div>';
+    [['pre_completo','⚡ Pre 2-3h',opts.pre_completo],['pre_rapido','🍌 Pre 1h',opts.pre_rapido],['post_entreno','💪 Post',opts.post_entreno]]
+    .filter(function(x){return x[2];}).forEach(function(x){
+      var mac=x[2].macros||{};
+      html+='<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px">'+
+        '<span style="font-size:11px;font-weight:700;color:#FF6B35;white-space:nowrap">'+x[1]+'</span>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:10px;color:#F0F4FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+x[2].nombre+'</div>'+
+          '<div style="font-size:9px;color:#4A5568;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+x[2].ingredientes+'</div>'+
+        '</div>'+
+        '<div style="font-size:10px;font-weight:700;color:#7986CB;white-space:nowrap">'+mac.k+' kcal</div>'+
+      '</div>';
+    });
+  }
+  return html||'<div style="color:#4A5568;font-size:12px">Sin opciones configuradas</div>';
+}
+
+async function adminGenerarOpcionesNutri(){
+  var c=S.ca;
+  if(!c){toast('Sin cliente seleccionado','err');return;}
+  toast('⏳ Generando sugerencia...','ok');
+  var sugerencia=generarSugerenciaOpciones(c);
+  // Guardar en cuestionario_datos.opciones_nutri
+  var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+  _qdc.opciones_nutri=sugerencia;
+  try{
+    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
+    c.cuestionario_datos=_qdc;
+    S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
+    toast('✅ Sugerencia generada — revísala y aprueba','ok');
+    adminTab('nutri',document.getElementById('at-nutri'));
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+async function adminAprobarOpcionesNutri(){
+  var c=S.ca;
+  if(!c){toast('Sin cliente seleccionado','err');return;}
+  var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+  if(!_qdc.opciones_nutri){toast('Genera primero las opciones','err');return;}
+  _qdc.opciones_nutri.aprobado=true;
+  _qdc.opciones_nutri.aprobado_en=new Date().toISOString().split('T')[0];
+  try{
+    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
+    c.cuestionario_datos=_qdc;
+    S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
+    toast('✅ Plan nutricional activado para el atleta','ok');
+    adminTab('nutri',document.getElementById('at-nutri'));
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+async function adminDesactivarOpcionesNutri(){
+  var c=S.ca;
+  if(!c) return;
+  var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+  if(_qdc.opciones_nutri) _qdc.opciones_nutri.aprobado=false;
+  try{
+    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
+    c.cuestionario_datos=_qdc;
+    S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
+    toast('Plan desactivado','ok');
+    adminTab('nutri',document.getElementById('at-nutri'));
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+function adminEditarOpcion(idx){
+  var c=S.ca;
+  if(!c) return;
+  var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+  var _opts=_qdc.opciones_nutri;
+  if(!_opts||!_opts.opciones||!_opts.opciones[idx]) return;
+  var op=_opts.opciones[idx];
+  var nuevoNombre=prompt('Nombre de la opción:',op.nombre);
+  if(!nuevoNombre) return;
+  var nuevosIng=prompt('Ingredientes (texto libre):',op.ingredientes||'');
+  if(nuevosIng===null) return;
+  var nuevosMacros=prompt('Macros (formato: p,c,g,k):\n'+op.macros.p+','+op.macros.c+','+op.macros.g+','+op.macros.k,op.macros.p+','+op.macros.c+','+op.macros.g+','+op.macros.k);
+  if(nuevosMacros===null) return;
+  var parts=nuevosMacros.split(',');
+  op.nombre=nuevoNombre;
+  op.ingredientes=nuevosIng;
+  op.macros={p:parseInt(parts[0])||op.macros.p,c:parseInt(parts[1])||op.macros.c,g:parseInt(parts[2])||op.macros.g,k:parseInt(parts[3])||op.macros.k};
+  db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}}).then(function(){
+    c.cuestionario_datos=_qdc;
+    S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
+    toast('✅ Opción actualizada','ok');
+    adminTab('nutri',document.getElementById('at-nutri'));
+  }).catch(function(e){toast('Error: '+e.message,'err');});
+}
+
+// ══════════════════════════════════════════════════════
 // RECETAS PERSONALIZADAS
 // ══════════════════════════════════════════════════════
 
@@ -6639,12 +6812,42 @@ async function adminTab(tab,btn){
     }catch(e){cont.innerHTML='<div class="empty">Error: '+e.message+'</div>';}
   }
   else if(tab==='nutri'){
-    // Nutrición completa del cliente — carga sus datos y renderiza la vista estándar
-    cont.innerHTML='<div style="text-align:center;padding:24px;color:#4A5568">⏳ Cargando nutrición...</div>';
+    // ── Editor de plan nutricional + resumen del día ──────────────
+    cont.innerHTML='<div style="text-align:center;padding:24px;color:#4A5568">⏳ Cargando...</div>';
     try{
       var nutriArr=await db.get('registros_nutricion','cliente_id=eq.'+c.id+'&fecha=eq.'+hoy());
       var _savedUser=S.user, _savedRn=S.rn, _savedSemNutri=S._semNutri;
       S.user=c;
+
+      // ── Plan nutricional editor ──────────────────────────────────
+      var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+      var _opts=_qdc.opciones_nutri||null;
+      var _peso=c.peso||75;
+      var nutEditorHtml='';
+      if(c.tipo_cliente==='combate'){
+        var _aprobado=_opts&&_opts.aprobado;
+        var _genFecha=_opts&&_opts.generado_en?'Generado: '+_opts.generado_en:'';
+        nutEditorHtml='<div class="card" style="margin-bottom:.75rem">'+
+          '<div class="ch">🥗 Plan Nutricional'+
+            '<div style="margin-left:auto;font-size:11px;color:'+(_aprobado?'#00C853':'#FFB300')+'">'+(_aprobado?'✅ Activo para el atleta':'⏳ Pendiente de aprobar')+'</div>'+
+          '</div>'+
+          '<div class="cb">'+
+            '<div style="display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap">'+
+              '<button onclick="adminGenerarOpcionesNutri()" class="btn bp bsm">⚡ Generar sugerencia IA</button>'+
+              (_opts?'<button onclick="adminAprobarOpcionesNutri()" class="btn bs bsm" style="background:rgba(0,200,83,.12);border-color:rgba(0,200,83,.4);color:#00C853">✅ Aprobar y activar</button>':'')+''+
+              (_aprobado?'<button onclick="adminDesactivarOpcionesNutri()" class="btn bg bsm" style="color:#FF6B35">Desactivar</button>':'')+
+            '</div>'+
+            (_opts?adminRenderOpcionesEditor(_opts,c):
+              '<div style="background:#0D1528;border-radius:8px;padding:14px;text-align:center;font-size:12px;color:#4A5568">'+
+                'Sin plan generado — pulsa "Generar sugerencia" para crear opciones automáticamente.<br>'+
+                '<span style="font-size:10px;margin-top:4px;display:block">Basado en las preferencias y fase ATR del atleta.</span>'+
+              '</div>')+
+          '</div>'+
+        '</div>';
+      }
+      cont.innerHTML=nutEditorHtml+'<div id="admin-nutri-dia"></div>';
+
+      // ── Resumen de hoy ───────────────────────────────────────────
       S.rn=nutriArr&&nutriArr[0]||null;
       var cutoffN=new Date();cutoffN.setDate(cutoffN.getDate()-14);
       var semN=await db.get('registros_nutricion','cliente_id=eq.'+c.id+'&fecha=gte.'+cutoffN.toISOString().split('T')[0]+'&order=fecha.asc&limit=14');
@@ -6706,7 +6909,8 @@ async function adminTab(tab,btn){
         if(cm2.plato&&!hasF2) comidasHtml+='<div style="padding:6px 12px;font-size:11px;color:#4A5568">Plato guardado: <span style="color:#F0F4FF">'+cm2.plato+'</span></div>';
         comidasHtml+='</div>';
       }
-      cont.innerHTML='<div class="card">'+
+      var diaEl=document.getElementById('admin-nutri-dia');
+      if(diaEl) diaEl.innerHTML='<div class="card">'+
         '<div class="ch">🥗 Nutrición de hoy — '+new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'})+
           '<div style="margin-left:auto;font-size:11px;color:'+(S.rn&&S.rn.completado?'#00C853':'#FFB300')+'">'+(S.rn&&S.rn.completado?'✅ Completado':'⏳ Pendiente')+'</div>'+
         '</div>'+
@@ -7076,7 +7280,35 @@ async function adminTab(tab,btn){
   else if(tab==='ci'){
     try{
       const ci=await db.get('checkins','cliente_id=eq.'+c.id+'&order=semana_num.desc&limit=8');
-      cont.innerHTML='<div class="card"><div class="ch">📋 Check-ins</div><div class="cb">'+
+      // Cargar check-ins nutricionales de registros_nutricion
+      var _ciNutri=[];
+      try{
+        var _cnArr=await db.get('registros_nutricion','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=14');
+        _ciNutri=(_cnArr||[]).filter(function(r){return r.checkin_semanal&&r.checkin_semanal.enviado;});
+      }catch(e2){}
+      var _nutriCiHtml='';
+      if(_ciNutri.length){
+        _nutriCiHtml='<div class="card" style="margin-bottom:.75rem"><div class="ch">🥗 Check-ins Nutrición</div><div class="cb">';
+        _ciNutri.forEach(function(r){
+          var ci2=r.checkin_semanal;
+          var energiaColor=ci2.energia>=8?'#00C853':ci2.energia>=6?'#4D9FFF':ci2.energia>=4?'#FFB300':'#FF1744';
+          var cumplMap={siempre:'✅ Siempre',mayoria:'👍 Mayoría',poco:'⚠️ Poco',nada:'❌ Nada'};
+          var hambreMap={mucha:'😫 Mucha',normal:'😊 Normal',poca:'😌 Poca'};
+          _nutriCiHtml+='<div style="background:#0D1528;border-radius:8px;padding:10px 12px;margin-bottom:8px;border:1px solid #1A2A40">'+
+            '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
+              '<span style="font-size:11px;font-weight:700;color:#4D9FFF">📋 '+ci2.fecha+'</span>'+
+              '<span style="font-size:11px;font-weight:900;color:'+energiaColor+'">⚡ '+ci2.energia+'/10</span>'+
+            '</div>'+
+            '<div style="font-size:11px;color:#A0B0C0;display:flex;gap:12px;flex-wrap:wrap">'+
+              '<span>Adherencia: <b style="color:#F0F4FF">'+(cumplMap[ci2.cumplimiento]||ci2.cumplimiento)+'</b></span>'+
+              '<span>Hambre: <b style="color:#F0F4FF">'+(hambreMap[ci2.hambre]||ci2.hambre)+'</b></span>'+
+            '</div>'+
+            (ci2.comentario?'<div style="font-size:10px;color:#4A5568;margin-top:4px;font-style:italic">💬 '+ci2.comentario+'</div>':'')+
+          '</div>';
+        });
+        _nutriCiHtml+='</div></div>';
+      }
+      cont.innerHTML=_nutriCiHtml+'<div class="card"><div class="ch">📋 Check-ins</div><div class="cb">'+
         (!(ci&&ci.length)?'<div class="empty">Sin check-ins aún</div>':
         ci.map(ci=>'<div style="background:#0D1528;border-radius:8px;padding:1rem;margin-bottom:.75rem;border:1px solid #1A2A40">'+
           '<div style="display:flex;justify-content:space-between;margin-bottom:.75rem"><strong>Semana '+ci.semana_num+'</strong><span style="font-size:11px;color:#4A5568">'+ci.fecha+'</span></div>'+
@@ -7593,7 +7825,12 @@ async function enviarCuestionario(){
     dieta_previa: document.getElementById('q-dieta-prev').value,
     tipo_dieta: document.getElementById('q-tipo-dieta')?document.getElementById('q-tipo-dieta').value:'omnivoro',
     proteinas_favoritas: ['pollo','pavo','ternera','pescado','atun','salmon','huevos','legumbres','tofu'].filter(function(k){var el=document.getElementById('q-pf-'+k);return el&&el.checked;}),
+    carbos_favoritos: ['arroz','pasta','patata','pan','avena','fruta','tortitas'].filter(function(k){var el=document.getElementById('q-cf-'+k);return el&&el.checked;}),
     alimentos_evitar: document.getElementById('q-evitar')?document.getElementById('q-evitar').value:'',
+    nut_hora_entreno: (document.getElementById('q-nut-hora-entreno')||{}).value||'19:00',
+    nut_horario_varia: (document.getElementById('q-nut-horario-varia')||{}).value||'no',
+    nut_bascula: (document.getElementById('q-nut-bascula')||{}).value||'si',
+    nut_suplementos: ['proteina','creatina','cafeina','ninguno'].filter(function(k){var el=document.getElementById('q-sup-'+k);return el&&el.checked;}),
     trabajo: document.getElementById('q-trabajo').value,
     trabajo_tipo: document.getElementById('q-trabajo-tipo').value,
     sueno: document.getElementById('q-sueno').value,
@@ -9046,10 +9283,25 @@ async function loadNutri(){
     var combEl=document.getElementById('tipo-dia-combate');
     if(c.tipo_cliente==='combate'){
       if(fitEl) fitEl.style.display='none';
-      if(combEl) combEl.style.display='';
       S.combatMacros=calcMacrosCombate(c); // Recalcular siempre al cargar
       if(!S.combatDiaTipo) S.combatDiaTipo='tecnica';
-      renderTipoDiaCombate();
+      // ¿Tiene plan nutricional aprobado?
+      var _qdn=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+      var _optsNutri=_qdn.opciones_nutri||null;
+      if(_optsNutri&&_optsNutri.aprobado){
+        // Nueva vista simplificada con opciones
+        if(combEl) combEl.style.display='none';
+        var _combNutriCont=document.getElementById('n-comidas');
+        if(_combNutriCont){
+          var _ncardTop=document.querySelector('#sec-nutri > .card');
+          if(_ncardTop) _ncardTop.style.display='none'; // Ocultar "Configura tu día"
+        }
+        renderNutricionOpciones(c,S.rn,_optsNutri);
+        return; // No continuar con el flujo normal
+      } else {
+        if(combEl) combEl.style.display='';
+        renderTipoDiaCombate();
+      }
     } else {
       if(fitEl) fitEl.style.display='';
       if(combEl) combEl.style.display='none';
@@ -9060,7 +9312,352 @@ async function loadNutri(){
     renderResumenSemanal(S._semNutri);
     renderKcalSemanaChart(S._semNutri);
     onConfigDiaChange();
+    // Check-in semanal (Dom=0 o Lun=1 para clientes combate)
+    if(c.tipo_cliente==='combate'){
+      var _dowCi=new Date().getDay();
+      if(_dowCi===0||_dowCi===1) renderNutriCheckIn();
+    }
   }catch(e){toast('Error: '+e.message,'err');}
+}
+
+function renderNutriCheckIn(){
+  var el=document.getElementById('nutri-checkin-card');
+  if(!el) return;
+  var rn=S.rn;
+  if(rn&&rn.checkin_semanal&&rn.checkin_semanal.enviado){
+    el.style.display='';
+    el.innerHTML='<div class="card" style="border-color:rgba(0,200,83,.3);margin-top:.75rem"><div class="ch">📋 Check-in semanal <span style="margin-left:auto;font-size:11px;color:#00C853">✅ Enviado</span></div>'+
+      '<div class="cb" style="font-size:12px;color:#4A5568">Check-in de esta semana ya registrado. Gracias.</div></div>';
+    return;
+  }
+  el.style.display='';
+  el.innerHTML='<div class="card" style="border-color:rgba(77,159,255,.3);margin-top:.75rem">'+
+    '<div class="ch">📋 Check-in semanal de nutrición</div>'+
+    '<div class="cb">'+
+      '<div style="font-size:11px;color:#4D9FFF;margin-bottom:.75rem">Cuéntame cómo ha ido la semana — 4 preguntas rápidas</div>'+
+      '<div class="field">'+
+        '<label>1. ¿Has seguido el plan de nutrición esta semana?</label>'+
+        '<select id="ci-cumplimiento">'+
+          '<option value="">Seleccionar...</option>'+
+          '<option value="siempre">Siempre — todos los días</option>'+
+          '<option value="mayoria">La mayoría de los días</option>'+
+          '<option value="poco">Poco — fui libre muchos días</option>'+
+          '<option value="nada">Nada — no seguí el plan</option>'+
+        '</select>'+
+      '</div>'+
+      '<div class="field">'+
+        '<label>2. ¿Has tenido hambre excesiva?</label>'+
+        '<select id="ci-hambre">'+
+          '<option value="">Seleccionar...</option>'+
+          '<option value="mucha">Mucha — pasé hambre</option>'+
+          '<option value="normal">Normal — estuve bien</option>'+
+          '<option value="poca">Poca — comí más que suficiente</option>'+
+        '</select>'+
+      '</div>'+
+      '<div class="field">'+
+        '<label>3. ¿Cómo te has sentido de energía en los entrenamientos? <span id="ci-energia-v" style="color:#FFB300;font-weight:900">7</span>/10</label>'+
+        '<div class="sw"><input type="range" min="1" max="10" value="7" id="ci-energia" oninput="document.getElementById(\'ci-energia-v\').textContent=this.value"></div>'+
+      '</div>'+
+      '<div class="field">'+
+        '<label>4. ¿Algo que no te haya gustado del plan? (opcional)</label>'+
+        '<textarea id="ci-comentario" placeholder="Ej: mucho volumen de comida, opciones repetitivas..." style="height:60px;resize:none"></textarea>'+
+      '</div>'+
+      '<button onclick="enviarNutriCheckIn()" class="btn bp bbl" style="margin-top:.5rem">📤 Enviar check-in</button>'+
+    '</div>'+
+  '</div>';
+}
+
+async function enviarNutriCheckIn(){
+  var cumpl=(document.getElementById('ci-cumplimiento')||{}).value||'';
+  var hambre=(document.getElementById('ci-hambre')||{}).value||'';
+  var energia=parseInt((document.getElementById('ci-energia')||{}).value)||7;
+  var comentario=(document.getElementById('ci-comentario')||{}).value||'';
+  if(!cumpl||!hambre){toast('Por favor responde las 2 primeras preguntas','err');return;}
+  var checkin={enviado:true,fecha:new Date().toISOString().split('T')[0],cumplimiento:cumpl,hambre:hambre,energia:energia,comentario:comentario};
+  await saveNutri({checkin_semanal:checkin});
+  toast('✅ Check-in enviado — gracias','ok');
+  renderNutriCheckIn();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// NUEVA VISTA DE NUTRICIÓN COMBATE — SISTEMA DE OPCIONES
+// ══════════════════════════════════════════════════════════════════
+
+function renderNutricionOpciones(c, rn, optsNutri){
+  var cont=document.getElementById('n-comidas');
+  var stickyEl=document.getElementById('n-sticky');
+  var nStatsEl=document.querySelector('#sec-nutri .g4');
+  if(stickyEl) stickyEl.style.display='none';
+  if(nStatsEl) nStatsEl.style.display='none';
+  if(!cont) return;
+
+  var qd=c.cuestionario_datos||{};
+  var peso=c.peso||75;
+  var horaEntreno=qd.nut_hora_entreno||null;
+  var f=S.fecha;
+  var dow=new Date(f+'T12:00:00').getDay();
+
+  // Determinar día ATR (ROJO/VERDE/AMARILLO) desde plan_semanal
+  var diaColorKey=null, diaColorLabel='', diaColorBg='', diaColorBorder='';
+  try{
+    var _ps=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
+    if(_ps){
+      var _dp2=parseDiaPlan(_ps[String(dow)]);
+      var _SATRL={fuerza:'red',fisico:'red',gym:'red',sparring:'red',tecnica:'yellow',acondicionamiento:'green',cardio:'green'};
+      var _ps2=(_dp2.sessions||[]).filter(function(s){return s!=='descanso';})[0]||null;
+      diaColorKey=_ps2?(_SATRL[_ps2]||null):null;
+    }
+  }catch(e){}
+  var _DCOL={
+    red:   {label:'🔴 Día ROJO — Neural',       bg:'rgba(255,23,68,.08)',  border:'rgba(255,23,68,.25)',   dot:'#FF1744'},
+    green: {label:'🟢 Día VERDE — Energético',  bg:'rgba(0,200,83,.08)',   border:'rgba(0,200,83,.25)',    dot:'#00C853'},
+    yellow:{label:'🟡 Día AMARILLO — Técnica',   bg:'rgba(255,214,0,.08)', border:'rgba(255,214,0,.25)',   dot:'#FFD600'}
+  };
+  var dcInfo=diaColorKey?_DCOL[diaColorKey]:null;
+
+  // Macros del día según tipo
+  var m=S.combatMacros||calcMacrosCombate(c);
+  var tipoMap={red:'sparring',green:'acondicionamiento',yellow:'tecnica',null:'tecnica'};
+  var tipoKey=tipoMap[diaColorKey]||'tecnica';
+  var dm=m[tipoKey]||m.tecnica||{p:Math.round(peso*2),c:Math.round(peso*3),g:Math.round(peso*0.8),k:2200};
+
+  // Estado de completado de opciones (del registro de hoy)
+  var opComp=rn&&rn.opciones_completadas?rn.opciones_completadas:{};
+  var esHoy=f===new Date().toISOString().split('T')[0];
+
+  // Calcular total completado
+  var totalP=0,totalC=0,totalG=0,totalK=0;
+  var opciones=optsNutri.opciones||[];
+  var preC=optsNutri.pre_completo||null;
+  var preR=optsNutri.pre_rapido||null;
+  var post=optsNutri.post_entreno||null;
+
+  opciones.forEach(function(op){
+    if(opComp['op'+op.id]){
+      var mac=op.macros||{};
+      totalP+=mac.p||0; totalC+=mac.c||0; totalG+=mac.g||0; totalK+=mac.k||0;
+    }
+  });
+  if(opComp.pre_completo&&preC){var mc=preC.macros||{};totalP+=mc.p||0;totalC+=mc.c||0;totalG+=mc.g||0;totalK+=mc.k||0;}
+  if(opComp.post_entreno&&post){var mp=post.macros||{};totalP+=mp.p||0;totalC+=mp.c||0;totalG+=mp.g||0;totalK+=mp.k||0;}
+
+  var html='';
+
+  // ─── Header día ─────────────────────────────────────────────────
+  html+='<div style="border-radius:12px;border:1.5px solid '+(dcInfo?dcInfo.border:'#1A2A40')+';background:'+(dcInfo?dcInfo.bg:'rgba(255,255,255,.02)')+
+    ';padding:12px 16px;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'+
+    '<div>'+
+      '<div style="font-size:14px;font-weight:900;color:#F0F4FF">'+(dcInfo?dcInfo.label:'Nutrición del día')+'</div>'+
+      '<div style="font-size:11px;color:#4A5568;margin-top:2px">'+
+        dm.p+'g prot · '+dm.c+'g carbos · '+dm.g+'g grasas · '+dm.k+' kcal'+
+      '</div>'+
+    '</div>'+
+    '<div style="text-align:right">'+
+      '<div style="font-size:20px;font-weight:900;color:'+(totalK>=dm.k*0.9?'#00C853':'#FFB300')+'">'+Math.round(totalK)+' kcal</div>'+
+      '<div style="font-size:10px;color:#4A5568">de '+dm.k+' objetivo</div>'+
+    '</div>'+
+  '</div>';
+
+  // ─── Timing de entreno ──────────────────────────────────────────
+  if(horaEntreno&&diaColorKey&&diaColorKey!=='yellow'){
+    var hh=parseInt(horaEntreno.split(':')[0]),mm=parseInt(horaEntreno.split(':')[1]||0);
+    var preCH=(hh-3<0?24+(hh-3):hh-3)+':'+(mm<10?'0':'')+mm;
+    var preRH=(hh-1<0?23:hh-1)+':'+(mm<10?'0':'')+mm;
+    var postH=(hh+0)+':'+(mm<10?'0':'')+mm+' – '+(hh+1)+':'+(mm<10?'0':'')+mm;
+    html+='<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:10px;padding:10px 14px;margin-bottom:.75rem;font-size:11px;color:#A0B0C0;line-height:1.8">'+
+      '⏰ <b style="color:#4D9FFF">Horarios de hoy</b> (entreno a las '+horaEntreno+'):<br>'+
+      '• Pre completo <b style="color:#F0F4FF">entre las '+preCH+' y las '+preRH+'</b><br>'+
+      '• Pre rápido <b style="color:#F0F4FF">a las '+preRH+'</b><br>'+
+      '• Post-entreno <b style="color:#F0F4FF">antes de las '+postH+'</b>'+
+    '</div>';
+  }
+
+  // ─── Helper para opción card ─────────────────────────────────────
+  function opCard(key, emoji, label, op, isPrePost){
+    var done=!!opComp[key];
+    var mac=op.macros||{};
+    var borderC=done?'rgba(0,200,83,.4)':'rgba(255,255,255,.08)';
+    var bgC=done?'rgba(0,200,83,.07)':'rgba(255,255,255,.02)';
+    return '<div style="border:1.5px solid '+borderC+';background:'+bgC+';border-radius:12px;padding:12px 14px;margin-bottom:8px;transition:all .2s">'+
+      '<div style="display:flex;align-items:flex-start;gap:10px">'+
+        '<div style="font-size:20px;flex-shrink:0;margin-top:2px">'+emoji+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:13px;font-weight:800;color:#F0F4FF;margin-bottom:3px">'+label+'</div>'+
+          '<div style="font-size:11px;color:#F0F4FF;font-weight:700;margin-bottom:4px">'+op.nombre+'</div>'+
+          (op.ingredientes?'<div style="font-size:10px;color:#4A5568;line-height:1.5;margin-bottom:5px">'+op.ingredientes+'</div>':'')+
+          '<div style="display:flex;gap:8px;font-size:10px;font-weight:700">'+
+            '<span style="color:#7986CB">'+mac.k+' kcal</span>'+
+            '<span style="color:#00E5FF">P:'+mac.p+'g</span>'+
+            '<span style="color:#FFB300">C:'+mac.c+'g</span>'+
+            '<span style="color:#F48FB1">G:'+mac.g+'g</span>'+
+          '</div>'+
+          (op.nota?'<div style="font-size:10px;color:rgba(77,159,255,.8);margin-top:4px;font-style:italic">ℹ️ '+op.nota+'</div>':'')+
+        '</div>'+
+        (esHoy?'<button onclick="toggleNutriOpcion(\''+key+'\')" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;background:'+(done?'#00C853':'#1A2A40')+';border:'+(done?'2px solid #00C853':'2px solid #2A3A50')+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s;color:'+( done?'#000':'#4A5568')+'">'+
+          (done?'✓':'')+'</button>':
+          '<div style="font-size:13px;color:'+(done?'#00C853':'#4A5568')+'">'+(done?'✓ Hecho':'—')+'</div>')+
+      '</div>'+
+    '</div>';
+  }
+
+  // ─── Pre-entreno completo ────────────────────────────────────────
+  if(preC&&diaColorKey&&diaColorKey!=='yellow'){
+    html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px">⚡ Pre-entreno — 2-3h antes</div>';
+    html+=opCard('pre_completo','⚡','Pre-entreno completo',preC,true);
+  }
+  if(preR&&diaColorKey&&diaColorKey!=='yellow'){
+    html+=opCard('pre_rapido','🍌','Carga rápida — 1h antes',preR,true);
+  }
+
+  // ─── 3 Opciones del día ─────────────────────────────────────────
+  html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px">🍽️ Elige tu opción × '+(opciones.length||3)+' comidas del día</div>';
+  if(!opciones.length){
+    html+='<div style="background:#0D1528;border-radius:10px;padding:16px;text-align:center;color:#4A5568;font-size:12px">Opciones no configuradas — pide a tu entrenador que las defina</div>';
+  }
+  opciones.forEach(function(op,i){
+    html+=opCard('op'+op.id,'🍽️','Opción '+(i+1),op,false);
+  });
+
+  // ─── Post-entreno ────────────────────────────────────────────────
+  if(post&&diaColorKey&&diaColorKey!=='yellow'){
+    html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px">💪 Post-entreno — primeros 30 min</div>';
+    html+=opCard('post_entreno','💪','Post-entreno',post,true);
+  }
+
+  // ─── Barra de progreso de macros ────────────────────────────────
+  var pP=dm.p>0?Math.min(100,Math.round(totalP/dm.p*100)):0;
+  var pC=dm.c>0?Math.min(100,Math.round(totalC/dm.c*100)):0;
+  var pK=dm.k>0?Math.min(100,Math.round(totalK/dm.k*100)):0;
+  html+='<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:10px;padding:12px 14px;margin-top:8px">'+
+    '<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Progreso del día</div>'+
+    [['Proteína',Math.round(totalP),dm.p,'g','#00E5FF',pP],
+     ['Carbos',Math.round(totalC),dm.c,'g','#FFB300',pC],
+     ['Calorías',Math.round(totalK),dm.k,'kcal','#7986CB',pK]].map(function(r){
+      return '<div style="margin-bottom:6px">'+
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">'+
+          '<span style="font-weight:700;color:#A0B0C0">'+r[0]+'</span>'+
+          '<span style="font-weight:700;color:'+r[4]+'">'+r[1]+' / '+r[2]+r[3]+'</span>'+
+        '</div>'+
+        '<div style="height:5px;background:#1A2A40;border-radius:3px;overflow:hidden">'+
+          '<div style="height:100%;width:'+r[5]+'%;background:'+r[4]+';border-radius:3px;transition:width .4s"></div>'+
+        '</div>'+
+      '</div>';
+    }).join('')+
+  '</div>';
+
+  cont.innerHTML=html;
+}
+
+async function toggleNutriOpcion(key){
+  if(!S.rn) S.rn={opciones_completadas:{}};
+  if(!S.rn.opciones_completadas) S.rn.opciones_completadas={};
+  S.rn.opciones_completadas[key]=!S.rn.opciones_completadas[key];
+  await saveNutri({opciones_completadas:S.rn.opciones_completadas});
+  // Re-render
+  var c=S.user;
+  var _qdn=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+  var _opts=_qdn.opciones_nutri||null;
+  if(_opts) renderNutricionOpciones(c,S.rn,_opts);
+}
+
+// Generador automático de sugerencia de opciones basado en preferencias del atleta
+function generarSugerenciaOpciones(c){
+  var qd=c.cuestionario_datos||{};
+  var peso=c.peso||75;
+  var tieneBascula=qd.nut_bascula!=='no';
+  var proteinas=qd.proteinas_favoritas&&qd.proteinas_favoritas.length?qd.proteinas_favoritas:['pollo','huevos','ternera'];
+  var carbos=qd.carbos_favoritos&&qd.carbos_favoritos.length?qd.carbos_favoritos:['arroz','pasta','patata'];
+  var horaEntreno=qd.nut_hora_entreno||'19:00';
+  var evitar=(qd.alimentos_evitar||'').toLowerCase();
+  var m=calcMacrosCombate(c);
+  var dm=m.sparring||m.tecnica;
+
+  // Bancos de ingredientes por categoría
+  var PROTS={
+    pollo:    {n:'pechuga de pollo',unit:'g',p:31,c:0,g:3.6,kp100:165},
+    pavo:     {n:'pechuga de pavo',unit:'g',p:29,c:0,g:1,kp100:135},
+    ternera:  {n:'carne de ternera',unit:'g',p:26,c:0,g:5,kp100:158},
+    pescado:  {n:'merluza',unit:'g',p:18,c:0,g:1.2,kp100:86},
+    salmon:   {n:'salmón',unit:'g',p:20,c:0,g:13,kp100:206},
+    atun:     {n:'atún en conserva',unit:'g',p:25,c:0,g:1,kp100:108},
+    huevos:   {n:'huevos',unit:'uds',p:13,c:1,g:11,kp100:155},
+    legumbres:{n:'garbanzos cocidos',unit:'g',p:9,c:27,g:3,kp100:164},
+    tofu:     {n:'tofu firme',unit:'g',p:17,c:2,g:9,kp100:144}
+  };
+  var CARBS={
+    arroz:    {n:'arroz blanco cocido',unit:'g',p:2.7,c:28,g:0.3,kp100:130},
+    pasta:    {n:'pasta cocida',unit:'g',p:5,c:31,g:0.9,kp100:158},
+    patata:   {n:'patata cocida',unit:'g',p:2,c:20,g:0.1,kp100:87},
+    pan:      {n:'pan blanco',unit:'g',p:8,c:50,g:3,kp100:265},
+    avena:    {n:'avena en copos',unit:'g',p:13,c:66,g:7,kp100:389},
+    fruta:    {n:'plátano',unit:'g',p:1.1,c:23,g:0.3,kp100:89},
+    tortitas: {n:'tortitas de arroz',unit:'g',p:7,c:79,g:3,kp100:387}
+  };
+
+  function pickPref(arr,bank,evitarStr){
+    var filtered=arr.filter(function(k){return bank[k]&&evitarStr.indexOf(k)<0;});
+    return filtered.length?filtered:Object.keys(bank).slice(0,3);
+  }
+  var selProts=pickPref(proteinas,PROTS,evitar);
+  var selCarbos=pickPref(carbos,CARBS,evitar);
+
+  function calcOp(protKey,carbKey,grasas){
+    var pr=PROTS[protKey]||PROTS.pollo;
+    var ca=CARBS[carbKey]||CARBS.arroz;
+    // Calcular cantidades para target ~35g prot, ~70g carb
+    var gProt=tieneBascula?Math.round(35/pr.p*100):Math.round(35/pr.p*100/5)*5;
+    var gCarb=tieneBascula?Math.round(70/ca.c*100):Math.round(70/ca.c*100/25)*25;
+    var totalP=Math.round(gProt*pr.p/100);
+    var totalC=Math.round(gCarb*ca.c/100);
+    var totalG=Math.round(gProt*pr.g/100+(grasas?10:0));
+    var totalK=Math.round(totalP*4+totalC*4+totalG*9);
+    var ingText=gProt+(tieneBascula?'g ':' g ')+pr.n+' · '+gCarb+'g '+ca.n+'· 150g verdura mixta'+(grasas?' · 10g AOVE':'');
+    return {nombre:pr.n.split(' ')[1]||pr.n+' + '+ca.n,ingredientes:ingText,macros:{p:totalP,c:totalC,g:totalG,k:totalK}};
+  }
+
+  var ops=[];
+  for(var i=0;i<3;i++){
+    var pKey=selProts[i%selProts.length];
+    var cKey=selCarbos[i%selCarbos.length];
+    var op=calcOp(pKey,cKey,i===2); // 3ª opción con grasa
+    op.id=i+1;
+    op.nombre='Opción '+(i+1)+' — '+((PROTS[pKey]||{}).n||pKey)+' + '+((CARBS[cKey]||{}).n||cKey);
+    ops.push(op);
+  }
+
+  // Pre-entreno: carbos+proteína ligera (2-3h)
+  var carbPreKey=selCarbos[0];
+  var ca2=CARBS[carbPreKey]||CARBS.arroz;
+  var pr2=PROTS[selProts[0]]||PROTS.pollo;
+  var preComp={
+    nombre:'Pre-entreno completo (2-3h antes)',
+    ingredientes:Math.round(60/ca2.c*100)+'g '+ca2.n+' · '+Math.round(30/pr2.p*100)+'g '+pr2.n+' · sin grasa',
+    nota:'Grasa baja o nula — no retrasa la digestión',
+    macros:{p:30,c:60,g:3,k:387}
+  };
+  var preRap={
+    nombre:'Pre-entreno rápido (1h antes)',
+    ingredientes:'1 plátano maduro · 2 dátiles · 200ml agua',
+    nota:'Solo carbos rápidos — sin proteína ni grasa a esta distancia',
+    macros:{p:2,c:40,g:1,k:177}
+  };
+  var postEn={
+    nombre:'Post-entreno (primeros 30 min)',
+    ingredientes:(qd.nut_suplementos&&qd.nut_suplementos.indexOf('proteina')>=0?
+      '40g whey · 1 plátano · 300ml leche semidesnatada':
+      '200g yogur griego · 1 plátano · 30g copos avena'),
+    nota:'Proteína + carbos simples — grasa baja. Sin esperar.',
+    macros:{p:40,c:50,g:5,k:405}
+  };
+
+  return {
+    aprobado:false,
+    generado_en:new Date().toISOString().split('T')[0],
+    opciones:ops,
+    pre_completo:preComp,
+    pre_rapido:preRap,
+    post_entreno:postEn
+  };
 }
 
 // ─── DISTRIBUCIÓN DE MACROS ───
