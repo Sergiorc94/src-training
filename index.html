@@ -687,6 +687,51 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <div style="font-size:11px;font-weight:700;color:#FFB300;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">📋 Tu plan semanal</div>
           <div id="q-c-plan-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center"></div>
         </div>
+
+        <!-- Test de perfil de rendimiento -->
+        <div style="margin-top:1rem;border-top:1px solid rgba(120,80,255,.2);padding-top:1rem">
+          <div style="font-size:11px;font-weight:800;color:#9C6FFF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1rem">🧬 Test de perfil de rendimiento</div>
+          <!-- Q1 -->
+          <div class="field" style="margin-bottom:.75rem">
+            <label style="font-size:12px">1. ¿Cómo describirías tu golpeo?</label>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px" id="q-p1">
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp1" value="hulk" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 💪 Muy potente pero no muy rápido</label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp1" value="flash" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> ⚡ Muy rápido pero le falta pegada</label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp1" value="eq" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> ⚖️ Equilibrado</label>
+            </div>
+          </div>
+          <!-- Q2 -->
+          <div class="field" style="margin-bottom:.75rem">
+            <label style="font-size:12px">2. ¿Qué te pasa más en combate?</label>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp2" value="hulk" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🥵 Me canso rápido en intercambios cortos e intensos</label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp2" value="flash" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🎯 Buen cardio pero no termino las acciones</label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp2" value="halcon" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🦅 Aguanto bien pero me falta explosividad</label>
+            </div>
+          </div>
+          <!-- Q3 -->
+          <div class="field" style="margin-bottom:.75rem">
+            <label style="font-size:12px">3. ¿Cuánto tiempo llevas entrenando combate?</label>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp3" value="menos2" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> Menos de 2 años</label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp3" value="2a5" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 2 – 5 años</label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp3" value="mas5" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> Más de 5 años</label>
+            </div>
+          </div>
+          <!-- Q4 -->
+          <div class="field" style="margin-bottom:.75rem">
+            <label style="font-size:12px">4. ¿Cuál es tu mayor debilidad física?</label>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp4" value="hulk" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🐢 La velocidad de mis acciones</label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp4" value="flash" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🪶 La fuerza detrás de mis técnicas</label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp4" value="halcon" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🫁 La resistencia en los rounds tardíos</label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp4" value="superman" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> ❓ No identifico una debilidad clara</label>
+            </div>
+          </div>
+          <!-- Resultado -->
+          <div id="q-p-resultado" style="display:none;margin-top:.75rem;border:1.5px solid rgba(120,80,255,.35);border-radius:10px;padding:12px;background:rgba(120,80,255,.06)">
+          </div>
+        </div>
       </div>
     </div>
 
@@ -708,6 +753,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         <div>
           <div style="font-size:22px;font-weight:900;letter-spacing:2px" id="saludo"></div>
           <div style="font-size:12px;color:#4A5568;margin-top:2px" id="ifecha"></div>
+          <div id="perfil-badge" style="margin-top:5px;display:none"></div>
         </div>
         <!-- Botón de recordatorios discreto en la esquina -->
         <button onclick="setupNotificaciones()" title="Activar recordatorios"
@@ -5778,6 +5824,24 @@ async function loadCuestionario(){
     if(horEl&&qd.horario_combate) horEl.value=qd.horario_combate;
     // Trigger preview si ya hay texto
     if(horEl&&horEl.value) previewHorarioCombate();
+    // Mostrar perfil guardado si existe
+    if(qd.perfil_atleta&&ATR_PROFILES){
+      var _savedPerfil=qd.perfil_atleta;
+      var _p=ATR_PROFILES[_savedPerfil]||{name:'—',desc:'—'};
+      var _colP={hulk:'#FF6B35',flash:'#FFB300',superman:'#9C6FFF',halcon:'#4D9FFF'};
+      var _col=_colP[_savedPerfil]||'#9C6FFF';
+      var _elP=document.getElementById('q-p-resultado');
+      if(_elP){
+        _elP.style.display='';
+        _elP.innerHTML='<div style="font-size:10px;font-weight:700;color:#4A5568;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Perfil guardado</div>'+
+          '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'+
+            '<div style="font-size:28px">'+(_p.icon||'')+'</div>'+
+            '<div><div style="font-size:16px;font-weight:900;color:'+_col+'">'+_p.name+'</div>'+
+            '<div style="font-size:11px;color:var(--text-3);line-height:1.4;margin-top:2px">'+_p.desc+'</div></div></div>'+
+          '<div style="font-size:10px;color:#4A5568;border-top:1px solid rgba(255,255,255,.08);padding-top:6px;margin-top:2px">Responde las preguntas de nuevo para recalcular.</div>';
+        window._perfilAtletaCalculado=_savedPerfil;
+      }
+    }
 
     // Objetivos: mostrar solo opciones de combate
     var qObj=document.querySelector('#q-objetivo');
@@ -6174,7 +6238,16 @@ function renderAdminGrid(){
               '<div style="font-weight:800;font-size:15px;color:#F0F4FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+
                 c.nombre+' '+(c.apellido||'')+
               '</div>'+
-              '<div style="font-size:11px;color:#4A5568;font-family:monospace">'+c.codigo_acceso+' <span>'+(c.tipo_cliente==='combate'?'🥊':'💪')+'</span></div>'+
+              '<div style="font-size:11px;color:#4A5568;font-family:monospace;display:flex;align-items:center;gap:5px">'+c.codigo_acceso+' <span>'+(c.tipo_cliente==='combate'?'🥊':'💪')+'</span>'+
+              (function(){
+                var _qd=c.cuestionario_datos||{};
+                var _pk=_qd.perfil_atleta||null;
+                if(!_pk) return '';
+                var _pcol={hulk:'#FF6B35',flash:'#FFB300',superman:'#9C6FFF',halcon:'#4D9FFF'};
+                var _pn={hulk:'💪 Hulk',flash:'⚡ Flash',superman:'🦸 Superman',halcon:'🦅 Halcón'};
+                return '<span style="font-size:9px;font-weight:800;padding:1px 6px;border-radius:8px;background:rgba(0,0,0,.3);color:'+(_pcol[_pk]||'#8899AA')+'">'+(_pn[_pk]||_pk)+'</span>';
+              })()+
+              '</div>'+
             '</div>'+
             '<div style="width:8px;height:8px;border-radius:50%;background:'+(c.activo?'#00C853':'#4A5568')+';flex-shrink:0"></div>'+
           '</div>'+
@@ -7383,6 +7456,47 @@ document.getElementById('btn-guardar-plan').onclick=async function(){
 
 // CLIENTE
 
+// ── PERFIL DE ATLETA (Hulk / Flash / Superman / Halcón) ─────────────
+function calcularPerfilAtleta(r){
+  // r: {q1:'hulk'|'flash'|'eq', q2:'hulk'|'flash'|'halcon', q3:'menos2'|'2a5'|'mas5', q4:'hulk'|'flash'|'halcon'|'superman'}
+  if(!r.q1&&!r.q2&&!r.q3&&!r.q4) return null;
+  if(r.q3==='menos2') return 'halcon'; // Menos de 2 años → Halcón siempre
+  var pts={hulk:0,flash:0,halcon:0,superman:0};
+  if(r.q1==='hulk'){pts.hulk+=2;}else if(r.q1==='flash'){pts.flash+=2;}else{pts.hulk++;pts.flash++;}
+  if(r.q2==='hulk') pts.hulk++;else if(r.q2==='flash') pts.flash++;else if(r.q2==='halcon') pts.halcon++;
+  if(r.q4==='hulk') pts.hulk++;else if(r.q4==='flash') pts.flash++;else if(r.q4==='halcon') pts.halcon++;else if(r.q4==='superman'){pts.superman+=2;}
+  // Encontrar ganador
+  var max=0,winner='halcon';
+  Object.keys(pts).forEach(function(k){if(pts[k]>max){max=pts[k];winner=k;}});
+  // Empate entre varios → si nivel alto (mas5) → superman, si no → halcon
+  var tied=Object.keys(pts).filter(function(k){return pts[k]===max;});
+  if(tied.length>1) return r.q3==='mas5'?'superman':'halcon';
+  return winner;
+}
+
+function mostrarResultadoPerfil(){
+  var q1=document.querySelector('input[name="qp1"]:checked');
+  var q2=document.querySelector('input[name="qp2"]:checked');
+  var q3=document.querySelector('input[name="qp3"]:checked');
+  var q4=document.querySelector('input[name="qp4"]:checked');
+  if(!q1||!q2||!q3||!q4) return;
+  var resp={q1:q1.value,q2:q2.value,q3:q3.value,q4:q4.value};
+  var perfil=calcularPerfilAtleta(resp);
+  var p=ATR_PROFILES[perfil]||{name:'—',desc:'—'};
+  var colores={hulk:'#FF6B35',flash:'#FFB300',superman:'#9C6FFF',halcon:'#4D9FFF'};
+  var col=colores[perfil]||'#9C6FFF';
+  var el=document.getElementById('q-p-resultado');
+  if(!el) return;
+  el.style.display='';
+  el.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'+
+    '<div style="font-size:28px">'+p.name.split(' ').slice(-1)[0]+'</div>'+
+    '<div><div style="font-size:16px;font-weight:900;color:'+col+'">'+p.name+'</div>'+
+    '<div style="font-size:11px;color:var(--text-3);line-height:1.4;margin-top:2px">'+p.desc+'</div></div></div>'+
+    '<div style="font-size:10px;color:#4A5568;border-top:1px solid rgba(255,255,255,.08);padding-top:6px;margin-top:2px">Perfil calculado automáticamente. Puedes cambiarlo desde el admin.</div>';
+  // Guardar en variable global para enviar con el cuestionario
+  window._perfilAtletaCalculado=perfil;
+}
+
 // Parsea texto libre de horario semanal → objeto plan_semanal {dow:{s:[tipo]}}
 function parsearHorarioCombate(texto){
   if(!texto||!texto.trim()) return {};
@@ -7500,6 +7614,8 @@ async function enviarCuestionario(){
     datos.material=document.getElementById('q-c-material').value||'basico';
     datos.peso_categoria=parseFloat(document.getElementById('q-c-peso-cat').value)||null;
     datos.fecha_pelea=document.getElementById('q-c-pelea').value||null;
+    // Perfil de atleta calculado en el test
+    if(window._perfilAtletaCalculado) datos.perfil_atleta=window._perfilAtletaCalculado;
     // Leer horario libre y parsear
     var horarioTexto=(document.getElementById('q-c-horario')||{}).value||'';
     datos.horario_combate=horarioTexto;
@@ -7742,6 +7858,16 @@ async function loadInicio(){
   }
   document.getElementById('saludo').textContent='HOLA, '+c.nombre.toUpperCase()+' 👋';
   document.getElementById('ifecha').textContent=new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // Badge de perfil de atleta
+  var qd0=c.cuestionario_datos||{};
+  var perfilKey=qd0.perfil_atleta||null;
+  var perfilBadgeEl=document.getElementById('perfil-badge');
+  if(perfilBadgeEl&&perfilKey&&ATR_PROFILES[perfilKey]){
+    var pb=ATR_PROFILES[perfilKey];
+    var pbc={hulk:'255,107,53',flash:'255,179,0',superman:'120,80,255',halcon:'77,159,255'}[perfilKey]||'77,159,255';
+    perfilBadgeEl.innerHTML='<span style="display:inline-flex;align-items:center;gap:4px;background:rgba('+pbc+',.12);border:1px solid rgba('+pbc+',.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:rgba('+pbc+',1)">'+pb.name+'</span>';
+    perfilBadgeEl.style.display='';
+  } else if(perfilBadgeEl){perfilBadgeEl.style.display='none';}
 
   // Widget de peso (solo clientes de combate)
   var pesoWidget=document.getElementById('peso-widget');
@@ -7935,15 +8061,20 @@ function renderSemanaCalendario(c){
   var DIAS_SHORT=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   var DIAS_FULL=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   var SESSION_INFO={
-    fuerza:          {icon:'💪', label:'Fuerza',           color:'#4D9FFF'},
-    tecnica:         {icon:'🥋', label:'Técnica',          color:'#FFB300'},
-    sparring:        {icon:'🥊', label:'Sparring',         color:'#FF6B35'},
-    acondicionamiento:{icon:'🏃',label:'Acondicionamiento',color:'#00E5FF'},
-    descanso:        {icon:'😴', label:'Descanso',         color:'#4A5568'},
-    // aliases legacy (valores guardados en BD)
-    cardio:          {icon:'🏃', label:'Acondicionamiento',color:'#00E5FF'},
-    fisico:          {icon:'💪', label:'Fuerza',           color:'#4D9FFF'},
-    gym:             {icon:'💪', label:'Fuerza',           color:'#4D9FFF'},
+    fuerza:          {icon:'💪', label:'Fuerza',           color:'#4D9FFF', diaColor:'red'},
+    tecnica:         {icon:'🥋', label:'Técnica',          color:'#FFB300', diaColor:'yellow'},
+    sparring:        {icon:'🥊', label:'Sparring',         color:'#FF6B35', diaColor:'red'},
+    acondicionamiento:{icon:'🏃',label:'Acondicionamiento',color:'#00E5FF', diaColor:'green'},
+    descanso:        {icon:'😴', label:'Descanso',         color:'#4A5568', diaColor:null},
+    cardio:          {icon:'🏃', label:'Acondicionamiento',color:'#00E5FF', diaColor:'green'},
+    fisico:          {icon:'💪', label:'Fuerza',           color:'#4D9FFF', diaColor:'red'},
+    gym:             {icon:'💪', label:'Fuerza',           color:'#4D9FFF', diaColor:'red'},
+  };
+  // Colores de día (ATR)
+  var DIA_COLOR_MAP={
+    red:   {bg:'rgba(255,23,68,.10)',   border:'rgba(255,23,68,.25)',   dot:'#FF1744', label:'🔴'},
+    green: {bg:'rgba(0,200,83,.10)',    border:'rgba(0,200,83,.25)',    dot:'#00C853', label:'🟢'},
+    yellow:{bg:'rgba(255,214,0,.10)',   border:'rgba(255,214,0,.25)',   dot:'#FFD600', label:'🟡'}
   };
 
   var hoyD=new Date();
@@ -8008,10 +8139,23 @@ function renderSemanaCalendario(c){
 
   var cardsHtml=dias.map(function(d){
     var isHoy=d.isHoy;
-    var borderCol=isHoy?'#0055FF':d.isPasado?'rgba(255,255,255,.04)':'rgba(255,255,255,.08)';
-    var bgCol=isHoy?'rgba(0,85,255,.12)':d.isPasado?'rgba(0,0,0,.1)':'rgba(255,255,255,.02)';
+
+    // Determinar color ATR del día según sesión principal
+    var primarySes=d.sessions.length>0&&!d.sessions.includes('descanso')?d.sessions[0]:null;
+    var diaColor=primarySes?(SESSION_INFO[primarySes]||{}).diaColor||null:null;
+    var dcMap=diaColor?DIA_COLOR_MAP[diaColor]:null;
+
+    var borderCol=isHoy?'#0055FF':
+                  (dcMap&&!d.isPasado)?dcMap.border:
+                  d.isPasado?'rgba(255,255,255,.04)':'rgba(255,255,255,.08)';
+    var bgCol=isHoy?'rgba(0,85,255,.12)':
+              (dcMap&&!d.isPasado)?dcMap.bg:
+              d.isPasado?'rgba(0,0,0,.1)':'rgba(255,255,255,.02)';
     var textCol=isHoy?'#F0F4FF':d.isPasado?'#4A5568':'#8899AA';
-    var numCol=isHoy?'#0055FF':d.isPasado?'#4A5568':'#8899AA';
+    var numCol=isHoy?'#0055FF':(dcMap&&!d.isPasado)?dcMap.dot:d.isPasado?'#4A5568':'#8899AA';
+
+    // Dot de color ATR (solo días futuros/hoy con sesión)
+    var atrDot=(dcMap&&!d.isPasado)?'<div style="font-size:8px;line-height:1;margin-bottom:1px">'+dcMap.label+'</div>':'';
 
     // Contenido de sesiones
     var sesHtml='';
@@ -8049,7 +8193,7 @@ function renderSemanaCalendario(c){
       ';border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;'+
       'cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent" '+
       'onmouseenter="this.style.borderColor=\'#0055FF\'" onmouseleave="this.style.borderColor=\''+borderCol+'\'">'+
-      badge+
+      badge+atrDot+
       '<div style="font-size:10px;font-weight:700;color:'+textCol+';text-transform:uppercase;letter-spacing:.5px">'+dayName+'</div>'+
       '<div style="font-size:16px;font-weight:900;color:'+numCol+';line-height:1.1;margin-bottom:2px">'+dayNum+'</div>'+
       sesHtml+
@@ -8102,6 +8246,11 @@ function renderSemanaCalendario(c){
             :
             // Con plan semanal
             '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">'+cardsHtml+'</div>'+
+            '<div style="display:flex;gap:10px;margin-top:8px;justify-content:center;flex-wrap:wrap">'+
+              '<span style="font-size:10px;color:#4A5568">🔴 Neural (fuerza/potencia)</span>'+
+              '<span style="font-size:10px;color:#4A5568">🟢 Energético (cardio/glucolítico)</span>'+
+              '<span style="font-size:10px;color:#4A5568">🟡 Recuperación</span>'+
+            '</div>'+
             proximosHtml
           )
         )+
@@ -8640,6 +8789,53 @@ async function loadCamp(){
   });
   html+='</div>';
 
+  // ── Nota personalizada por perfil de atleta ──────────────────────
+  var qd_camp=c.cuestionario_datos||{};
+  var perfilC=qd_camp.perfil_atleta||null;
+  if(perfilC&&ATR_PROFILES[perfilC]){
+    var pc=ATR_PROFILES[perfilC];
+    var pcColors={hulk:'255,107,53',flash:'255,179,0',superman:'120,80,255',halcon:'77,159,255'};
+    var pcCol=pcColors[perfilC]||'77,159,255';
+    // Notas por perfil × fase ATR
+    var PERFIL_NOTAS={
+      hulk:{
+        base:'Base: Introduce trabajo de velocidad desde ya. Tu fuerza ya existe — necesitas aprender a expresarla rápido.',
+        camp_cronico:'Camp: PRIORIDAD — Fast Force. Sentadilla pesada → salto inmediato. Tu fuerza sin velocidad es fuerza muerta en el ring.',
+        transformation:'🔑 FASE CRÍTICA para ti. Convierte fuerza en velocidad. Prioriza el método de contraste cada sesión roja.',
+        realization:'Peaking: Activa el SNC. Saltos ligeros. No entrenes fuerza pesada — solo encender el interruptor.',
+        fight_week:'Fight week: Solo activación neural. 3 saltos al cajón + 2 EMOM de swings. Sin fuerza. Sin agotamiento.'
+      },
+      flash:{
+        base:'Base: PRIORIDAD — fuerza máxima. Tus golpes son rápidos pero sin potencia real detrás. Sin base de fuerza no hay velocidad útil.',
+        camp_cronico:'Camp: Esta es tu fase más importante. Sube el techo de fuerza antes de transformarla. RIR 0-1 en ejercicios principales.',
+        intensification:'🔑 FASE CRÍTICA para ti. Fuerza máxima al límite. Sin esto no habrá transformación real.',
+        transformation:'Transformación: Ahora convierte tu fuerza nueva en velocidad. Por fin tienes potencia real que transformar.',
+        fight_week:'Fight week: Activa velocidad. EMOM de swings + saltos. Tus golpes ya tienen algo que expresar.'
+      },
+      superman:{
+        base:'Base: Ajuste fino. Mantén equilibrio fuerza-velocidad. Sube todo a la vez con moderación.',
+        camp_cronico:'Camp: Varía el estímulo cada semana. Semana de fuerza, semana de velocidad. Nunca dejes caer ninguno de los dos.',
+        transformation:'Transformación: El método de contraste es tu herramienta. Aprovecha que tienes ambas cualidades — fuerza Y velocidad.',
+        fight_week:'Fight week: Activación balanceada. Fuerza ligera + velocidad. Llegas con el perfil completo.'
+      },
+      halcon:{
+        base:'Base: Sube todo a la vez. Amplia base general. Todavía no hay que priorizar — todo tiene margen de mejora.',
+        camp_cronico:'Camp: Volumen alto, intensidad moderada. Construye la base primero. No intentes llegar al límite todavía.',
+        transformation:'Transformación: Introduce el método de contraste. Empieza a conectar fuerza con velocidad.',
+        fight_week:'Fight week: Activación suave. EMOM + movilidad. Llegas fresco y con buena base.'
+      }
+    };
+    var notaPerfilFase=(PERFIL_NOTAS[perfilC]&&(PERFIL_NOTAS[perfilC][fase]||PERFIL_NOTAS[perfilC]['base']))||'';
+    if(notaPerfilFase){
+      html+='<div style="background:rgba('+pcCol+',.06);border:1px solid rgba('+pcCol+',.2);border-radius:8px;padding:9px 12px;margin-top:8px;display:flex;gap:9px;align-items:flex-start">';
+      html+='<div style="font-size:16px;flex-shrink:0">'+pc.name.split(' ').slice(-1)[0]+'</div>';
+      html+='<div><div style="font-size:10px;font-weight:800;color:rgba('+pcCol+',1);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">'+pc.name+' — tu nota de fase</div>';
+      html+='<div style="font-size:11px;color:var(--text-2);line-height:1.5">'+notaPerfilFase+'</div></div></div>';
+    }
+  }
+
+  html+='</div>'; // cierra phase banner
+
   // Weekly training template — con nombre real de cada sesión
   var _guia=getSesionGuia(c);
   var _sesiones=_guia?_guia.sesiones:[];
@@ -9085,14 +9281,16 @@ function renderCortePeso(c){
   return html;
 }
 
+// ── MACROS COMBATE — UFC Performance Institute + ISSN 2023 ──────────
+// Fuente: Charles St-Martin (Director Nutrición UFC PI) + ISSN Position Statement 2023
+// Metodología: g/kg peso corporal por fase ATR — no ratios calóricos.
+// Déficit máximo en camp: 500 kcal/día (más destruye el rendimiento).
 function calcMacrosCombate(c){
   var qd=c.cuestionario_datos||{};
   var peso=parseFloat(c.peso_inicial||qd.peso)||75;
   var altura=parseInt(c.altura||qd.altura)||175;
   var edad=parseInt(c.edad||qd.edad)||25;
   var sexo=(c.sexo||qd.sexo||'H').toUpperCase();
-  var diasTec=parseInt(c.dias_tecnica||qd.dias_tecnica)||3;
-  var diasGym=parseInt(c.dias_prep_fisica)||3;
   var horasTec=parseFloat(c.horas_tecnica||qd.horas_tecnica)||1.5;
   var fase=getFaseCombate(c);
 
@@ -9101,77 +9299,78 @@ function calcMacrosCombate(c){
     ?(10*peso+6.25*altura-5*edad-161)
     :(10*peso+6.25*altura-5*edad+5);
 
-  // NEAT base según tipo de trabajo
+  // TDEE base (sin actividad de entrenamiento)
   var trabajoTipo=c.trabajo_tipo||qd.trabajo_tipo||'sedentario';
   var neatMult={sedentario:1.2,moderado:1.35,activo:1.5}[trabajoTipo]||1.25;
   var tdeeBase=Math.round(bmr*neatMult);
 
-  // Calorías por sesión de ejercicio
-  var calTec=Math.round(peso*horasTec*7);  // ~7 kcal/kg/h artes marciales
-  var calGym=Math.round(peso*1.0*5);       // ~5 kcal/kg/h pesas
+  // Kcal quemadas por sesión (para calcular déficit real)
+  var calTec=Math.round(peso*horasTec*7);   // ~7 kcal/kg/h artes marciales
+  var calGym=Math.round(peso*1.0*5);        // ~5 kcal/kg/h pesas
+  var calSparring=Math.round(peso*1.5*8);   // ~8 kcal/kg/h sparring × 1.5h
+  var calCardio=Math.round(peso*1.0*7);     // ~7 kcal/kg/h cardio × 1h
 
-  // ── Multiplicador calórico y ratio de carbos por FASE ─────────────
-  // Fuente: Nutrición SRC v7 + ISSN Position Statement 2023
-  //
-  // base:        Mantenimiento o déficit pequeño. Carbos altos.
-  // camp_cronico: Déficit moderado (-10%). Carbos ALTOS — ISSN mínimos enforced.
-  //              Claudia: 0.5-1 kg/semana. Aritz: no recortar carbos masivamente.
-  // peaking:     Calorías suben (curva en U). Cuerpo recupera del estrés del camp.
-  // fight_week:  Calorías TOTALES suben. Carbos BAJAN para vaciar glucógeno.
-  //              Los 3 recursos a manipular: glucógeno, contenido intestinal, agua corporal.
-  // post_pesaje: Protocolo de recarga. Carbos prioritarios. Calorías altas.
-  // post_pelea:  Superávit. Recuperación hormonal. Todo alto.
+  // ── UFC PI — Carbohidratos g/kg por fase ATR ─────────────────────
+  // Principio: los carbos se manipulan según la demanda de glucógeno de cada fase.
+  // La proteína se mantiene alta siempre. La grasa cubre el resto hasta el objetivo calórico.
+  var CARBS_GKG={
+    base:            {entreno:4.5, descanso:2.5},
+    camp_cronico:    {entreno:4.0, descanso:2.0},  // déficit moderado — no recortar carbos masivamente
+    peaking:         {entreno:3.5, descanso:1.5},
+    fight_week:      {entreno:1.5, descanso:1.0},  // depletion + corte hídrico
+    post_pesaje:     {entreno:10,  descanso:8},     // recarga agresiva — 8-12 g/kg ISSN
+    post_pelea:      {entreno:5.0, descanso:3.5}   // superávit recuperación
+  };
+
+  // ── UFC PI — Proteína g/kg por fase ──────────────────────────────
+  // En camp (déficit) → 2.0g/kg. En base → 1.8g/kg. Fight week → 2.2g/kg (preservar músculo).
+  var PROT_GKG={
+    base:1.8, camp_cronico:2.0, peaking:1.9,
+    fight_week:2.2, post_pesaje:1.8, post_pelea:1.8
+  };
+
+  // Grasa mínima: 0.8g/kg (función hormonal — no negociable)
+  var GRASAS_GKG=0.8;
+
+  var cgk=CARBS_GKG[fase]||CARBS_GKG.base;
+  var protGkg=PROT_GKG[fase]||1.8;
+
+  // Función de macros: calcula desde g/kg (UFC PI) en lugar de ratios
+  function macros(tipoCarbs, calActividad){
+    var p=Math.round(peso*protGkg);
+    var carbs=Math.round(peso*cgk[tipoCarbs]);
+    var grasas=Math.round(peso*GRASAS_GKG);
+    var kcalMacros=Math.round(p*4+carbs*4+grasas*9);
+    // Déficit vs TDEE+actividad del día
+    var tdeeConActiv=tdeeBase+(calActividad||0);
+    var deficit=Math.round(tdeeConActiv-kcalMacros);
+    // Aviso si déficit supera 500 kcal (UFC PI: más destruye el rendimiento)
+    var defWarn=deficit>500;
+    // issn_warn para compatibilidad con el render existente
+    var issn_warn=defWarn?['deficit_alto']:[];
+    return {k:kcalMacros,p:p,c:carbs,g:grasas,deficit:deficit,deficitWarn:defWarn,issn_warn:issn_warn};
+  }
+
+  // phaseData compat — mantenemos el campo que usa el render de colores/label
   var phaseData={
     base:         {mult:1.00, carbRatioEntren:0.62, carbRatioDesc:0.40},
     camp_cronico: {mult:0.90, carbRatioEntren:0.60, carbRatioDesc:0.38},
     peaking:      {mult:0.96, carbRatioEntren:0.62, carbRatioDesc:0.42},
-    fight_week:   {mult:1.00, carbRatioEntren:0.28, carbRatioDesc:0.25}, // carbos bajos — grasas suben
-    post_pesaje:  {mult:1.10, carbRatioEntren:0.72, carbRatioDesc:0.70}, // carga de carbos
-    post_pelea:   {mult:1.08, carbRatioEntren:0.58, carbRatioDesc:0.42}  // superávit recuperación
+    fight_week:   {mult:1.00, carbRatioEntren:0.28, carbRatioDesc:0.25},
+    post_pesaje:  {mult:1.10, carbRatioEntren:0.72, carbRatioDesc:0.70},
+    post_pelea:   {mult:1.08, carbRatioEntren:0.58, carbRatioDesc:0.42}
   };
   var pd=phaseData[fase]||phaseData.base;
-  var phaseMult=pd.mult;
 
-  // Kcal por tipo de día
-  var calSparring=Math.round(peso*1.5*8);  // ~8 kcal/kg/h sparring × 1.5h
-  var calCardio=Math.round(peso*1.0*7);    // ~7 kcal/kg/h cardio × 1h
-  var kSparring=Math.round((tdeeBase+calSparring)*phaseMult);
-  var kAmbos=Math.round((tdeeBase+calTec+calGym)*phaseMult);
-  var kTec=Math.round((tdeeBase+calTec)*phaseMult);
-  var kCardio=Math.round((tdeeBase+calCardio)*phaseMult);
-  var kGym=Math.round((tdeeBase+calGym)*phaseMult);
-  var kDesc=Math.round(tdeeBase*phaseMult);
-
-  // Proteína: 1.8g/kg (ISSN combat sports, preserva músculo en déficit)
-  var prot=Math.round(peso*1.8);
-  var protKcal=prot*4;
-
-  // ISSN mínimos absolutos — nunca cruzar estos en campamento
-  var issnMinProt=Math.round(peso*1.2);
-  var issnMinCarb=fase==='fight_week'?Math.round(peso*1.5):Math.round(peso*3.0); // fight_week: deplete glucógeno
-  var issnMinGras=Math.round(peso*0.5);
-
-  function macros(kcal,carbRatio){
-    var rem=Math.max(0,kcal-protKcal);
-    var carbKcal=rem*carbRatio;
-    var p=prot,c_=Math.round(carbKcal/4),g=Math.round((rem-carbKcal)/9);
-    var warn=[];
-    if(p<issnMinProt){p=issnMinProt;warn.push('prot');}
-    if(fase!=='fight_week'&&c_<issnMinCarb){c_=issnMinCarb;warn.push('carb');}
-    if(g<issnMinGras){g=issnMinGras;warn.push('gras');}
-    return {k:Math.round(kcal),p:p,c:c_,g:g,issn_warn:warn};
-  }
-
-  var cE=pd.carbRatioEntren, cD=pd.carbRatioDesc;
   return {
-    sparring:macros(kSparring, Math.min(cE+0.05, 0.72)), // Sparring: máximos carbos
-    ambos:   macros(kAmbos,   cE),
-    tecnica: macros(kTec,     cE-0.02),
-    cardio:  macros(kCardio,  cE+0.02),
-    gym:     macros(kGym,     cE-0.05),
-    descanso:macros(kDesc,    cD),
-    fase:fase,
-    phaseData:pd
+    sparring: macros('entreno', calSparring),
+    ambos:    macros('entreno', calTec+calGym),
+    tecnica:  macros('entreno', calTec),
+    cardio:   macros('entreno', calCardio),
+    gym:      macros('entreno', calGym),
+    descanso: macros('descanso', 0),
+    fase:fase, phaseData:pd, tdeeBase:tdeeBase,
+    protGkg:protGkg, carbsEntrenoGkg:cgk.entreno, carbsDescGkg:cgk.descanso
   };
 }
 
@@ -9374,16 +9573,27 @@ function renderTipoDiaCombate(){
   // ══ BLOQUE 2: MACROS DEL DÍA ══════════════════════════════════
   // Siempre visible. Cuatro números grandes, clara y directa.
   var issnW=dm.issn_warn&&dm.issn_warn.length>0;
-  html+='<div style="background:#0D1528;border-radius:10px;padding:10px 12px;border:1px solid #1A2A40">';
+  var defWarnHigh=dm.deficitWarn;
+  html+='<div style="background:#0D1528;border-radius:10px;padding:10px 12px;border:1px solid '+(defWarnHigh?'rgba(255,23,68,.35)':'#1A2A40')+'">';
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
   html+='<div style="font-size:10px;font-weight:700;color:rgba('+faseP.color+',1)">'+faseP.icon+' '+faseP.label+'</div>';
-  if(issnW) html+='<div style="font-size:9px;color:#FFB300;background:rgba(255,179,0,.1);padding:2px 6px;border-radius:5px">⚡ Mínimos ISSN activos</div>';
+  if(defWarnHigh) html+='<div style="font-size:9px;color:#FF1744;background:rgba(255,23,68,.1);padding:2px 6px;border-radius:5px">⚠️ Déficit >500 kcal</div>';
+  else if(issnW) html+='<div style="font-size:9px;color:#FFB300;background:rgba(255,179,0,.1);padding:2px 6px;border-radius:5px">⚡ Déficit alto activo</div>';
   html+='</div>';
   html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center">';
   [['Kcal',dm.k,'#7986CB'],['Proteína',dm.p+'g','#00E5FF'],['Carbos',dm.c+'g','#FFB300'],['Grasas',dm.g+'g','#F48FB1']].forEach(function(x){
     html+='<div><div style="font-size:16px;font-weight:900;color:'+x[2]+'">'+x[1]+'</div><div style="font-size:9px;color:#4A5568;margin-top:1px">'+x[0]+'</div></div>';
   });
-  html+='</div></div>';
+  html+='</div>';
+  // Fuente + déficit real
+  if(dm.deficit!==undefined){
+    var defCol=dm.deficitWarn?'#FF1744':dm.deficit>0?'#FFB300':'#00C853';
+    html+='<div style="display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)">';
+    html+='<div style="font-size:9px;color:#4A5568">UFC PI · '+dm.protGkg+'g prot/kg · '+dm.carbsEntrenoGkg+'g CH/kg entreno</div>';
+    html+='<div style="font-size:9px;font-weight:700;color:'+defCol+'">'+(dm.deficit>0?'−'+dm.deficit:'+'+Math.abs(dm.deficit||0))+' kcal</div>';
+    html+='</div>';
+  }
+  html+='</div>';
 
   // ══ BLOQUE 3: ALERTA DE PESO ══════════════════════════════════
   // Solo si hay exceso sobre categoría con pelea próxima.
@@ -11129,10 +11339,39 @@ async function loadEntrenoCombate(){
     }
   }catch(e3){}
 
-  // Cabecera sesión
+  // Cabecera sesión — badge de color ATR del día
+  var _dayColorBadge='';
+  try{
+    var _ps=c.plan_semanal;
+    var _planObj=_ps?(typeof _ps==='string'?JSON.parse(_ps):_ps):null;
+    if(_planObj){
+      var _rawDia=_planObj[String(dow)];
+      if(_rawDia){
+        var _dp=parseDiaPlan(_rawDia);
+        var _SESS_ATR={fuerza:'red',fisico:'red',gym:'red',sparring:'red',tecnica:'yellow',
+                       acondicionamiento:'green',cardio:'green',descanso:null};
+        var _DCMAP={
+          red:  {bg:'rgba(255,23,68,.10)',border:'rgba(255,23,68,.3)',dot:'#FF1744',label:'🔴 Día ROJO — Neural'},
+          green:{bg:'rgba(0,200,83,.10)', border:'rgba(0,200,83,.3)', dot:'#00C853',label:'🟢 Día VERDE — Energético'},
+          yellow:{bg:'rgba(255,214,0,.10)',border:'rgba(255,214,0,.3)',dot:'#FFD600',label:'🟡 Día AMARILLO — Recuperación'}
+        };
+        var _primarySes=(_dp.sessions||[]).filter(function(s){return s!=='descanso';})[0]||null;
+        var _diaColorKey=_primarySes?(_SESS_ATR[_primarySes]||null):null;
+        if(_diaColorKey&&_DCMAP[_diaColorKey]){
+          var _dc=_DCMAP[_diaColorKey];
+          _dayColorBadge='<div style="background:'+_dc.bg+';border:1px solid '+_dc.border+
+            ';border-radius:8px;padding:6px 12px;margin-bottom:.75rem;display:flex;align-items:center;gap:8px">'+
+            '<span style="font-size:13px">'+_dc.label+'</span>'+
+          '</div>';
+        }
+      }
+    }
+  }catch(e){}
+
   var sesLetra='';
   document.getElementById('e-dia').textContent=sesion.nombre;
-  html+='<div class="card" style="margin-bottom:.75rem"><div class="ch">'+sesion.emoji+' '+sesion.nombre+
+  html+=_dayColorBadge+
+    '<div class="card" style="margin-bottom:.75rem"><div class="ch">'+sesion.emoji+' '+sesion.nombre+
     '<span style="margin-left:auto;font-size:10px;color:var(--text-3);text-transform:uppercase">'+
       (faseLabel?faseLabel:'💪 Gym')+
     '</span></div><div class="cb">'+
