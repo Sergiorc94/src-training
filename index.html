@@ -446,17 +446,25 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <div class="field"><label>Edad</label><input type="number" id="q-edad" placeholder="31" min="18" max="80"></div>
           <div class="field"><label>Peso actual (kg)</label><input type="number" id="q-peso" placeholder="90" step="0.1"></div>
           <div class="field"><label>Altura (cm)</label><input type="number" id="q-altura" placeholder="178"></div>
-          <div class="field"><label>Objetivo principal</label>
+          <div class="field" style="grid-column:1/-1"><label>Objetivo principal</label>
             <select id="q-objetivo">
               <option value="">Seleccionar...</option>
-              <option value="perder_grasa">Perder grasa</option>
-              <option value="ganar_musculo">Ganar músculo</option>
-              <option value="recomposicion">Recomposición corporal</option>
-              <option value="salud">Mejorar salud general</option>
+              <!-- Combate (se muestran solo para tipo_cliente=combate vía JS) -->
+              <option value="rendir_mas" class="q-obj-combate" style="display:none">🥊 Rendir más en el combate</option>
+              <option value="ganar_fuerza_potencia" class="q-obj-combate" style="display:none">💥 Ganar fuerza y potencia</option>
+              <option value="bajar_peso_pelea" class="q-obj-combate" style="display:none">⚖️ Bajar al peso de categoría</option>
+              <option value="resistencia_combate" class="q-obj-combate" style="display:none">🫁 Mejorar resistencia en combate</option>
+              <option value="prevenir_lesiones" class="q-obj-combate" style="display:none">🛡️ Prevenir lesiones</option>
+              <option value="empezar_competir" class="q-obj-combate" style="display:none">🏆 Empezar a competir</option>
+              <!-- Fitness -->
+              <option value="perder_grasa" class="q-obj-fitness">Perder grasa</option>
+              <option value="ganar_musculo" class="q-obj-fitness">Ganar músculo</option>
+              <option value="recomposicion" class="q-obj-fitness">Recomposición corporal</option>
+              <option value="salud" class="q-obj-fitness">Mejorar salud general</option>
             </select>
           </div>
-          <div class="field"><label>¿Cuántos kg quieres perder/ganar?</label><input type="number" id="q-objetivo-kg" placeholder="10" step="0.5"></div>
-          <div class="field"><label>¿En cuánto tiempo? (meses)</label><input type="number" id="q-tiempo" placeholder="3" min="1" max="24"></div>
+          <div class="field" id="q-field-objetivo-kg"><label>¿Cuántos kg quieres perder/ganar?</label><input type="number" id="q-objetivo-kg" placeholder="10" step="0.5"></div>
+          <div class="field" id="q-field-tiempo"><label>¿En cuánto tiempo? (meses)</label><input type="number" id="q-tiempo" placeholder="3" min="1" max="24"></div>
         </div>
       </div>
     </div>
@@ -548,10 +556,15 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           </div>
           <div class="field" style="grid-column:1/-1"><label>⭐ ¿Qué proteínas prefieres? (marca las que más te gustan)</label>
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px" id="q-prot-fav-wrap">
-              ${[['pollo','🍗 Pollo'],['pavo','🦃 Pavo'],['ternera','🥩 Ternera'],['pescado','🐟 Pescado blanco'],['atun','🐟 Atún'],['salmon','🍣 Salmón'],['huevos','🥚 Huevos'],['legumbres','🫘 Legumbres'],['tofu','🌱 Tofu/Soja']].map(p=>`
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px">
-                <input type="checkbox" id="q-pf-${p[0]}" value="${p[0]}" style="accent-color:#4D9FFF">${p[1]}
-              </label>`).join('')}
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-pollo" value="pollo" style="accent-color:#4D9FFF">🍗 Pollo</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-pavo" value="pavo" style="accent-color:#4D9FFF">🦃 Pavo</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-ternera" value="ternera" style="accent-color:#4D9FFF">🥩 Ternera</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-pescado" value="pescado" style="accent-color:#4D9FFF">🐟 Pescado blanco</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-atun" value="atun" style="accent-color:#4D9FFF">🐟 Atún</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-salmon" value="salmon" style="accent-color:#4D9FFF">🍣 Salmón</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-huevos" value="huevos" style="accent-color:#4D9FFF">🥚 Huevos</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-legumbres" value="legumbres" style="accent-color:#4D9FFF">🫘 Legumbres</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-tofu" value="tofu" style="accent-color:#4D9FFF">🌱 Tofu/Soja</label>
             </div>
           </div>
           <div class="field" style="grid-column:1/-1"><label>🚫 Alimentos que NO quieres ver en tu plan</label>
@@ -638,24 +651,6 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
               <option value="avanzado">Avanzado — competiciones nacionales/internacionales</option>
             </select>
           </div>
-          <div class="field"><label>Días de entreno técnico / arte marcial por semana</label>
-            <select id="q-c-dias-tecnica">
-              <option value="">Seleccionar...</option>
-              <option value="2">2 días</option>
-              <option value="3">3 días</option>
-              <option value="4">4 días</option>
-              <option value="5">5 días</option>
-              <option value="6">6 días</option>
-            </select>
-          </div>
-          <div class="field"><label>Días de preparación física (gym/fuerza)</label>
-            <select id="q-c-dias-fuerza">
-              <option value="">Seleccionar...</option>
-              <option value="2">2 días</option>
-              <option value="3">3 días (recomendado)</option>
-              <option value="4">4 días</option>
-            </select>
-          </div>
           <div class="field"><label>Material disponible para el gym</label>
             <select id="q-c-material">
               <option value="">Seleccionar...</option>
@@ -664,21 +659,33 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
               <option value="completo">Gimnasio completo</option>
             </select>
           </div>
+          <div class="field"><label>Días de preparación física (gym/fuerza)</label>
+            <select id="q-c-dias-fuerza" onchange="previewHorarioCombate()">
+              <option value="">Seleccionar...</option>
+              <option value="2">2 días</option>
+              <option value="3">3 días (recomendado)</option>
+              <option value="4">4 días</option>
+            </select>
+          </div>
           <div class="field"><label>Peso de categoría (kg) — si compites</label>
             <input type="number" id="q-c-peso-cat" placeholder="Ej: 70" step="0.5" min="40" max="150">
           </div>
           <div class="field"><label>¿Tienes pelea próxima? (fecha)</label>
             <input type="date" id="q-c-pelea">
           </div>
-          <div class="field"><label>¿Cuántas horas de técnica entrenas por sesión?</label>
-            <select id="q-c-horas-tec">
-              <option value="">Seleccionar...</option>
-              <option value="1">~1 hora</option>
-              <option value="1.5">~1,5 horas</option>
-              <option value="2">~2 horas</option>
-              <option value="2.5">+2,5 horas</option>
-            </select>
+        </div>
+        <!-- Horario semanal en texto libre -->
+        <div class="field" style="margin-top:.75rem">
+          <label>📅 ¿Cuándo tienes técnica y sparring cada semana?</label>
+          <textarea id="q-c-horario" rows="3" style="width:100%;resize:none" oninput="previewHorarioCombate()" placeholder="Ej: lunes y miércoles técnica, viernes sparring&#10;O: martes, jueves y sábado técnica. Lunes sparring."></textarea>
+          <div style="font-size:11px;color:#4A5568;margin-top:5px;line-height:1.5">
+            Escribe los días con su actividad. El sistema asignará automáticamente los días de gym en los huecos que queden libres.
           </div>
+        </div>
+        <!-- Vista previa del plan (se rellena al parsear) -->
+        <div id="q-c-plan-preview" style="margin-top:.75rem;display:none">
+          <div style="font-size:11px;font-weight:700;color:#FFB300;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">📋 Tu plan semanal</div>
+          <div id="q-c-plan-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center"></div>
         </div>
       </div>
     </div>
@@ -5757,25 +5764,41 @@ async function loadCuestionario(){
     var fill={
       'q-c-deporte':c.deporte||qd.deporte||'',
       'q-c-nivel':c.nivel_combate||qd.nivel_combate||'',
-      'q-c-dias-tecnica':qd.dias_tecnica||'',
       'q-c-dias-fuerza':c.dias_prep_fisica||qd.dias_fuerza||'',
       'q-c-material':c.material_disponible||qd.material||'',
       'q-c-peso-cat':c.peso_categoria||qd.peso_categoria||'',
-      'q-c-pelea':c.fecha_pelea||qd.fecha_pelea||'',
-      'q-c-horas-tec':qd.horas_tecnica||''
+      'q-c-pelea':c.fecha_pelea||qd.fecha_pelea||''
     };
     Object.keys(fill).forEach(function(fid){
       var el=document.getElementById(fid);
       if(el&&fill[fid]) el.value=fill[fid];
     });
+    // Restaurar horario guardado
+    var horEl=document.getElementById('q-c-horario');
+    if(horEl&&qd.horario_combate) horEl.value=qd.horario_combate;
+    // Trigger preview si ya hay texto
+    if(horEl&&horEl.value) previewHorarioCombate();
+
+    // Objetivos: mostrar solo opciones de combate
     var qObj=document.querySelector('#q-objetivo');
-    if(qObj&&!qObj.querySelector('[value="bajar_peso_pelea"]')){
-      var opt=document.createElement('option');
-      opt.value='bajar_peso_pelea'; opt.textContent='Bajar al peso de categoría';
-      qObj.insertBefore(opt, qObj.children[1]);
+    if(qObj){
+      qObj.querySelectorAll('.q-obj-combate').forEach(function(o){o.style.display='';});
+      qObj.querySelectorAll('.q-obj-fitness').forEach(function(o){o.style.display='none';});
+      if(qd.objetivo) qObj.value=qd.objetivo;
     }
+    // Ocultar campos solo relevantes para fitness
+    var fKg=document.getElementById('q-field-objetivo-kg');
+    var fTm=document.getElementById('q-field-tiempo');
+    if(fKg) fKg.style.display='none';
+    if(fTm) fTm.style.display='none';
   } else if(combCard){
     combCard.style.display='none';
+    // Fitness: mostrar solo opciones fitness
+    var qObj2=document.querySelector('#q-objetivo');
+    if(qObj2){
+      qObj2.querySelectorAll('.q-obj-combate').forEach(function(o){o.style.display='none';});
+      qObj2.querySelectorAll('.q-obj-fitness').forEach(function(o){o.style.display='';});
+    }
   }
 
   // ── MOSTRAR / OCULTAR FORMULARIO ───────────────────────────────
@@ -5809,7 +5832,7 @@ async function loadCuestionario(){
   var peso=c.peso||c.peso_inicial||null;
   var altura=c.altura||null;
   var imc=peso&&altura?Math.round(peso/Math.pow(altura/100,2)*10)/10:null;
-  var objMap={perder_grasa:'Perder grasa',ganar_musculo:'Ganar músculo',recomposicion:'Recomp.',salud:'Salud',bajar_peso_pelea:'Bajar peso'};
+  var objMap={perder_grasa:'Perder grasa',ganar_musculo:'Ganar músculo',recomposicion:'Recomp.',salud:'Salud',bajar_peso_pelea:'Bajar peso cat.',rendir_mas:'Rendir más',ganar_fuerza_potencia:'Fuerza y potencia',resistencia_combate:'Resistencia',prevenir_lesiones:'Prevenir lesiones',empezar_competir:'Competir'};
   var obj=objMap[qd2.objetivo||'']||'—';
   var tipoColor=esCombate?'255,107,53':'0,85,255';
   var depIcon=esCombate?'🥊':'💪';
@@ -7360,6 +7383,73 @@ document.getElementById('btn-guardar-plan').onclick=async function(){
 
 // CLIENTE
 
+// Parsea texto libre de horario semanal → objeto plan_semanal {dow:{s:[tipo]}}
+function parsearHorarioCombate(texto){
+  if(!texto||!texto.trim()) return {};
+  var diasIdx={lunes:1,martes:2,miercoles:3,jueves:4,viernes:5,sabado:6,domingo:0};
+  var plan={};
+  // Normalizar: minúsculas, quitar acentos comunes
+  var t=texto.toLowerCase()
+    .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i').replace(/ó/g,'o').replace(/ú/g,'u')
+    .replace(/ñ/g,'n');
+  // Partir en cláusulas por coma, punto, punto y coma
+  var chunks=t.split(/[,;.]+/);
+  chunks.forEach(function(chunk){
+    chunk=chunk.trim();
+    var tipo='';
+    if(/sparring/.test(chunk)) tipo='sparring';
+    else if(/tecnica|técnica/.test(chunk)) tipo='tecnica';
+    else if(/gym|fuerza|fisico|fisica|pesas/.test(chunk)) tipo='fuerza';
+    else if(/descanso|libre|rest/.test(chunk)) tipo='descanso';
+    if(!tipo) return;
+    Object.keys(diasIdx).forEach(function(d){
+      if(chunk.indexOf(d)>=0){
+        var dow=diasIdx[d];
+        if(!plan[dow]) plan[dow]={s:[tipo]};
+        else if(plan[dow].s.indexOf(tipo)<0) plan[dow].s.push(tipo);
+      }
+    });
+  });
+  return plan;
+}
+
+// Asigna días de gym en los huecos libres y devuelve plan completo
+function completarPlanConGym(planBase, diasFuerza){
+  var plan=Object.assign({},planBase);
+  var ORDER=[1,2,3,4,5,6,0]; // Lun→Dom
+  var libres=ORDER.filter(function(d){return !plan[d]||plan[d].s.every(function(s){return s==='descanso';});});
+  libres.slice(0,diasFuerza).forEach(function(d){plan[d]={s:['fuerza']};});
+  return plan;
+}
+
+// Muestra preview del plan semanal en el cuestionario
+function previewHorarioCombate(){
+  var horEl=document.getElementById('q-c-horario');
+  var dias=parseInt((document.getElementById('q-c-dias-fuerza')||{}).value)||3;
+  if(!horEl) return;
+  var planBase=parsearHorarioCombate(horEl.value);
+  var plan=completarPlanConGym(planBase,dias);
+  var previewEl=document.getElementById('q-c-plan-preview');
+  var gridEl=document.getElementById('q-c-plan-grid');
+  if(!previewEl||!gridEl) return;
+  var DIAS_NAMES=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var TIPO_COLOR={tecnica:'rgba(77,159,255,.15)',sparring:'rgba(255,107,53,.15)',fuerza:'rgba(0,200,83,.15)',descanso:'rgba(255,255,255,.04)'};
+  var TIPO_ICON={tecnica:'🥋',sparring:'🥊',fuerza:'💪',descanso:'😴'};
+  var TIPO_TEXT={tecnica:'Téc.',sparring:'Spar.',fuerza:'Gym',descanso:'—'};
+  var ORDER=[1,2,3,4,5,6,0];
+  gridEl.innerHTML=ORDER.map(function(d){
+    var entry=plan[d];
+    var tipo=entry?entry.s[0]:'descanso';
+    var col=TIPO_COLOR[tipo]||TIPO_COLOR.descanso;
+    var icon=TIPO_ICON[tipo]||'';
+    var lbl=TIPO_TEXT[tipo]||'';
+    return '<div style="background:'+col+';border-radius:6px;padding:5px 2px;font-size:10px;font-weight:700;color:#F0F4FF;line-height:1.4">'+
+      '<div style="font-size:9px;color:#4A5568">'+DIAS_NAMES[d]+'</div>'+
+      icon+'<br><span style="font-size:9px">'+lbl+'</span></div>';
+  }).join('');
+  previewEl.style.display='';
+}
+
 async function enviarCuestionario(){
   // Validate required fields
   var edad = document.getElementById('q-edad').value;
@@ -7402,30 +7492,43 @@ async function enviarCuestionario(){
 
   // Datos extra de combate si aplica
   var esCombate=S.user&&S.user.tipo_cliente==='combate';
+  var planSemJson=null;
   if(esCombate){
     datos.deporte=document.getElementById('q-c-deporte').value||'';
     datos.nivel_combate=document.getElementById('q-c-nivel').value||'';
-    datos.dias_tecnica=parseInt(document.getElementById('q-c-dias-tecnica').value)||0;
     datos.dias_fuerza=parseInt(document.getElementById('q-c-dias-fuerza').value)||3;
     datos.material=document.getElementById('q-c-material').value||'basico';
     datos.peso_categoria=parseFloat(document.getElementById('q-c-peso-cat').value)||null;
     datos.fecha_pelea=document.getElementById('q-c-pelea').value||null;
-    datos.horas_tecnica=parseFloat(document.getElementById('q-c-horas-tec').value)||1.5;
+    // Leer horario libre y parsear
+    var horarioTexto=(document.getElementById('q-c-horario')||{}).value||'';
+    datos.horario_combate=horarioTexto;
+    if(horarioTexto.trim()){
+      var planBase=parsearHorarioCombate(horarioTexto);
+      var planCompleto=completarPlanConGym(planBase,datos.dias_fuerza);
+      // Derivar dias_tecnica y dias_sparring del plan
+      var allDowsArr=Object.values(planCompleto);
+      datos.dias_tecnica=allDowsArr.filter(function(e){return e.s&&e.s.indexOf('tecnica')>=0;}).length;
+      datos.dias_sparring=allDowsArr.filter(function(e){return e.s&&e.s.indexOf('sparring')>=0;}).length;
+      planSemJson=JSON.stringify(planCompleto);
+    }
   }
 
   try{
     showSav();
     // Save to client record (columnas originales)
-    await db.patch('clientes','id=eq.'+S.user.id, {
+    var patchBase={
       cuestionario_completado: true,
       cuestionario_datos: datos,
       peso_inicial: datos.peso,
-      altura: datos.altura,
-    });
+      altura: datos.altura
+    };
+    if(planSemJson) patchBase.plan_semanal=planSemJson;
+    await db.patch('clientes','id=eq.'+S.user.id, patchBase);
     // Si es combate → guardar campos de combate vía RPC
     if(esCombate){
       try{
-        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({
+        var rpcBody={
           p_id:S.user.id,
           p_tipo_cliente:'combate',
           p_deporte:datos.deporte||null,
@@ -7434,7 +7537,9 @@ async function enviarCuestionario(){
           p_material_disponible:datos.material||'basico',
           p_fecha_pelea:datos.fecha_pelea||null,
           p_peso_categoria:datos.peso_categoria||null
-        })});
+        };
+        if(datos.dias_sparring!==undefined) rpcBody.p_dias_sparring=datos.dias_sparring;
+        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify(rpcBody)});
         // Actualizar S.user para que la app reaccione de inmediato
         Object.assign(S.user,{
           deporte:datos.deporte,
@@ -7448,8 +7553,9 @@ async function enviarCuestionario(){
     }
     S.user.cuestionario_completado = true;
     S.user.cuestionario_datos = datos;
+    if(planSemJson) S.user.plan_semanal=planSemJson;
     okSav();
-    toast('✅ Cuestionario guardado. Generando tu plan...','ok');
+    toast('✅ Cuestionario guardado. Tu plan semanal está listo 🎯','ok');
     // Keep on cuestionario tab, show success
     document.querySelector('#sec-cuestionario .btn.bp').textContent='✅ Cuestionario enviado';
     document.querySelector('#sec-cuestionario .btn.bp').style.background='#00C853';
