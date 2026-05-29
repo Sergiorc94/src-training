@@ -365,50 +365,44 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         <!-- Ingredientes -->
         <div style="display:grid;gap:10px;margin-bottom:.75rem">
           <!-- PROTEÍNA -->
-          <div style="background:#0D1528;border:1px solid rgba(0,229,255,0.2);border-radius:10px;padding:12px">
-            <div style="font-size:10px;font-weight:700;color:#00E5FF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🥩 Fuente de Proteína</div>
-            <div class="g2">
-              <div class="field" style="margin:0"><label style="font-size:10px">Ingrediente</label>
-                <input type="text" id="r-prot-ing" list="al-datalist" placeholder="ej. Pollo a la plancha" oninput="rcAutoFill('prot')" style="font-size:13px">
-              </div>
-              <div class="field" style="margin:0"><label style="font-size:10px">P / C / G por 100g</label>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
-                  <input type="number" id="r-prot-p" placeholder="Prot" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
-                  <input type="number" id="r-prot-c" placeholder="Carb" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
-                  <input type="number" id="r-prot-g" placeholder="Gras" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
-                </div>
+          <div style="background:#0D1528;border:1px solid rgba(0,229,255,0.2);border-radius:10px;padding:12px;overflow:hidden">
+            <div style="font-size:10px;font-weight:700;color:#00E5FF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;word-break:break-word">🥩 Fuente de Proteína</div>
+            <div class="field" style="margin:0 0 6px"><label style="font-size:10px">Ingrediente</label>
+              <input type="text" id="r-prot-ing" list="al-datalist" placeholder="ej. Pollo a la plancha" oninput="rcAutoFill('prot')" style="font-size:13px;width:100%;box-sizing:border-box">
+            </div>
+            <div class="field" style="margin:0"><label style="font-size:10px">P / C / G por 100g</label>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px;overflow:hidden">
+                <input type="number" id="r-prot-p" placeholder="Prot" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px;box-sizing:border-box">
+                <input type="number" id="r-prot-c" placeholder="Carb" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px;box-sizing:border-box">
+                <input type="number" id="r-prot-g" placeholder="Gras" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px;box-sizing:border-box">
               </div>
             </div>
           </div>
           <!-- CARBOHIDRATOS -->
-          <div style="background:#0D1528;border:1px solid rgba(255,179,0,0.2);border-radius:10px;padding:12px">
-            <div style="font-size:10px;font-weight:700;color:#FFB300;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🌾 Fuente de Carbohidratos</div>
-            <div class="g2">
-              <div class="field" style="margin:0"><label style="font-size:10px">Ingrediente</label>
-                <input type="text" id="r-carb-ing" list="al-datalist" placeholder="ej. Arroz integral cocido" oninput="rcAutoFill('carb')" style="font-size:13px">
-              </div>
-              <div class="field" style="margin:0"><label style="font-size:10px">P / C / G por 100g</label>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
-                  <input type="number" id="r-carb-p" placeholder="Prot" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
-                  <input type="number" id="r-carb-c" placeholder="Carb" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
-                  <input type="number" id="r-carb-g" placeholder="Gras" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
-                </div>
+          <div style="background:#0D1528;border:1px solid rgba(255,179,0,0.2);border-radius:10px;padding:12px;overflow:hidden">
+            <div style="font-size:10px;font-weight:700;color:#FFB300;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;word-break:break-word">🌾 Fuente de Carbohidratos</div>
+            <div class="field" style="margin:0 0 6px"><label style="font-size:10px">Ingrediente</label>
+              <input type="text" id="r-carb-ing" list="al-datalist" placeholder="ej. Arroz integral cocido" oninput="rcAutoFill('carb')" style="font-size:13px;width:100%;box-sizing:border-box">
+            </div>
+            <div class="field" style="margin:0"><label style="font-size:10px">P / C / G por 100g</label>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px;overflow:hidden">
+                <input type="number" id="r-carb-p" placeholder="Prot" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px;box-sizing:border-box">
+                <input type="number" id="r-carb-c" placeholder="Carb" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px;box-sizing:border-box">
+                <input type="number" id="r-carb-g" placeholder="Gras" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px;box-sizing:border-box">
               </div>
             </div>
           </div>
           <!-- GRASAS -->
-          <div style="background:#0D1528;border:1px solid rgba(244,143,177,0.2);border-radius:10px;padding:12px">
-            <div style="font-size:10px;font-weight:700;color:#F48FB1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🥑 Fuente de Grasas</div>
-            <div class="g2">
-              <div class="field" style="margin:0"><label style="font-size:10px">Ingrediente</label>
-                <input type="text" id="r-gras-ing" list="al-datalist" placeholder="ej. Aguacate" oninput="rcAutoFill('gras')" style="font-size:13px">
-              </div>
-              <div class="field" style="margin:0"><label style="font-size:10px">P / C / G por 100g</label>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
-                  <input type="number" id="r-gras-p" placeholder="Prot" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
-                  <input type="number" id="r-gras-c" placeholder="Carb" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
-                  <input type="number" id="r-gras-g" placeholder="Gras" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px">
-                </div>
+          <div style="background:#0D1528;border:1px solid rgba(244,143,177,0.2);border-radius:10px;padding:12px;overflow:hidden">
+            <div style="font-size:10px;font-weight:700;color:#F48FB1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;word-break:break-word">🥑 Fuente de Grasas</div>
+            <div class="field" style="margin:0 0 6px"><label style="font-size:10px">Ingrediente</label>
+              <input type="text" id="r-gras-ing" list="al-datalist" placeholder="ej. Aguacate" oninput="rcAutoFill('gras')" style="font-size:13px;width:100%;box-sizing:border-box">
+            </div>
+            <div class="field" style="margin:0"><label style="font-size:10px">P / C / G por 100g</label>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px;overflow:hidden">
+                <input type="number" id="r-gras-p" placeholder="Prot" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px;box-sizing:border-box">
+                <input type="number" id="r-gras-c" placeholder="Carb" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px;box-sizing:border-box">
+                <input type="number" id="r-gras-g" placeholder="Gras" min="0" max="100" step="0.1" class="isml" style="text-align:center;font-size:12px;padding:7px;box-sizing:border-box">
               </div>
             </div>
           </div>
@@ -1878,6 +1872,50 @@ const COMIDAS_CAMP = {
     {nombre:"Batido recuperador rápido",icono:"🥤",tiempo:"2 min",cuando:"0-30 min post-entreno",ingredientes:[{a:"Batido recuperador",g:70},{a:"Plátano (camp)",g:100},{a:"Leche semidesnatada",g:200}]},
     {nombre:"Whey con arroz con leche proteico",icono:"💪",tiempo:"3 min",cuando:"0-45 min post-entreno",ingredientes:[{a:"Proteína whey (camp)",g:30},{a:"Arroz con leche proteico",g:200},{a:"Dátiles",g:30}]},
     {nombre:"Atún con tortitas y zumo",icono:"🍊",tiempo:"3 min",cuando:"30-60 min post-entreno",ingredientes:[{a:"Atún en lata al natural",g:120},{a:"Tortitas de arroz",g:40},{a:"Zumo de naranja natural",g:200}]}
+  ],
+
+  // ── BIBLIOTECA GENERAL ── platos sin macros hardcodeados, calculados desde ALIMENTOS_DB
+  desayuno_extra:[
+    {nombre:"Tortitas de avena con plátano y miel",icono:"🥞",tiempo:"10 min",cuando:"desayuno",ingredientes:[{a:"Avena en copos",g:80},{a:"Huevo entero",g:120},{a:"Plátano",g:120},{a:"Miel",g:7}]},
+    {nombre:"Huevos revueltos con tostadas y aguacate",icono:"🍳",tiempo:"8 min",cuando:"desayuno",ingredientes:[{a:"Huevo entero",g:150},{a:"Pan blanco de molde",g:60},{a:"Aguacate",g:80}]},
+    {nombre:"Bowl de yogur griego con granola y fruta",icono:"🫙",tiempo:"3 min",cuando:"desayuno rápido",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Granola",g:40},{a:"Plátano",g:120},{a:"Miel",g:7}]},
+    {nombre:"Tostadas con mantequilla de cacahuete y plátano",icono:"🍞",tiempo:"3 min",cuando:"desayuno rápido",ingredientes:[{a:"Pan integral de molde",g:60},{a:"Mantequilla de cacahuete",g:30},{a:"Plátano",g:120}]},
+    {nombre:"Avena caliente con whey y frutos rojos",icono:"🥣",tiempo:"5 min",cuando:"pre-entreno / desayuno",ingredientes:[{a:"Avena en copos",g:80},{a:"Proteína whey vainilla",g:30},{a:"Leche semidesnatada",g:200},{a:"Frutos rojos mix",g:80}]},
+    {nombre:"Batido de desayuno completo",icono:"🥤",tiempo:"3 min",cuando:"desayuno rápido / pre-entreno",ingredientes:[{a:"Plátano",g:240},{a:"Proteína whey vainilla",g:30},{a:"Leche semidesnatada",g:200},{a:"Avena en copos",g:30},{a:"Mantequilla de cacahuete",g:15}]}
+  ],
+
+  bocadillo:[
+    {nombre:"Bocadillo de jamón york y queso",icono:"🥖",tiempo:"3 min",cuando:"almuerzo / merienda",ingredientes:[{a:"Baguette",g:150},{a:"Jamón york",g:100},{a:"Queso en lonchas light",g:40},{a:"Tomate",g:80}]},
+    {nombre:"Sandwich de pavo con aguacate",icono:"🥙",tiempo:"3 min",cuando:"almuerzo ligero",ingredientes:[{a:"Pan integral de molde",g:60},{a:"Pechuga de pavo loncheada",g:100},{a:"Aguacate",g:80},{a:"Lechuga",g:30},{a:"Mostaza",g:10}]},
+    {nombre:"Wrap de pollo con verduras",icono:"🌯",tiempo:"5 min",cuando:"almuerzo / media tarde",ingredientes:[{a:"Tortilla de trigo",g:60},{a:"Pechuga de pollo cocinada",g:120},{a:"Lechuga",g:30},{a:"Tomate",g:60},{a:"Cebolla",g:40},{a:"Queso manchego curado",g:20}]},
+    {nombre:"Bocadillo de atún con tomate",icono:"🐟",tiempo:"3 min",cuando:"almuerzo rápido",ingredientes:[{a:"Baguette",g:150},{a:"Atún en lata al natural",g:160},{a:"Tomate",g:100},{a:"Aceite de oliva virgen extra",g:10}]},
+    {nombre:"Sandwich mixto con huevo",icono:"🍳",tiempo:"5 min",cuando:"almuerzo / desayuno tardío",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Huevo entero",g:100},{a:"Jamón york",g:60},{a:"Queso en lonchas light",g:30}]}
+  ],
+
+  comida_extra:[
+    {nombre:"Hamburguesa casera de ternera",icono:"🍔",tiempo:"10 min",cuando:"comida principal",ingredientes:[{a:"Carne picada ternera 5%",g:200},{a:"Pan integral de molde",g:80},{a:"Lechuga",g:30},{a:"Tomate",g:80},{a:"Mostaza",g:10},{a:"Queso en lonchas light",g:30}]},
+    {nombre:"Hamburguesa de pollo casera",icono:"🍗",tiempo:"10 min",cuando:"comida principal",ingredientes:[{a:"Pechuga de pollo cruda",g:200},{a:"Pan integral de molde",g:80},{a:"Lechuga",g:30},{a:"Tomate",g:80},{a:"Mostaza",g:10},{a:"Cebolla",g:40}]},
+    {nombre:"Tacos de ternera con arroz",icono:"🌮",tiempo:"10 min",cuando:"comida principal",ingredientes:[{a:"Carne picada ternera 5%",g:150},{a:"Tortilla de maíz",g:60},{a:"Arroz blanco cocido",g:150},{a:"Tomate",g:80},{a:"Queso manchego curado",g:20}]},
+    {nombre:"Pasta boloñesa casera",icono:"🍝",tiempo:"15 min",cuando:"comida principal",ingredientes:[{a:"Pasta seca",g:100},{a:"Carne picada ternera 5%",g:150},{a:"Tomate frito",g:80},{a:"Ajo",g:6},{a:"Queso parmesano",g:20}]},
+    {nombre:"Lentejas con chorizo y verduras",icono:"🥘",tiempo:"5 min",cuando:"comida principal",ingredientes:[{a:"Lentejas cocidas",g:200},{a:"Chorizo",g:50},{a:"Zanahoria",g:80},{a:"Puerro",g:60},{a:"Patata cruda",g:100}]},
+    {nombre:"Pollo al horno con patatas",icono:"🍗",tiempo:"5 min",cuando:"comida principal",ingredientes:[{a:"Muslo de pollo sin hueso",g:200},{a:"Patata cruda",g:200},{a:"Aceite de oliva virgen extra",g:10}]},
+    {nombre:"Salmón con patata cocida y brócoli",icono:"🐟",tiempo:"5 min",cuando:"comida principal",ingredientes:[{a:"Salmón fresco",g:200},{a:"Patata cocida",g:200},{a:"Brócoli",g:150},{a:"Aceite de oliva virgen extra",g:10}]},
+    {nombre:"Tortilla española con ensalada",icono:"🍳",tiempo:"15 min",cuando:"comida principal",ingredientes:[{a:"Huevo entero",g:150},{a:"Patata cruda",g:150},{a:"Cebolla",g:50},{a:"Aceite de oliva virgen extra",g:10},{a:"Lechuga",g:100},{a:"Tomate",g:80}]},
+    {nombre:"Ternera a la plancha con arroz y pisto",icono:"🥩",tiempo:"10 min",cuando:"comida principal",ingredientes:[{a:"Ternera filete",g:200},{a:"Arroz blanco cocido",g:150},{a:"Calabacín",g:100},{a:"Pimiento rojo",g:80},{a:"Tomate",g:80},{a:"Aceite de oliva virgen extra",g:10}]}
+  ],
+
+  cena_extra:[
+    {nombre:"Ensalada completa de pollo",icono:"🥗",tiempo:"5 min",cuando:"cena ligera",ingredientes:[{a:"Pechuga de pollo cocinada",g:150},{a:"Lechuga",g:80},{a:"Tomate",g:80},{a:"Pepino",g:60},{a:"Maíz dulce",g:50},{a:"Huevo entero",g:60},{a:"Aceite de oliva virgen extra",g:10}]},
+    {nombre:"Sopa de pollo con fideos",icono:"🍜",tiempo:"10 min",cuando:"cena reconfortante",ingredientes:[{a:"Pechuga de pollo cocinada",g:150},{a:"Pasta seca",g:60},{a:"Caldo de pollo",g:500},{a:"Zanahoria",g:80},{a:"Apio",g:40}]},
+    {nombre:"Revuelto de huevos con setas y jamón",icono:"🍳",tiempo:"5 min",cuando:"cena ligera",ingredientes:[{a:"Huevo entero",g:150},{a:"Setas",g:100},{a:"Jamón serrano",g:50},{a:"Aceite de oliva virgen extra",g:10}]},
+    {nombre:"Merluza al horno con verduras",icono:"🐟",tiempo:"5 min",cuando:"cena ligera",ingredientes:[{a:"Merluza",g:200},{a:"Calabacín",g:100},{a:"Tomate",g:80},{a:"Cebolla",g:60},{a:"Aceite de oliva virgen extra",g:10}]}
+  ],
+
+  snack_general:[
+    {nombre:"Queso fresco con nueces y miel",icono:"🧀",tiempo:"2 min",cuando:"snack / media mañana",ingredientes:[{a:"Queso fresco batido 0%",g:150},{a:"Nueces",g:20},{a:"Miel",g:7}]},
+    {nombre:"Plátano con mantequilla de cacahuete",icono:"🍌",tiempo:"1 min",cuando:"snack / pre-entreno",ingredientes:[{a:"Plátano",g:150},{a:"Mantequilla de cacahuete",g:30}]},
+    {nombre:"Mix de frutos secos y fruta deshidratada",icono:"🥜",tiempo:"1 min",cuando:"snack / merienda",ingredientes:[{a:"Almendras",g:30},{a:"Anacardos",g:20},{a:"Orejones",g:20},{a:"Arándanos deshidratados",g:20}]},
+    {nombre:"Yogur griego con cacao y plátano",icono:"🫙",tiempo:"2 min",cuando:"snack / postre ligero",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Cacao puro en polvo",g:5},{a:"Plátano",g:60},{a:"Miel",g:7}]}
   ]
 };
 
@@ -11460,7 +11498,8 @@ function toggleAccordion(id){
 function calcMacrosCampComida(ingredientes){
   var p=0,c2=0,g=0,k=0;
   (ingredientes||[]).forEach(function(ing){
-    var d=ALIM_CAMP[ing.a]||[0,0,0,0];
+    // Busca primero en ALIM_CAMP (camp-específicos), luego en ALIMENTOS_DB (187 alimentos)
+    var d=ALIM_CAMP[ing.a]||ALIMENTOS_DB[ing.a]||[0,0,0,0];
     var f=ing.g/100;
     p+=d[0]*f; c2+=d[1]*f; g+=d[2]*f; k+=d[3]*f;
   });
@@ -11500,11 +11539,16 @@ function renderNutricionCamp(c, modo){
 
   // Comidas del día
   var secciones=[
-    {key:'desayuno',label:'☀️ Desayuno'},
-    {key:'snack_pre',label:'⚡ Snack Pre-Entreno'},
-    {key:'comida',label:'🍚 Comida Principal'},
-    {key:'snack_post',label:'💪 Snack Post-Entreno'},
-    {key:'cena',label:'🌙 Cena'}
+    {key:'desayuno',       label:'☀️ Desayuno'},
+    {key:'desayuno_extra', label:'☀️ Desayunos extra'},
+    {key:'snack_pre',      label:'⚡ Snack Pre-Entreno'},
+    {key:'comida',         label:'🍚 Comida de Camp'},
+    {key:'comida_extra',   label:'🍽️ Comidas generales'},
+    {key:'bocadillo',      label:'🥖 Bocadillos y sandwiches'},
+    {key:'snack_post',     label:'💪 Snack Post-Entreno'},
+    {key:'snack_general',  label:'🥜 Snacks y meriendas'},
+    {key:'cena',           label:'🌙 Cena de Camp'},
+    {key:'cena_extra',     label:'🌙 Cenas generales'}
   ];
 
   secciones.forEach(function(sec){
