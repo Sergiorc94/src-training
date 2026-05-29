@@ -7073,43 +7073,64 @@ async function calcularAlertasInteligentes(c){
 function adminRenderOpcionesEditor(opts, c){
   var html='';
   var _colors=['#4D9FFF','#FFB300','#AB47BC'];
+
+  // ── Opciones del día (Opción 1, 2, 3...)
+  html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🍽️ Opciones del día</div>';
   if(opts.opciones&&opts.opciones.length){
-    html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🍽️ Opciones del día</div>';
     opts.opciones.forEach(function(op,i){
       var mac=op.macros||{};
       html+='<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:10px;padding:10px 12px;margin-bottom:8px">'+
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
           '<span style="font-size:11px;font-weight:900;color:'+(_colors[i]||'#4D9FFF')+'">OPCIÓN '+(i+1)+'</span>'+
-          '<span style="font-size:11px;color:#F0F4FF;font-weight:700;flex:1">'+op.nombre+'</span>'+
-          '<button onclick="adminEditarOpcion('+i+')" style="font-size:10px;padding:2px 8px;border-radius:4px;background:#1A2A40;border:1px solid #2A3A50;color:#8899AA;cursor:pointer">Editar</button>'+
+          '<span style="font-size:11px;color:#F0F4FF;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">'+op.nombre+'</span>'+
+          '<button onclick="adminEditarOpcion('+i+',\'opcion\')" style="font-size:10px;padding:3px 10px;border-radius:6px;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.3);color:#4D9FFF;cursor:pointer;flex-shrink:0">✏️ Editar</button>'+
         '</div>'+
-        '<div style="font-size:10px;color:#4A5568;margin-bottom:4px">'+op.ingredientes+'</div>'+
-        '<div style="font-size:10px;font-weight:700;display:flex;gap:8px">'+
+        '<div style="font-size:10px;color:#4A5568;margin-bottom:4px;line-height:1.4">'+op.ingredientes+'</div>'+
+        '<div style="font-size:10px;font-weight:700;display:flex;gap:8px;flex-wrap:wrap">'+
           '<span style="color:#7986CB">'+mac.k+' kcal</span>'+
           '<span style="color:#00E5FF">P:'+mac.p+'g</span>'+
           '<span style="color:#FFB300">C:'+mac.c+'g</span>'+
           '<span style="color:#F48FB1">G:'+mac.g+'g</span>'+
         '</div>'+
+        (op.nota?'<div style="font-size:10px;color:rgba(77,159,255,.7);margin-top:3px;font-style:italic">ℹ️ '+op.nota+'</div>':'')+
       '</div>';
     });
+  } else {
+    html+='<div style="font-size:11px;color:#4A5568;background:#0D1528;border-radius:8px;padding:10px;margin-bottom:8px">Sin opciones todavía — pulsa "+ Añadir" para crear la primera.</div>';
   }
-  // Pre/Post
-  if(opts.pre_completo||opts.pre_rapido||opts.post_entreno){
-    html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">⚡ Pre/Post entreno</div>';
-    [['pre_completo','⚡ Pre 2-3h',opts.pre_completo],['pre_rapido','🍌 Pre 1h',opts.pre_rapido],['post_entreno','💪 Post',opts.post_entreno]]
-    .filter(function(x){return x[2];}).forEach(function(x){
-      var mac=x[2].macros||{};
-      html+='<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px">'+
-        '<span style="font-size:11px;font-weight:700;color:#FF6B35;white-space:nowrap">'+x[1]+'</span>'+
+  html+='<button onclick="adminEditarOpcion(-1,\'nueva\')" style="width:100%;padding:8px;border-radius:8px;border:1.5px dashed rgba(77,159,255,.3);background:rgba(77,159,255,.06);color:#4D9FFF;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:14px">+ Añadir opción</button>';
+
+  // ── Pre/Post entreno
+  html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">⚡ Pre/Post entreno</div>';
+  var ppDefs=[
+    {key:'pre_completo',label:'⚡ Pre 2-3h antes',color:'#FFB300'},
+    {key:'pre_rapido',  label:'🍌 Pre rápido 1h', color:'#FF6B35'},
+    {key:'post_entreno',label:'💪 Post-entreno',  color:'#00C853'}
+  ];
+  ppDefs.forEach(function(def){
+    var op=opts[def.key]||null;
+    var mac=op&&op.macros||{};
+    html+='<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:8px;padding:8px 10px;margin-bottom:6px">'+
+      '<div style="display:flex;align-items:center;gap:8px">'+
+        '<span style="font-size:11px;font-weight:700;color:'+def.color+';white-space:nowrap;flex-shrink:0">'+def.label+'</span>'+
         '<div style="flex:1;min-width:0">'+
-          '<div style="font-size:10px;color:#F0F4FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+x[2].nombre+'</div>'+
-          '<div style="font-size:9px;color:#4A5568;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+x[2].ingredientes+'</div>'+
+          (op?'<div style="font-size:10px;color:#F0F4FF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+op.nombre+'</div>'+
+              '<div style="font-size:9px;color:#4A5568;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+op.ingredientes+'</div>':
+           '<div style="font-size:10px;color:#4A5568">No configurado</div>')+
         '</div>'+
-        '<div style="font-size:10px;font-weight:700;color:#7986CB;white-space:nowrap">'+mac.k+' kcal</div>'+
-      '</div>';
-    });
-  }
-  return html||'<div style="color:#4A5568;font-size:12px">Sin opciones configuradas</div>';
+        '<button onclick="adminEditarOpcion(-1,\''+def.key+'\')" style="font-size:10px;padding:3px 8px;border-radius:6px;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.3);color:#4D9FFF;cursor:pointer;flex-shrink:0">'+
+          (op?'✏️':'+')+
+        '</button>'+
+      '</div>'+
+      (op?'<div style="font-size:10px;font-weight:700;display:flex;gap:8px;margin-top:4px">'+
+        '<span style="color:#7986CB">'+mac.k+' kcal</span>'+
+        '<span style="color:#00E5FF">P:'+mac.p+'g</span>'+
+        '<span style="color:#FFB300">C:'+mac.c+'g</span>'+
+      '</div>':'')+
+    '</div>';
+  });
+
+  return html;
 }
 
 async function adminGenerarOpcionesNutri(){
@@ -7159,29 +7180,112 @@ async function adminDesactivarOpcionesNutri(){
   }catch(e){toast('Error: '+e.message,'err');}
 }
 
-function adminEditarOpcion(idx){
+function adminEditarOpcion(idx, tipo){
+  // tipo: 'opcion' (idx=0,1,2) | 'pre_completo' | 'pre_rapido' | 'post_entreno' | 'nueva'
   var c=S.ca;
   if(!c) return;
   var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+  if(!_qdc.opciones_nutri) _qdc.opciones_nutri={opciones:[],aprobado:false};
   var _opts=_qdc.opciones_nutri;
-  if(!_opts||!_opts.opciones||!_opts.opciones[idx]) return;
-  var op=_opts.opciones[idx];
-  var nuevoNombre=prompt('Nombre de la opción:',op.nombre);
-  if(!nuevoNombre) return;
-  var nuevosIng=prompt('Ingredientes (texto libre):',op.ingredientes||'');
-  if(nuevosIng===null) return;
-  var nuevosMacros=prompt('Macros (formato: p,c,g,k):\n'+op.macros.p+','+op.macros.c+','+op.macros.g+','+op.macros.k,op.macros.p+','+op.macros.c+','+op.macros.g+','+op.macros.k);
-  if(nuevosMacros===null) return;
-  var parts=nuevosMacros.split(',');
-  op.nombre=nuevoNombre;
-  op.ingredientes=nuevosIng;
-  op.macros={p:parseInt(parts[0])||op.macros.p,c:parseInt(parts[1])||op.macros.c,g:parseInt(parts[2])||op.macros.g,k:parseInt(parts[3])||op.macros.k};
-  db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}}).then(function(){
+  var op={nombre:'',ingredientes:'',macros:{p:0,c:0,g:0,k:0},nota:''};
+  var esTipoEspecial=(tipo&&tipo!=='opcion'&&tipo!=='nueva');
+  if(tipo==='opcion'&&_opts.opciones&&_opts.opciones[idx]) op=JSON.parse(JSON.stringify(_opts.opciones[idx]));
+  else if(esTipoEspecial&&_opts[tipo]) op=JSON.parse(JSON.stringify(_opts[tipo]));
+  var tituloMap={opcion:'Opción '+(idx+1),nueva:'Nueva opción',pre_completo:'Pre-entreno 2-3h',pre_rapido:'Pre rápido 1h',post_entreno:'Post-entreno'};
+  var titulo=tituloMap[tipo||'opcion']||'Opción';
+
+  // Abrir modal de edición
+  var mbox=document.getElementById('mbox-nutri-op');
+  if(!mbox){
+    var mdiv=document.createElement('div');
+    mdiv.className='modal';
+    mdiv.id='m-nutri-op';
+    mdiv.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:16px';
+    mdiv.onclick=function(e){if(e.target===mdiv)mdiv.style.display='none';};
+    mdiv.innerHTML='<div id="mbox-nutri-op" class="mbox" style="width:100%;max-width:460px;max-height:90vh;overflow-y:auto"></div>';
+    document.body.appendChild(mdiv);
+    mbox=document.getElementById('mbox-nutri-op');
+  }
+  document.getElementById('m-nutri-op').style.display='flex';
+
+  mbox.innerHTML=
+    '<div class="mhdr"><div class="mt">'+titulo.toUpperCase()+'</div>'+
+      '<button class="mclose" onclick="document.getElementById(\'m-nutri-op\').style.display=\'none\'">✕</button>'+
+    '</div>'+
+    '<div class="mcont">'+
+      '<div class="field"><label>Nombre del plato</label><input type="text" id="nop-nombre" value="'+((op.nombre)||'').replace(/"/g,'&quot;')+'" placeholder="Arroz con pollo y verduras"></div>'+
+      '<div class="field"><label>Ingredientes y cantidades</label><textarea id="nop-ing" style="height:70px;resize:none" placeholder="180g pechuga de pollo / 150g arroz blanco / verdura al gusto">'+((op.ingredientes)||'')+'</textarea></div>'+
+      '<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;margin-top:4px">Macros</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:.75rem">'+
+        '<div class="field"><label>Prot (g)</label><input type="number" id="nop-p" value="'+(op.macros.p||'')+'" placeholder="40" oninput="nopRecalcKcal()"></div>'+
+        '<div class="field"><label>Carbos (g)</label><input type="number" id="nop-c" value="'+(op.macros.c||'')+'" placeholder="60" oninput="nopRecalcKcal()"></div>'+
+        '<div class="field"><label>Grasas (g)</label><input type="number" id="nop-g" value="'+(op.macros.g||'')+'" placeholder="12" oninput="nopRecalcKcal()"></div>'+
+        '<div class="field"><label>Kcal</label><input type="number" id="nop-k" value="'+(op.macros.k||'')+'" placeholder="auto"></div>'+
+      '</div>'+
+      '<div class="field"><label>Nota para el atleta (opcional)</label><input type="text" id="nop-nota" value="'+((op.nota)||'').replace(/"/g,'&quot;')+'" placeholder="Tomar antes del entreno si tienes tiempo"></div>'+
+      '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">'+
+        ((!esTipoEspecial&&tipo!=='nueva'&&idx>=0)?'<button class="btn bsm" style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.3);color:#FF1744;margin-right:auto" onclick="adminEliminarOpcion('+idx+')">Eliminar</button>':'')+
+        '<button class="btn bg bsm" onclick="document.getElementById(\'m-nutri-op\').style.display=\'none\'">Cancelar</button>'+
+        '<button class="btn bp bsm" onclick="adminGuardarOpcion('+idx+',\''+tipo+'\')">💾 Guardar</button>'+
+      '</div>'+
+    '</div>';
+}
+
+function nopRecalcKcal(){
+  var p=parseFloat((document.getElementById('nop-p')||{}).value)||0;
+  var c=parseFloat((document.getElementById('nop-c')||{}).value)||0;
+  var g=parseFloat((document.getElementById('nop-g')||{}).value)||0;
+  var kEl=document.getElementById('nop-k');
+  if(kEl&&!kEl.dataset.manual) kEl.value=Math.round(p*4+c*4+g*9)||'';
+}
+
+async function adminGuardarOpcion(idx, tipo){
+  var c=S.ca; if(!c) return;
+  var nombre=(document.getElementById('nop-nombre')||{}).value||'';
+  var ing=(document.getElementById('nop-ing')||{}).value||'';
+  var p=parseInt((document.getElementById('nop-p')||{}).value)||0;
+  var carb=parseInt((document.getElementById('nop-c')||{}).value)||0;
+  var g=parseInt((document.getElementById('nop-g')||{}).value)||0;
+  var k=parseInt((document.getElementById('nop-k')||{}).value)||Math.round(p*4+carb*4+g*9);
+  var nota=(document.getElementById('nop-nota')||{}).value||'';
+  if(!nombre){toast('Escribe un nombre para el plato','err');return;}
+  var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+  if(!_qdc.opciones_nutri) _qdc.opciones_nutri={opciones:[],aprobado:false};
+  var _opts=_qdc.opciones_nutri;
+  var opData={nombre:nombre,ingredientes:ing,macros:{p:p,c:carb,g:g,k:k},nota:nota};
+  if(tipo==='opcion'&&idx>=0&&_opts.opciones&&_opts.opciones[idx]){
+    opData.id=_opts.opciones[idx].id;
+    _opts.opciones[idx]=opData;
+  } else if(tipo==='nueva'){
+    opData.id=Date.now();
+    if(!_opts.opciones) _opts.opciones=[];
+    _opts.opciones.push(opData);
+  } else if(tipo==='pre_completo'||tipo==='pre_rapido'||tipo==='post_entreno'){
+    _opts[tipo]=opData;
+  }
+  try{
+    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
     c.cuestionario_datos=_qdc;
     S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
-    toast('✅ Opción actualizada','ok');
+    document.getElementById('m-nutri-op').style.display='none';
+    toast('✅ Guardado','ok');
     adminTab('nutri',document.getElementById('at-nutri'));
-  }).catch(function(e){toast('Error: '+e.message,'err');});
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+async function adminEliminarOpcion(idx){
+  if(!confirm('¿Eliminar esta opción?')) return;
+  var c=S.ca; if(!c) return;
+  var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+  if(_qdc.opciones_nutri&&_qdc.opciones_nutri.opciones) _qdc.opciones_nutri.opciones.splice(idx,1);
+  try{
+    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
+    c.cuestionario_datos=_qdc;
+    S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
+    document.getElementById('m-nutri-op').style.display='none';
+    toast('Opción eliminada','ok');
+    adminTab('nutri',document.getElementById('at-nutri'));
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 // ── Mensaje directo entrenador → atleta ──────────────
@@ -7848,7 +7952,7 @@ async function adminTab(tab,btn){
               var TIPO_ICON={tecnica:'🥋',fuerza:'💪',acondicionamiento:'🏃',sparring:'🥊',descanso:'·'};
               html+='<div style="margin-bottom:12px">';
               html+='<div style="font-size:11px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🏗️ Elige un patrón de semana</div>';
-              html+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:8px">';
+              html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px;overflow:hidden">';
               // 6 pattern cards
               Object.keys(SEMANA_PLANTILLAS).forEach(function(key){
                 var p=SEMANA_PLANTILLAS[key];
@@ -7872,7 +7976,7 @@ async function adminTab(tab,btn){
                 strip+='</div>';
                 html+=
                   '<div class="patron-card" data-patron="'+key+'" onclick="adminAplicarPatron(\''+key+'\')" '+
-                  'style="border:1.5px solid #1A2A40;background:rgba(255,255,255,.03);border-radius:10px;padding:10px;cursor:pointer;position:relative;transition:all .15s;-webkit-tap-highlight-color:transparent">'+
+                  'style="border:1.5px solid #1A2A40;background:rgba(255,255,255,.03);border-radius:10px;padding:10px;cursor:pointer;position:relative;overflow:hidden;transition:all .15s;-webkit-tap-highlight-color:transparent">'+
                     '<div style="position:absolute;top:6px;right:8px;width:16px;height:16px;border-radius:50%;background:#0055FF;display:none;align-items:center;justify-content:center;font-size:10px" class="patron-check">✓</div>'+
                     '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'+
                       '<span style="font-size:16px">'+p.emoji+'</span>'+
@@ -10119,20 +10223,16 @@ async function loadNutri(){
       // ¿Tiene plan nutricional aprobado?
       var _qdn=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
       var _optsNutri=_qdn.opciones_nutri||null;
+      // Para combate: SIEMPRE usar el sistema de opciones, nunca el tracker genérico
+      if(combEl) combEl.style.display='none';
+      var _ncardTop=document.querySelector('#sec-nutri > .card');
+      if(_ncardTop) _ncardTop.style.display='none';
       if(_optsNutri&&_optsNutri.aprobado){
-        // Nueva vista simplificada con opciones
-        if(combEl) combEl.style.display='none';
-        var _combNutriCont=document.getElementById('n-comidas');
-        if(_combNutriCont){
-          var _ncardTop=document.querySelector('#sec-nutri > .card');
-          if(_ncardTop) _ncardTop.style.display='none'; // Ocultar "Configura tu día"
-        }
         renderNutricionOpciones(c,S.rn,_optsNutri);
-        return; // No continuar con el flujo normal
       } else {
-        if(combEl) combEl.style.display='';
-        renderTipoDiaCombate();
+        renderNutricionPendiente(c);
       }
+      return;
     } else {
       if(fitEl) fitEl.style.display='';
       if(combEl) combEl.style.display='none';
@@ -10213,6 +10313,47 @@ async function enviarNutriCheckIn(){
 // ══════════════════════════════════════════════════════════════════
 // NUEVA VISTA DE NUTRICIÓN COMBATE — SISTEMA DE OPCIONES
 // ══════════════════════════════════════════════════════════════════
+
+function renderNutricionPendiente(c){
+  var cont=document.getElementById('n-comidas');
+  var stickyEl=document.getElementById('n-sticky');
+  if(stickyEl) stickyEl.style.display='none';
+  if(!cont) return;
+  var qd=c.cuestionario_datos||{};
+  var fase=c.fase_combate||'base';
+  var faseLabel={base:'Base',camp_cronico:'Camp',peaking:'Peaking',fight_week:'Fight Week',post_pelea:'Post-pelea'}[fase]||'Base';
+  cont.innerHTML=
+    '<div style="background:rgba(77,159,255,.06);border:1.5px solid rgba(77,159,255,.2);border-radius:14px;padding:20px 16px;text-align:center;margin-bottom:.75rem">'+
+      '<div style="font-size:28px;margin-bottom:10px">🥗</div>'+
+      '<div style="font-size:15px;font-weight:900;color:#F0F4FF;margin-bottom:6px">Plan nutricional en preparación</div>'+
+      '<div style="font-size:12px;color:#6E8090;line-height:1.6">Tu entrenador está diseñando tu plan de nutrición personalizado.<br>Estará listo en breve.</div>'+
+      '<div style="margin-top:14px;display:inline-flex;align-items:center;gap:8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;padding:8px 14px">'+
+        '<span style="font-size:11px;color:#FFB300;font-weight:700">Fase actual:</span>'+
+        '<span style="font-size:11px;color:#F0F4FF;font-weight:800">'+faseLabel+'</span>'+
+      '</div>'+
+    '</div>'+
+    // Registro simple de peso del día
+    '<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:12px;padding:14px 16px;margin-bottom:.75rem">'+
+      '<div style="font-size:11px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📊 Registro diario</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'+
+        '<div class="field"><label>Peso hoy (kg)</label><input type="number" id="nutpend-peso" step="0.1" placeholder="75.0" style="font-size:16px"></div>'+
+        '<div class="field"><label>Comidas realizadas</label><select id="nutpend-ncom"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></div>'+
+      '</div>'+
+      '<div class="field" style="margin-bottom:10px"><label>¿Cómo te has sentido hoy? (opcional)</label><textarea id="nutpend-nota" placeholder="Energía buena, algo de hambre por la tarde..." style="height:50px;resize:none"></textarea></div>'+
+      '<button onclick="guardarRegistroPendiente()" class="btn bp bbl">✅ Guardar registro</button>'+
+    '</div>';
+}
+
+async function guardarRegistroPendiente(){
+  var peso=parseFloat((document.getElementById('nutpend-peso')||{}).value)||null;
+  var ncom=parseInt((document.getElementById('nutpend-ncom')||{}).value)||null;
+  var nota=(document.getElementById('nutpend-nota')||{}).value||'';
+  var datos={pendiente_plan:true,ncom_real:ncom,nota_libre:nota};
+  if(peso){datos.peso=peso;}
+  await saveNutri({config_dia:{ncom:ncom,modo:'lineal'},notas:nota});
+  if(peso) await db.patch('clientes','id=eq.'+S.user.id,{peso_inicial:peso}).catch(function(){});
+  toast('✅ Registro guardado','ok');
+}
 
 function renderNutricionOpciones(c, rn, optsNutri){
   var cont=document.getElementById('n-comidas');
