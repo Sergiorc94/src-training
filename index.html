@@ -6378,13 +6378,15 @@ async function guardarAjustesRapidos(){
       var mat=pm?pm.value:c.material_disponible||'basico';
       await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({
         p_id:c.id,
-        p_tipo_cliente:'combate',
-        p_deporte:c.deporte||null,
-        p_nivel_combate:c.nivel_combate||null,
-        p_dias_prep_fisica:c.dias_prep_fisica||3,
-        p_material_disponible:mat,
-        p_fecha_pelea:fpelea,
-        p_peso_categoria:pcat
+        p_datos:{
+          tipo_cliente:'combate',
+          deporte:c.deporte||null,
+          nivel_combate:c.nivel_combate||null,
+          dias_prep_fisica:c.dias_prep_fisica||3,
+          material_disponible:mat,
+          fecha_pelea:fpelea,
+          peso_categoria:pcat
+        }
       })});
       if(fpelea!==null) S.user.fecha_pelea=fpelea;
       if(pcat) S.user.peso_categoria=pcat;
@@ -6806,15 +6808,14 @@ async function crearCliente(){
 
     // Columnas nuevas y datos extras via RPC
     try{
-      var _ncExtras={p_id:newId, p_tipo_cliente:tipoCliente};
-      console.log('[crearCliente] RPC payload p_tipo_cliente =', tipoCliente);
+      var _ncDatos={tipo_cliente:tipoCliente};
 
       // Macros descanso
       var kcalD=_i(kcalDId),protD=_i(protDId),carbD=_i(carbDId),grasD=_i(grasDId);
-      if(kcalD) _ncExtras.p_kcal_descanso=kcalD;
-      if(protD) _ncExtras.p_proteina_descanso=protD;
-      if(carbD) _ncExtras.p_carbos_descanso=carbD;
-      if(grasD) _ncExtras.p_grasas_descanso=grasD;
+      if(kcalD) _ncDatos.kcal_descanso=kcalD;
+      if(protD) _ncDatos.proteina_descanso=protD;
+      if(carbD) _ncDatos.carbos_descanso=carbD;
+      if(grasD) _ncDatos.grasas_descanso=grasD;
 
       // cuestionario_datos — datos que van en JSONB
       var _qd={};
@@ -6837,19 +6838,19 @@ async function crearCliente(){
         var histLesiones=_t('nc-historial-lesiones');
         var diasPrepFisica=_i('nc-dias-ent');
 
-        if(fp) _ncExtras.p_fecha_pelea=fp;
-        if(pc) _ncExtras.p_peso_categoria=pc;
-        if(deporte) _ncExtras.p_deporte=deporte;
-        if(nivel) _ncExtras.p_nivel_combate=nivel;
-        if(diasPrepFisica) _ncExtras.p_dias_prep_fisica=diasPrepFisica;
-        if(material) _ncExtras.p_material_disponible=material;
-        if(diasTec) _ncExtras.p_dias_tecnica=diasTec;
+        if(fp) _ncDatos.fecha_pelea=fp;
+        if(pc) _ncDatos.peso_categoria=pc;
+        if(deporte) _ncDatos.deporte=deporte;
+        if(nivel) _ncDatos.nivel_combate=nivel;
+        if(diasPrepFisica) _ncDatos.dias_prep_fisica=diasPrepFisica;
+        if(material) _ncDatos.material_disponible=material;
+        if(diasTec) _ncDatos.dias_tecnica=diasTec;
 
         // Calcular fase ATR automáticamente
         if(fp){
           var diasPelea=Math.ceil((new Date(fp)-new Date())/(24*3600*1000));
           var faseAuto=diasPelea>=112?'base':diasPelea>=56?'camp_cronico':diasPelea>=28?'peaking':diasPelea>=7?'fight_week':'post_pelea';
-          _ncExtras.p_fase_combate=faseAuto;
+          _ncDatos.fase_combate=faseAuto;
         }
 
         // Campos nuevos en cuestionario_datos
@@ -6892,14 +6893,14 @@ async function crearCliente(){
         var diasEntFit=_i('nc-dias-ent-fit');
         var semProt=_i('nc-sem-prot');
         var fechaProt=_v('nc-fecha-prot')||null;
-        if(diasEntFit) _ncExtras.p_dias_entreno=diasEntFit;
-        if(semProt) _ncExtras.p_semanas_protocolo=semProt;
-        if(fechaProt) _ncExtras.p_inicio_protocolo=fechaProt;
+        if(diasEntFit) _ncDatos.dias_entreno=diasEntFit;
+        if(semProt) _ncDatos.semanas_protocolo=semProt;
+        if(fechaProt) _ncDatos.inicio_protocolo=fechaProt;
       }
 
-      if(Object.keys(_qd).length>0) _ncExtras.p_datos={cuestionario_datos:_qd};
+      if(Object.keys(_qd).length>0) _ncDatos.cuestionario_datos=_qd;
 
-      await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify(_ncExtras)});
+      await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:newId,p_datos:_ncDatos})});
       console.log('[crearCliente] RPC ejecutado OK. Verificando BD...');
       // Verificar estado final en BD
       try{
@@ -8327,33 +8328,32 @@ async function guardarCfg(){
       }())};
     try{
       // Payload base (todos los tipos de cliente)
-      var rpcPayload={
-        p_id:c.id,
-        p_kcal_descanso:extra.kcal_descanso,
-        p_proteina_descanso:extra.proteina_descanso,
-        p_carbos_descanso:extra.carbos_descanso,
-        p_grasas_descanso:extra.grasas_descanso,
-        p_dias_entreno:extra.dias_entreno,
-        p_semanas_protocolo:extra.semanas_protocolo,
-        p_tipo_plan:extra.tipo_plan||null,
-        p_tipo_cliente:extra.tipo_cliente||'fitness',
-        p_comidas_defecto:extra.comidas_defecto||null
+      var rpcDatos={
+        kcal_descanso:extra.kcal_descanso,
+        proteina_descanso:extra.proteina_descanso,
+        carbos_descanso:extra.carbos_descanso,
+        grasas_descanso:extra.grasas_descanso,
+        dias_entreno:extra.dias_entreno,
+        semanas_protocolo:extra.semanas_protocolo,
+        tipo_plan:extra.tipo_plan||null,
+        tipo_cliente:extra.tipo_cliente||'fitness',
+        comidas_defecto:extra.comidas_defecto||null
       };
       // Campos exclusivos de combate — solo si el cliente es combate
       if(extra.tipo_cliente==='combate'){
-        Object.assign(rpcPayload,{
-          p_fecha_pelea:extra.fecha_pelea||null,
-          p_peso_categoria:extra.peso_categoria||null,
-          p_deporte:extra.deporte||null,
-          p_nivel_combate:extra.nivel_combate||null,
-          p_dias_prep_fisica:extra.dias_prep_fisica||null,
-          p_dias_tecnica:parseInt((document.getElementById('e-dias-tec')||{}).value)||null,
-          p_dias_sparring:parseInt((document.getElementById('e-dias-spar')||{}).value)||null,
-          p_material_disponible:extra.material_disponible||null,
-          p_fase_combate:extra.fase_combate||null
+        Object.assign(rpcDatos,{
+          fecha_pelea:extra.fecha_pelea||null,
+          peso_categoria:extra.peso_categoria||null,
+          deporte:extra.deporte||null,
+          nivel_combate:extra.nivel_combate||null,
+          dias_prep_fisica:extra.dias_prep_fisica||null,
+          dias_tecnica:parseInt((document.getElementById('e-dias-tec')||{}).value)||null,
+          dias_sparring:parseInt((document.getElementById('e-dias-spar')||{}).value)||null,
+          material_disponible:extra.material_disponible||null,
+          fase_combate:extra.fase_combate||null
         });
       }
-      await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify(rpcPayload)});
+      await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:c.id,p_datos:rpcDatos})});
       Object.assign(S.ca,extra);
     }catch(e2){toast('⚠️ Error guardando extras: '+e2.message,'err');console.warn('Error guardando extras:',e2);}
 
@@ -8739,17 +8739,16 @@ async function enviarCuestionario(){
     if(esCombate){
       try{
         var rpcBody={
-          p_id:S.user.id,
-          p_tipo_cliente:'combate',
-          p_deporte:datos.deporte||null,
-          p_nivel_combate:datos.nivel_combate||null,
-          p_dias_prep_fisica:datos.dias_fuerza||3,
-          p_material_disponible:datos.material||'basico',
-          p_fecha_pelea:datos.fecha_pelea||null,
-          p_peso_categoria:datos.peso_categoria||null
+          tipo_cliente:'combate',
+          deporte:datos.deporte||null,
+          nivel_combate:datos.nivel_combate||null,
+          dias_prep_fisica:datos.dias_fuerza||3,
+          material_disponible:datos.material||'basico',
+          fecha_pelea:datos.fecha_pelea||null,
+          peso_categoria:datos.peso_categoria||null
         };
-        if(datos.dias_sparring!==undefined) rpcBody.p_dias_sparring=datos.dias_sparring;
-        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify(rpcBody)});
+        if(datos.dias_sparring!==undefined) rpcBody.dias_sparring=datos.dias_sparring;
+        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:S.user.id,p_datos:rpcBody})});
         // Actualizar S.user para que la app reaccione de inmediato
         Object.assign(S.user,{
           deporte:datos.deporte,
