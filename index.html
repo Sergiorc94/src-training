@@ -5870,7 +5870,15 @@ function initApp(){
     buildTabs();
     loadPlatosCustom();
     if(S.isAdmin){loadAdmin();showSec('admin');}
-    else{loadInicio();showSec('inicio');}
+    else{
+      loadInicio();showSec('inicio');
+      // Registro último acceso (para alerta de inactividad en admin)
+      try{
+        var _qd0=S.user.cuestionario_datos?(typeof S.user.cuestionario_datos==='string'?JSON.parse(S.user.cuestionario_datos):S.user.cuestionario_datos):{};
+        _qd0.ultimo_acceso=new Date().toISOString();
+        api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:S.user.id,p_datos:{cuestionario_datos:_qd0}})}).catch(function(){});
+      }catch(e2){}
+    }
   }catch(e){
     alert('Error al iniciar: '+e.message+' | '+e.stack);
   }
@@ -6553,6 +6561,88 @@ async function verCliente(id){
   document.getElementById('btn-volver').onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.textContent.includes('Clientes')));showSec('admin');};
   document.getElementById('btn-plan').onclick=()=>{showM('m-plan');renderPlanForm();};
   adminTab('hoy',document.getElementById('at-hoy'));
+  // Cargar alertas inteligentes en background
+  calcularAlertasInteligentes(c).then(function(smartAlerts){
+    if(smartAlerts){
+      var el=document.getElementById('vc-alerts');
+      if(el) el.innerHTML=alerts+smartAlerts;
+    }
+  }).catch(function(){});
+}
+
+async function calcularAlertasInteligentes(c){
+  var html='';
+  try{
+    var hoyD=new Date();hoyD.setHours(0,0,0,0);
+    // Fetch últimos 10 días de registros
+    var [recentReg,recentProg]=await Promise.all([
+      db.get('registros_entreno','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=10'),
+      db.get('registros_progreso','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=10'),
+    ]);
+
+    // ── Alerta energía baja 7 días ──
+    if(recentReg&&recentReg.length>=3){
+      var con7=recentReg.filter(function(r){return r.sensaciones;});
+      if(con7.length>=3){
+        var avg7=con7.reduce(function(a,r){return a+r.sensaciones;},0)/con7.length;
+        if(avg7<6){
+          html+='<div style="background:rgba(255,107,53,.07);border:1px solid rgba(255,107,53,.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#FF6B35;margin-bottom:6px">'+
+            '⚠️ '+c.nombre+' lleva '+con7.length+' sesiones con sensaciones bajas (media '+Math.round(avg7*10)/10+'/10). Posible sobreentrenamiento.</div>';
+        }
+      }
+    }
+
+    // ── Alerta días sin registrar peso ──
+    if(recentProg&&recentProg.length>0){
+      var lastPeso=new Date(recentProg[0].fecha+'T12:00:00');
+      var diasSinPeso=Math.floor((hoyD-lastPeso)/(24*3600*1000));
+      if(diasSinPeso>=3){
+        html+='<div style="background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#FFB300;margin-bottom:6px">'+
+          '⚠️ '+c.nombre+' lleva '+diasSinPeso+' días sin registrar el peso.</div>';
+      }
+    } else if(recentProg&&recentProg.length===0){
+      html+='<div style="background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#FFB300;margin-bottom:6px">'+
+        '⚠️ '+c.nombre+' nunca ha registrado su peso.</div>';
+    }
+
+    // ── Alerta molestia repetida en misma zona ──
+    if(recentReg){
+      var conMol=recentReg.filter(function(r){return r.molestia_sesion&&r.molestia_sesion.tiene_algo&&r.molestia_sesion.zona;});
+      var zonaCount={};
+      conMol.forEach(function(r){var z=r.molestia_sesion.zona;zonaCount[z]=(zonaCount[z]||0)+1;});
+      Object.keys(zonaCount).forEach(function(z){
+        if(zonaCount[z]>=2){
+          html+='<div style="background:rgba(255,107,53,.07);border:1px solid rgba(255,107,53,.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#FF6B35;margin-bottom:6px">'+
+            '⚠️ '+c.nombre+' reporta molestia en <strong>'+z+'</strong> ('+zonaCount[z]+'x en últimas sesiones). Revisar carga.</div>';
+        }
+      });
+    }
+
+    // ── Alerta peso sobre categoría con poco tiempo para pelea ──
+    if(c.tipo_cliente==='combate'&&c.fecha_pelea&&c.peso_categoria&&recentProg&&recentProg.length){
+      var fpA=new Date(c.fecha_pelea),diasParaP=Math.max(0,Math.ceil((fpA-hoyD)/(24*3600*1000)));
+      var pesoAct=recentProg[0].peso;
+      if(pesoAct&&diasParaP>0&&diasParaP<=21){
+        var pctSobre=Math.round((pesoAct-c.peso_categoria)/c.peso_categoria*100);
+        if(pctSobre>8){
+          html+='<div style="background:rgba(255,23,68,.07);border:1px solid rgba(255,23,68,.35);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#FF1744;margin-bottom:6px">'+
+            '🚨 '+c.nombre+' está al +'+pctSobre+'% sobre categoría ('+pesoAct+'kg / cat. '+c.peso_categoria+'kg) con '+diasParaP+' días para la pelea.</div>';
+        }
+      }
+    }
+
+    // ── Alerta sin abrir la app 3+ días ──
+    var _qdA=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+    if(_qdA.ultimo_acceso){
+      var lastAccess=new Date(_qdA.ultimo_acceso);
+      var diasSinApp=Math.floor((hoyD-lastAccess)/(24*3600*1000));
+      if(diasSinApp>=3){
+        html+='<div style="background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#FFB300;margin-bottom:6px">'+
+          '⚠️ '+c.nombre+' lleva '+diasSinApp+' días sin abrir la app.</div>';
+      }
+    }
+  }catch(e){console.warn('alertas:',e);}
+  return html;
 }
 
 // ══════════════════════════════════════════════════════
@@ -9239,6 +9329,25 @@ async function loadCamp(){
       '</div>'+
     '</div>';
 
+  // ── MODO AMATEUR vs AVANZADO ─────────────────────────────────
+  var _nivelCombate=c.nivel_combate||'';
+  var _isAmateur=(_nivelCombate==='novel'||_nivelCombate==='amateur');
+  var _AMATEUR_FASE={
+    base:'Esta semana: hazte más fuerte',
+    camp_cronico:'Esta semana: lleva esa fuerza al ring',
+    peaking:'Esta semana: llega fresco y activado',
+    fight_week:'Esta semana: nada nuevo, llegás activado',
+    post_pesaje:'Hoy: recarga y descansa',
+    post_pelea:'Esta semana: recuperación total'
+  };
+  var _AMATEUR_RIR={
+    'RIR 3-4':'Para cuando todavía podrías hacer 3-4 más',
+    'RIR 2-3':'Para cuando podrías hacer 2-3 más',
+    'RIR 1-2':'Para cuando podrías hacer 1-2 más',
+    'RIR 0-1':'Al máximo — último o penúltimo rep posible',
+    'RIR 4-5':'Suave — siempre te queda mucho en el depósito'
+  };
+
   // ── FASE ACTUAL (siempre visible) ────────────────────────────
   var fase=getFaseCombate(c);
   var faseP=FASE_COMBATE_PARAMS[fase];
@@ -9272,9 +9381,9 @@ async function loadCamp(){
   // Top row: phase label + days
   html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
   html+='<div>';
-  html+='<div style="font-size:10px;font-weight:700;color:rgba('+faseCol+',.8);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px">Fase actual</div>';
-  html+='<div style="font-size:22px;font-weight:900;color:rgba('+faseCol+',1)">'+faseP.label+'</div>';
-  html+='<div style="font-size:11px;color:var(--text-3);margin-top:2px">Vol: '+volPct+' · '+faseP.rir+'</div>';
+  html+='<div style="font-size:10px;font-weight:700;color:rgba('+faseCol+',.8);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px">'+(_isAmateur?'Esta semana':'Fase actual')+'</div>';
+  html+='<div style="font-size:22px;font-weight:900;color:rgba('+faseCol+',1)">'+(_isAmateur&&_AMATEUR_FASE[fase]?_AMATEUR_FASE[fase]:faseP.label)+'</div>';
+  html+='<div style="font-size:11px;color:var(--text-3);margin-top:2px">'+(_isAmateur?(_AMATEUR_RIR[faseP.rir]||faseP.rir):'Vol: '+volPct+' · '+faseP.rir)+'</div>';
   html+='</div>';
   if(diasFight!==null){
     html+='<div style="text-align:center;background:rgba('+faseCol+',.1);border:1px solid rgba('+faseCol+',.2);border-radius:10px;padding:10px 16px">';
