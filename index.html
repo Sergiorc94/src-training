@@ -61,6 +61,8 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
 .bg{background:transparent;color:#4D9FFF;border:1.5px solid rgba(0,85,255,0.3)}.bg:hover{background:rgba(0,85,255,0.08)}
 .bs{background:#00C853;color:#000}
 .bsm{padding:5px 12px;font-size:12px}
+.nc-pill{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#8896AA;transition:all .15s;white-space:nowrap}
+.nc-pill.on{background:rgba(0,85,255,.2);border-color:rgba(0,85,255,.6);color:#60A5FA}
 .bbl{width:100%;justify-content:center}
 .mp{background:#0D1528;border-radius:8px;padding:12px 8px;text-align:center;border:1px solid #1A2A40}
 .mpv{font-size:28px;font-weight:900;line-height:1}
@@ -1342,31 +1344,54 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
             </select>
           </div>
           <div class="field" style="grid-column:1/-1"><label>Intolerancias o alergias</label><textarea id="nc-alergias" placeholder="Lactosa, gluten, frutos secos..." style="height:40px;resize:none"></textarea></div>
+          <!-- Checkboxes ocultos — los leen los scripts -->
+          <input type="checkbox" id="nc-p-pollo" style="display:none">
+          <input type="checkbox" id="nc-p-pavo" style="display:none">
+          <input type="checkbox" id="nc-p-ternera" style="display:none">
+          <input type="checkbox" id="nc-p-salmon" style="display:none">
+          <input type="checkbox" id="nc-p-merluza" style="display:none">
+          <input type="checkbox" id="nc-p-atun" style="display:none">
+          <input type="checkbox" id="nc-p-huevos" style="display:none">
+          <input type="checkbox" id="nc-p-legumbres" style="display:none">
+          <input type="checkbox" id="nc-p-tofu" style="display:none">
+          <input type="checkbox" id="nc-c-arroz" style="display:none">
+          <input type="checkbox" id="nc-c-pasta" style="display:none">
+          <input type="checkbox" id="nc-c-patata" style="display:none">
+          <input type="checkbox" id="nc-c-pan" style="display:none">
+          <input type="checkbox" id="nc-c-avena" style="display:none">
+          <input type="checkbox" id="nc-c-fruta" style="display:none">
+          <input type="checkbox" id="nc-c-tortitas" style="display:none">
+          <input type="checkbox" id="nc-c-boniato" style="display:none">
+          <input type="checkbox" id="nc-s-proteina" style="display:none">
+          <input type="checkbox" id="nc-s-creatina" style="display:none">
+          <input type="checkbox" id="nc-s-cafeina" style="display:none">
+          <input type="checkbox" id="nc-s-ninguno" style="display:none">
+
           <div class="field" style="grid-column:1/-1">
             <label>Proteínas preferidas</label>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px">
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-p-pollo" checked style="flex-shrink:0"> Pollo</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-p-pavo" style="flex-shrink:0"> Pavo</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-p-ternera" style="flex-shrink:0"> Ternera</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-p-salmon" style="flex-shrink:0"> Salmón</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-p-merluza" style="flex-shrink:0"> Merluza</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-p-atun" checked style="flex-shrink:0"> Atún</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-p-huevos" checked style="flex-shrink:0"> Huevos</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-p-legumbres" style="flex-shrink:0"> Legumb.</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-p-tofu" style="flex-shrink:0"> Tofu</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+              <button type="button" onclick="ncPill(this,'nc-p-pollo')" class="nc-pill">Pollo</button>
+              <button type="button" onclick="ncPill(this,'nc-p-pavo')" class="nc-pill">Pavo</button>
+              <button type="button" onclick="ncPill(this,'nc-p-ternera')" class="nc-pill">Ternera</button>
+              <button type="button" onclick="ncPill(this,'nc-p-salmon')" class="nc-pill">Salmón</button>
+              <button type="button" onclick="ncPill(this,'nc-p-merluza')" class="nc-pill">Merluza</button>
+              <button type="button" onclick="ncPill(this,'nc-p-atun')" class="nc-pill">Atún</button>
+              <button type="button" onclick="ncPill(this,'nc-p-huevos')" class="nc-pill">Huevos</button>
+              <button type="button" onclick="ncPill(this,'nc-p-legumbres')" class="nc-pill">Legumbres</button>
+              <button type="button" onclick="ncPill(this,'nc-p-tofu')" class="nc-pill">Tofu</button>
             </div>
           </div>
           <div class="field" style="grid-column:1/-1">
             <label>Carbohidratos habituales</label>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px">
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-c-arroz" checked style="flex-shrink:0"> Arroz</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-c-pasta" style="flex-shrink:0"> Pasta</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-c-patata" checked style="flex-shrink:0"> Patata</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-c-pan" style="flex-shrink:0"> Pan</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-c-avena" checked style="flex-shrink:0"> Avena</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-c-fruta" checked style="flex-shrink:0"> Fruta</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-c-tortitas" style="flex-shrink:0"> Tortitas</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-c-boniato" style="flex-shrink:0"> Boniato</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+              <button type="button" onclick="ncPill(this,'nc-c-arroz')" class="nc-pill">Arroz</button>
+              <button type="button" onclick="ncPill(this,'nc-c-pasta')" class="nc-pill">Pasta</button>
+              <button type="button" onclick="ncPill(this,'nc-c-patata')" class="nc-pill">Patata</button>
+              <button type="button" onclick="ncPill(this,'nc-c-pan')" class="nc-pill">Pan</button>
+              <button type="button" onclick="ncPill(this,'nc-c-avena')" class="nc-pill">Avena</button>
+              <button type="button" onclick="ncPill(this,'nc-c-fruta')" class="nc-pill">Fruta</button>
+              <button type="button" onclick="ncPill(this,'nc-c-tortitas')" class="nc-pill">Tortitas arroz</button>
+              <button type="button" onclick="ncPill(this,'nc-c-boniato')" class="nc-pill">Boniato</button>
             </div>
           </div>
           <div class="field" style="grid-column:1/-1"><label>Alimentos que NO quiere ver</label><textarea id="nc-evitar" placeholder="Cebolla, pimiento, queso..." style="height:40px;resize:none"></textarea></div>
@@ -1376,11 +1401,11 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           </div>
           <div class="field" style="grid-column:1/-1">
             <label>Suplementos actuales</label>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px">
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-s-proteina" style="flex-shrink:0"> Proteína en polvo</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-s-creatina" style="flex-shrink:0"> Creatina</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-s-cafeina" style="flex-shrink:0"> Cafeína</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;min-width:0"><input type="checkbox" id="nc-s-ninguno" style="flex-shrink:0"> Ninguno</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+              <button type="button" onclick="ncPill(this,'nc-s-proteina')" class="nc-pill">Proteína en polvo</button>
+              <button type="button" onclick="ncPill(this,'nc-s-creatina')" class="nc-pill">Creatina</button>
+              <button type="button" onclick="ncPill(this,'nc-s-cafeina')" class="nc-pill">Cafeína</button>
+              <button type="button" onclick="ncPill(this,'nc-s-ninguno')" class="nc-pill">Ninguno</button>
             </div>
           </div>
         </div>
@@ -6642,22 +6667,28 @@ function renderAdminGrid(){
 }
 
 
+function ncPill(btn,chkId){
+  var chk=document.getElementById(chkId);
+  if(!chk) return;
+  chk.checked=!chk.checked;
+  btn.classList.toggle('on',chk.checked);
+}
+
 function abrirModalNuevoCliente(){
-  // Reset completo del formulario
   var form=document.getElementById('m-nuevo');
   if(!form) return;
-  // Limpiar todos los inputs de texto/número/date
+  // Limpiar inputs
   form.querySelectorAll('input[type=text],input[type=number],input[type=date],input[type=time],input[type=email],textarea').forEach(function(el){el.value='';});
-  // Limpiar selects a su primer valor
   form.querySelectorAll('select').forEach(function(el){el.selectedIndex=0;});
-  // Desmarcar todos los checkboxes
+  // Desmarcar checkboxes ocultos
   form.querySelectorAll('input[type=checkbox]').forEach(function(el){el.checked=false;});
-  // Ocultar alerta de corte
+  // Resetear píldoras visuales
+  form.querySelectorAll('.nc-pill').forEach(function(btn){btn.classList.remove('on');});
+  // Ocultar alertas
   var corteEl=document.getElementById('nc-corte-alerta');
   if(corteEl) corteEl.style.display='none';
   var macrosAviso=document.getElementById('nc-macros-aviso');
   if(macrosAviso) macrosAviso.style.display='none';
-  // Resetear tipo a fitness
   ncSetTipo('fitness');
   showM('m-nuevo');
 }
