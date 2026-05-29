@@ -7142,7 +7142,7 @@ async function adminGenerarOpcionesNutri(){
   var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
   _qdc.opciones_nutri=sugerencia;
   try{
-    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
+    await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:c.id,p_datos:{cuestionario_datos:_qdc}})});
     c.cuestionario_datos=_qdc;
     S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
     toast('✅ Sugerencia generada — revísala y aprueba','ok');
@@ -7158,7 +7158,7 @@ async function adminAprobarOpcionesNutri(){
   _qdc.opciones_nutri.aprobado=true;
   _qdc.opciones_nutri.aprobado_en=new Date().toISOString().split('T')[0];
   try{
-    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
+    await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:c.id,p_datos:{cuestionario_datos:_qdc}})});
     c.cuestionario_datos=_qdc;
     S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
     toast('✅ Plan nutricional activado para el atleta','ok');
@@ -7172,7 +7172,7 @@ async function adminDesactivarOpcionesNutri(){
   var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
   if(_qdc.opciones_nutri) _qdc.opciones_nutri.aprobado=false;
   try{
-    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
+    await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:c.id,p_datos:{cuestionario_datos:_qdc}})});
     c.cuestionario_datos=_qdc;
     S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
     toast('Plan desactivado','ok');
@@ -7264,7 +7264,7 @@ async function adminGuardarOpcion(idx, tipo){
     _opts[tipo]=opData;
   }
   try{
-    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
+    await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:c.id,p_datos:{cuestionario_datos:_qdc}})});
     c.cuestionario_datos=_qdc;
     S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
     document.getElementById('m-nutri-op').style.display='none';
@@ -7279,7 +7279,7 @@ async function adminEliminarOpcion(idx){
   var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
   if(_qdc.opciones_nutri&&_qdc.opciones_nutri.opciones) _qdc.opciones_nutri.opciones.splice(idx,1);
   try{
-    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
+    await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:c.id,p_datos:{cuestionario_datos:_qdc}})});
     c.cuestionario_datos=_qdc;
     S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
     document.getElementById('m-nutri-op').style.display='none';
@@ -7305,7 +7305,7 @@ async function enviarMensajeEntrenador(textoForzado){
     };
   }
   try{
-    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
+    await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:c.id,p_datos:{cuestionario_datos:_qdc}})});
     c.cuestionario_datos=_qdc;
     S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
     toast(texto?'📤 Mensaje enviado a '+c.nombre:'🗑️ Mensaje borrado','ok');
