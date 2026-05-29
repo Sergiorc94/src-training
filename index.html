@@ -1203,59 +1203,66 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
 
 <!-- MODAL NUEVO CLIENTE -->
 <div class="modal" id="m-nuevo" onclick="if(event.target===this)hideM('m-nuevo')">
-  <div class="mbox">
+  <div class="mbox" style="max-width:600px">
     <div class="mhdr"><div class="mt">NUEVO CLIENTE</div><button class="mclose" onclick="hideM('m-nuevo')">✕</button></div>
     <div class="mbody">
-      <div class="g2">
+
+      <!-- ── SECCIÓN 1: DATOS BÁSICOS (siempre visibles) ── -->
+      <div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Datos básicos</div>
+      <div class="g2" style="margin-bottom:.75rem">
         <div class="field"><label>Nombre *</label><input type="text" id="nc-nom" placeholder="Nombre"></div>
         <div class="field"><label>Apellido</label><input type="text" id="nc-ape" placeholder="Apellido"></div>
         <div class="field"><label>Email</label><input type="email" id="nc-email" placeholder="email@..."></div>
-        <div class="field"><label>Código acceso *</label><input type="text" id="nc-cod" placeholder="ej. CARLOS01"></div>
-        <div class="field"><label>Tipo de cliente</label><select id="nc-tipo" onchange="toggleNuevoClienteCombate()"><option value="fitness">💪 Fitness</option><option value="combate">🥊 Combate</option></select></div>
-        <div class="field"><label>Peso (kg)</label><input type="number" id="nc-peso" step="0.5" placeholder="80"></div>
-        <div class="field"><label>Altura (cm)</label><input type="number" id="nc-alt" placeholder="175"></div>
-        <div class="field"><label>Edad</label><input type="number" id="nc-edad" placeholder="32"></div>
+        <div class="field"><label>Código acceso *</label><input type="text" id="nc-cod" placeholder="ej. CARLOS01" style="text-transform:uppercase"></div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Tipo de cliente</label>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button id="nc-tipo-fit" onclick="ncSetTipo('fitness')" class="btn bp bsm" style="flex:1">💪 Fitness</button>
+            <button id="nc-tipo-comb" onclick="ncSetTipo('combate')" class="btn bg bsm" style="flex:1">🥊 Combate</button>
+          </div>
+          <input type="hidden" id="nc-tipo" value="fitness">
+        </div>
         <div class="field"><label>Sexo</label><select id="nc-sex"><option value="H">Hombre</option><option value="M">Mujer</option></select></div>
-        <div class="field"><label>Objetivo</label>
-          <select id="nc-obj">
-            <option value="deficit">Déficit moderado (-400 kcal)</option>
-            <option value="deficit_agresivo">Déficit agresivo (-600 kcal)</option>
-            <option value="recomp">Recomposición (-250 kcal)</option>
-            <option value="superavit">Superávit (+300 kcal)</option>
-            <option value="volumen_hc">Volumen HC (+500 kcal)</option>
-          </select>
-        </div>
-        <div class="field"><label>Nº comidas</label>
-          <select id="nc-ncom"><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option></select>
-        </div>
-        <div class="field"><label>Actividad laboral</label>
-          <select id="nc-act">
-            <option value="1.2">Sedentario (oficina)</option>
-            <option value="1.375" selected>Ligero (algo de movimiento)</option>
-            <option value="1.55">Moderado (entreno 3-5 días)</option>
-            <option value="1.725">Activo (trabajo físico + entreno)</option>
-          </select>
-        </div>
-        <div class="field"><label>Días de entreno / semana</label>
-          <select id="nc-dias-ent">
-            <option value="0">0 — Solo cardio/movilidad</option>
-            <option value="2">2 días</option>
-            <option value="3" selected>3 días</option>
-            <option value="4">4 días</option>
-            <option value="5">5 días</option>
-            <option value="6">6 días</option>
-          </select>
-        </div>
-        <div class="field"><label>Semanas de protocolo</label><input type="number" id="nc-sem-prot" placeholder="8" min="1" max="52"></div>
-        <div class="field"><label>Inicio protocolo</label><input type="date" id="nc-fecha-prot"></div>
+        <div class="field"><label>Edad</label><input type="number" id="nc-edad" placeholder="28"></div>
+        <div class="field"><label>Peso actual (kg) *</label><input type="number" id="nc-peso" step="0.5" placeholder="80"></div>
+        <div class="field"><label>Altura (cm)</label><input type="number" id="nc-alt" placeholder="175"></div>
       </div>
-      <!-- CAMPOS COMBATE — visibles solo cuando tipo = combate -->
-      <div id="nc-combate-fields" style="display:none;background:rgba(255,23,68,.04);border:1px solid rgba(255,23,68,.15);border-radius:10px;padding:12px;margin-bottom:1rem">
-        <div style="font-size:11px;font-weight:800;color:#FF6B35;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">⚔️ Datos de combate</div>
-        <div class="g2">
-          <div class="field"><label>📅 Fecha próxima pelea</label><input type="date" id="nc-fecha-pelea"></div>
-          <div class="field"><label>⚖️ Categoría de peso (kg)</label><input type="number" id="nc-peso-cat" step="0.5" placeholder="70"></div>
-          <div class="field"><label>🎯 Perfil ATR</label>
+
+      <!-- ══════════ COMBATE — SECCIONES 2-5 ══════════ -->
+      <div id="nc-bloque-combate" style="display:none">
+
+        <!-- SECCIÓN 2: COMBATE -->
+        <div style="font-size:10px;font-weight:800;color:#FF6B35;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-top:1px solid rgba(255,107,53,.2);padding-top:.75rem">⚔️ Datos de combate</div>
+        <div class="g2" style="margin-bottom:.75rem">
+          <div class="field">
+            <label>Deporte *</label>
+            <select id="nc-deporte">
+              <option value="mma">MMA</option>
+              <option value="boxeo">Boxeo</option>
+              <option value="kickboxing">Kickboxing</option>
+              <option value="muay_thai">Muay Thai</option>
+              <option value="grappling">Grappling</option>
+              <option value="bjj">BJJ</option>
+              <option value="judo">Judo</option>
+              <option value="wrestling">Wrestling</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Nivel competitivo *</label>
+            <select id="nc-nivel-combate">
+              <option value="novel">Novel (menos de 1 año)</option>
+              <option value="amateur" selected>Amateur</option>
+              <option value="semipro">Semiprofesional</option>
+              <option value="avanzado">Profesional</option>
+            </select>
+          </div>
+          <div class="field"><label>Categoría de peso objetivo (kg) *</label><input type="number" id="nc-peso-cat" step="0.5" placeholder="70" oninput="ncActualizarCorte()"></div>
+          <div class="field"><label>Walking weight habitual (kg)<span style="font-size:10px;color:#4A5568;font-weight:400"> — peso fuera de camp</span></label><input type="number" id="nc-walking-weight" step="0.5" placeholder="78" oninput="ncActualizarCorte()"></div>
+          <div id="nc-corte-alerta" style="display:none;grid-column:1/-1"></div>
+          <div class="field"><label>Fecha próxima pelea</label><input type="date" id="nc-fecha-pelea"></div>
+          <div class="field">
+            <label>Perfil ATR<span style="font-size:10px;color:#4A5568;font-weight:400"> — opcional</span></label>
             <select id="nc-perfil-atleta">
               <option value="">— Sin definir —</option>
               <option value="halcon">🦅 Halcón — equilibrado, base</option>
@@ -1264,30 +1271,205 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
               <option value="superman">🦸 Superman — equilibrado nivel alto</option>
             </select>
           </div>
+          <div class="field">
+            <label>¿Ha fallado algún pesaje?</label>
+            <select id="nc-fallo-pesaje">
+              <option value="no">No</option>
+              <option value="una_vez">Sí, una vez</option>
+              <option value="varias">Sí, varias veces</option>
+            </select>
+          </div>
+          <div class="field"><label>Nº de peleas disputadas</label><input type="number" id="nc-num-peleas" placeholder="0" min="0"></div>
         </div>
-      </div>
-      <button onclick="calcularMacrosAuto()" style="width:100%;padding:10px;background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.3);color:#00C853;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:1rem">
-        ⚡ Calcular macros automáticamente
-      </button>
-      <div style="font-size:11px;font-weight:700;color:#00C853;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">💪 Día de entreno</div>
-      <div class="g2">
-        <div class="field"><label>Kcal objetivo</label><input type="number" id="nc-kcal" placeholder="1800"></div>
-        <div class="field"><label>Proteína (g)</label><input type="number" id="nc-prot" placeholder="160"></div>
-        <div class="field"><label>Carbos (g)</label><input type="number" id="nc-carb" placeholder="170"></div>
-        <div class="field"><label>Grasas (g)</label><input type="number" id="nc-gras" placeholder="55"></div>
-      </div>
-      <div style="font-size:11px;font-weight:700;color:#6E8090;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px">🛌 Día de descanso (carb cycling)</div>
-      <div class="g2">
-        <div class="field"><label>Kcal descanso</label><input type="number" id="nc-kcal-d" placeholder="auto"></div>
-        <div class="field"><label>Proteína (g)</label><input type="number" id="nc-prot-d" placeholder="auto"></div>
-        <div class="field"><label>Carbos (g)</label><input type="number" id="nc-carb-d" placeholder="auto"></div>
-        <div class="field"><label>Grasas (g)</label><input type="number" id="nc-gras-d" placeholder="auto"></div>
-      </div>
-      <div class="field"><label>Notas</label><textarea id="nc-not" placeholder="Lesiones, restricciones..."></textarea></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">
+
+        <!-- SECCIÓN 3: ENTRENAMIENTO COMBATE -->
+        <div style="font-size:10px;font-weight:800;color:#4D9FFF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-top:1px solid rgba(77,159,255,.2);padding-top:.75rem">💪 Entrenamiento</div>
+        <div class="g2" style="margin-bottom:.75rem">
+          <div class="field">
+            <label>Días de gym / semana *<span style="font-size:10px;color:#4A5568;font-weight:400"> — sin contar técnica</span></label>
+            <select id="nc-dias-ent">
+              <option value="2">2 días</option>
+              <option value="3" selected>3 días</option>
+              <option value="4">4 días</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Días de técnica / semana</label>
+            <select id="nc-dias-tec">
+              <option value="2">2 días</option>
+              <option value="3" selected>3 días</option>
+              <option value="4">4 días</option>
+              <option value="5">5 días</option>
+              <option value="6">6 días</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Acceso a gimnasio con pesas *</label>
+            <select id="nc-material">
+              <option value="completo">Sí, siempre</option>
+              <option value="basico">A veces</option>
+              <option value="casa">No — solo en casa</option>
+            </select>
+          </div>
+          <div class="field"><label>Hora habitual de entreno</label><input type="time" id="nc-hora-entreno" value="19:00"></div>
+          <div class="field">
+            <label>¿Horario fijo o variable?</label>
+            <select id="nc-horario-varia">
+              <option value="no">Bastante fijo</option>
+              <option value="si">Cambia según la semana</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:1/-1"><label>Lesiones o molestias actuales</label><textarea id="nc-lesiones" placeholder="Rodilla derecha, hombro izquierdo..." style="height:48px;resize:none"></textarea></div>
+          <div class="field" style="grid-column:1/-1"><label>Historial de lesiones recurrentes</label><textarea id="nc-historial-lesiones" placeholder="Tendencia a problemas en rodilla, espalda lumbar..." style="height:48px;resize:none"></textarea></div>
+        </div>
+
+        <!-- SECCIÓN 4: ALIMENTACIÓN COMBATE -->
+        <div style="font-size:10px;font-weight:800;color:#FFB300;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-top:1px solid rgba(255,179,0,.2);padding-top:.75rem">🥗 Alimentación</div>
+        <div class="g2" style="margin-bottom:.75rem">
+          <div class="field">
+            <label>Nº de comidas al día *</label>
+            <select id="nc-ncom"><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option></select>
+          </div>
+          <div class="field">
+            <label>Tipo de alimentación *</label>
+            <select id="nc-tipo-dieta">
+              <option value="omnivoro">Omnívoro</option>
+              <option value="sin_cerdo">Sin cerdo</option>
+              <option value="sin_gluten">Sin gluten</option>
+              <option value="vegetariano">Vegetariano</option>
+              <option value="vegano">Vegano</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:1/-1"><label>Intolerancias o alergias</label><textarea id="nc-alergias" placeholder="Lactosa, gluten, frutos secos..." style="height:40px;resize:none"></textarea></div>
+          <div class="field" style="grid-column:1/-1">
+            <label>Proteínas preferidas</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-p-pollo" checked> Pollo</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-p-pavo"> Pavo</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-p-ternera"> Ternera</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-p-salmon"> Salmón</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-p-merluza"> Merluza</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-p-atun" checked> Atún</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-p-huevos" checked> Huevos</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-p-legumbres"> Legumbres</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-p-tofu"> Tofu</label>
+            </div>
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label>Carbohidratos habituales</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-c-arroz" checked> Arroz</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-c-pasta"> Pasta</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-c-patata" checked> Patata</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-c-pan"> Pan</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-c-avena" checked> Avena</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-c-fruta" checked> Fruta</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-c-tortitas"> Tortitas arroz</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-c-boniato"> Boniato</label>
+            </div>
+          </div>
+          <div class="field" style="grid-column:1/-1"><label>Alimentos que NO quiere ver</label><textarea id="nc-evitar" placeholder="Cebolla, pimiento, queso..." style="height:40px;resize:none"></textarea></div>
+          <div class="field">
+            <label>¿Tiene báscula de cocina?</label>
+            <select id="nc-bascula"><option value="si">Sí</option><option value="no">No</option></select>
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label>Suplementos actuales</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-s-proteina"> Proteína en polvo</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-s-creatina"> Creatina</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-s-cafeina"> Cafeína</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="nc-s-ninguno"> Ninguno</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECCIÓN 5: MACROS COMBATE -->
+        <div style="font-size:10px;font-weight:800;color:#00C853;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-top:1px solid rgba(0,200,83,.2);padding-top:.75rem">⚡ Macros (UFC Performance Institute)</div>
+        <button onclick="calcularMacrosAuto()" style="width:100%;padding:10px;background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.3);color:#00C853;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:.75rem">
+          ⚡ Calcular macros automáticamente
+        </button>
+        <div id="nc-macros-aviso" style="display:none;font-size:11px;color:#FF6B35;background:rgba(255,107,53,.07);border:1px solid rgba(255,107,53,.25);border-radius:6px;padding:6px 10px;margin-bottom:.5rem"></div>
+        <div class="g2" style="margin-bottom:.5rem">
+          <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:#00C853;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Día ROJO 🔴 (sparring/fuerza)</div>
+          <div class="field"><label>Kcal</label><input type="number" id="nc-kcal" placeholder="2400"></div>
+          <div class="field"><label>Proteína (g)</label><input type="number" id="nc-prot" placeholder="160"></div>
+          <div class="field"><label>Carbos (g)</label><input type="number" id="nc-carb" placeholder="300"></div>
+          <div class="field"><label>Grasas (g)</label><input type="number" id="nc-gras" placeholder="60"></div>
+        </div>
+        <div class="g2" style="margin-bottom:.75rem">
+          <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Día AMARILLO 🟡 (descanso/técnica suave)</div>
+          <div class="field"><label>Kcal</label><input type="number" id="nc-kcal-d" placeholder="auto"></div>
+          <div class="field"><label>Proteína (g)</label><input type="number" id="nc-prot-d" placeholder="auto"></div>
+          <div class="field"><label>Carbos (g)</label><input type="number" id="nc-carb-d" placeholder="auto"></div>
+          <div class="field"><label>Grasas (g)</label><input type="number" id="nc-gras-d" placeholder="auto"></div>
+        </div>
+
+      </div><!-- fin bloque combate -->
+
+      <!-- ══════════ FITNESS — CAMPOS ESPECÍFICOS ══════════ -->
+      <div id="nc-bloque-fitness" style="">
+        <div style="font-size:10px;font-weight:800;color:#4D9FFF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-top:1px solid rgba(77,159,255,.15);padding-top:.75rem">💪 Configuración fitness</div>
+        <div class="g2" style="margin-bottom:.75rem">
+          <div class="field"><label>Objetivo</label>
+            <select id="nc-obj">
+              <option value="deficit">Déficit moderado (-400 kcal)</option>
+              <option value="deficit_agresivo">Déficit agresivo (-600 kcal)</option>
+              <option value="recomp">Recomposición (-250 kcal)</option>
+              <option value="superavit">Superávit (+300 kcal)</option>
+              <option value="volumen_hc">Volumen HC (+500 kcal)</option>
+            </select>
+          </div>
+          <div class="field"><label>Actividad laboral</label>
+            <select id="nc-act">
+              <option value="1.2">Sedentario (oficina)</option>
+              <option value="1.375" selected>Ligero (algo de movimiento)</option>
+              <option value="1.55">Moderado (entreno 3-5 días)</option>
+              <option value="1.725">Activo (trabajo físico + entreno)</option>
+            </select>
+          </div>
+          <div class="field"><label>Días de entreno / semana</label>
+            <select id="nc-dias-ent-fit">
+              <option value="0">0 — Solo cardio</option>
+              <option value="2">2 días</option>
+              <option value="3" selected>3 días</option>
+              <option value="4">4 días</option>
+              <option value="5">5 días</option>
+              <option value="6">6 días</option>
+            </select>
+          </div>
+          <div class="field"><label>Nº comidas</label>
+            <select id="nc-ncom-fit"><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option></select>
+          </div>
+          <div class="field"><label>Semanas de protocolo</label><input type="number" id="nc-sem-prot" placeholder="8" min="1" max="52"></div>
+          <div class="field"><label>Inicio protocolo</label><input type="date" id="nc-fecha-prot"></div>
+        </div>
+        <button onclick="calcularMacrosAuto()" style="width:100%;padding:10px;background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.3);color:#00C853;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:.75rem">
+          ⚡ Calcular macros automáticamente
+        </button>
+        <div class="g2" style="margin-bottom:.5rem">
+          <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:#00C853;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">💪 Día de entreno</div>
+          <div class="field"><label>Kcal objetivo</label><input type="number" id="nc-kcal-f" placeholder="1800"></div>
+          <div class="field"><label>Proteína (g)</label><input type="number" id="nc-prot-f" placeholder="160"></div>
+          <div class="field"><label>Carbos (g)</label><input type="number" id="nc-carb-f" placeholder="170"></div>
+          <div class="field"><label>Grasas (g)</label><input type="number" id="nc-gras-f" placeholder="55"></div>
+        </div>
+        <div class="g2" style="margin-bottom:.75rem">
+          <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:#6E8090;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🛌 Día de descanso</div>
+          <div class="field"><label>Kcal</label><input type="number" id="nc-kcal-df" placeholder="auto"></div>
+          <div class="field"><label>Proteína (g)</label><input type="number" id="nc-prot-df" placeholder="auto"></div>
+          <div class="field"><label>Carbos (g)</label><input type="number" id="nc-carb-df" placeholder="auto"></div>
+          <div class="field"><label>Grasas (g)</label><input type="number" id="nc-gras-df" placeholder="auto"></div>
+        </div>
+      </div><!-- fin bloque fitness -->
+
+      <!-- NOTAS INTERNAS + BOTONES -->
+      <div class="field" style="margin-bottom:1rem"><label>Notas internas (solo las ve Sergio)</label><textarea id="nc-not" placeholder="Trabajo a turnos, lesión antigua de rodilla, motivación alta..." style="height:56px;resize:none"></textarea></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
         <button class="btn bg" onclick="hideM('m-nuevo')">Cancelar</button>
-        <button class="btn bp" id="btn-crear" onclick="crearCliente()">Crear cliente</button>
+        <button class="btn bp" id="btn-crear" onclick="crearCliente()">🥊 Crear cliente</button>
       </div>
+
     </div>
   </div>
 </div>
@@ -6443,10 +6625,57 @@ function renderAdminGrid(){
 }
 
 
+function ncSetTipo(tipo){
+  document.getElementById('nc-tipo').value=tipo;
+  var fitBtn=document.getElementById('nc-tipo-fit');
+  var combBtn=document.getElementById('nc-tipo-comb');
+  var bloqueComb=document.getElementById('nc-bloque-combate');
+  var bloqueFit=document.getElementById('nc-bloque-fitness');
+  var btnCrear=document.getElementById('btn-crear');
+  if(fitBtn) fitBtn.className=tipo==='fitness'?'btn bp bsm':'btn bg bsm';
+  if(combBtn) combBtn.className=tipo==='combate'?'btn bp bsm':'btn bg bsm';
+  if(bloqueComb) bloqueComb.style.display=tipo==='combate'?'':'none';
+  if(bloqueFit) bloqueFit.style.display=tipo==='fitness'?'':'none';
+  if(btnCrear) btnCrear.textContent=tipo==='combate'?'🥊 Crear cliente':'💪 Crear cliente';
+}
+
+function ncActualizarCorte(){
+  var ww=parseFloat(document.getElementById('nc-walking-weight')&&document.getElementById('nc-walking-weight').value)||null;
+  var cat=parseFloat(document.getElementById('nc-peso-cat')&&document.getElementById('nc-peso-cat').value)||null;
+  var el=document.getElementById('nc-corte-alerta');
+  if(!el) return;
+  if(ww&&cat){
+    var corte=parseFloat((ww-cat).toFixed(1));
+    var pct=ww>0?parseFloat((corte/ww*100).toFixed(1)):0;
+    if(corte<=0){
+      el.style.display='none';
+    } else if(pct>8){
+      el.style.display='';
+      el.style.background='rgba(255,23,68,.08)';
+      el.style.border='1px solid rgba(255,23,68,.35)';
+      el.style.color='#FF1744';
+      el.textContent='⚠️ Corte de '+corte+'kg ('+pct+'% del peso) — RIESGO ALTO. Valorar si es viable.';
+    } else if(pct>5){
+      el.style.display='';
+      el.style.background='rgba(255,179,0,.08)';
+      el.style.border='1px solid rgba(255,179,0,.3)';
+      el.style.color='#FFB300';
+      el.textContent='⚡ Corte de '+corte+'kg ('+pct+'%). Manejable con preparación correcta.';
+    } else {
+      el.style.display='';
+      el.style.background='rgba(0,200,83,.07)';
+      el.style.border='1px solid rgba(0,200,83,.25)';
+      el.style.color='#00C853';
+      el.textContent='✅ Corte de '+corte+'kg ('+pct+'%). Sin problemas.';
+    }
+  } else {
+    el.style.display='none';
+  }
+}
+
 function toggleNuevoClienteCombate(){
-  var tipo=document.getElementById('nc-tipo').value;
-  var cf=document.getElementById('nc-combate-fields');
-  if(cf) cf.style.display=(tipo==='combate')?'':'none';
+  // Deprecated — usar ncSetTipo()
+  ncSetTipo(document.getElementById('nc-tipo').value);
 }
 
 async function crearCliente(){
@@ -6454,56 +6683,153 @@ async function crearCliente(){
   const cod=document.getElementById('nc-cod').value.trim().toUpperCase();
   if(!nom||!cod){toast('Nombre y código obligatorios','err');return;}
   const tipoCliente=document.getElementById('nc-tipo').value||'fitness';
+
+  // Helper para leer checkboxes múltiples
+  function _chks(ids){return ids.filter(function(id){var el=document.getElementById(id);return el&&el.checked;}).map(function(id){return id.replace('nc-p-','').replace('nc-c-','').replace('nc-s-','');});}
+  // Helper para leer un select/input por ID
+  function _v(id){var el=document.getElementById(id);return el?el.value:null;}
+  function _n(id){var el=document.getElementById(id);return el&&el.value?parseFloat(el.value)||null:null;}
+  function _i(id){var el=document.getElementById(id);return el&&el.value?parseInt(el.value)||null:null;}
+  function _t(id){var el=document.getElementById(id);return el&&el.value.trim()?el.value.trim():null;}
+
+  // Determinar macros según tipo
+  var isCombate=tipoCliente==='combate';
+  var kcalId=isCombate?'nc-kcal':'nc-kcal-f';
+  var protId=isCombate?'nc-prot':'nc-prot-f';
+  var carbId=isCombate?'nc-carb':'nc-carb-f';
+  var grasId=isCombate?'nc-gras':'nc-gras-f';
+  var kcalDId=isCombate?'nc-kcal-d':'nc-kcal-df';
+  var protDId=isCombate?'nc-prot-d':'nc-prot-df';
+  var carbDId=isCombate?'nc-carb-d':'nc-carb-df';
+  var grasDId=isCombate?'nc-gras-d':'nc-gras-df';
+
+  // n_comidas y objetivo según tipo
+  var nComidas=isCombate?_i('nc-ncom')||5:_i('nc-ncom-fit')||5;
+  var objetivo=isCombate?'combate':(_v('nc-obj')||'deficit');
+
   try{
-    // Solo columnas originales en el POST directo
     var res=await api('clientes',{method:'POST',
       headers:{'Prefer':'return=representation'},
       body:JSON.stringify({
-        nombre:nom,apellido:document.getElementById('nc-ape').value.trim()||null,
-        email:document.getElementById('nc-email').value.trim()||null,
-        codigo_acceso:cod,activo:true,
-        peso_inicial:parseFloat(document.getElementById('nc-peso').value)||null,
-        altura:parseFloat(document.getElementById('nc-alt').value)||null,
-        edad:parseInt(document.getElementById('nc-edad').value)||null,
-        sexo:document.getElementById('nc-sex').value,
-        objetivo:document.getElementById('nc-obj').value,
-        n_comidas:parseInt(document.getElementById('nc-ncom').value)||5,
-        kcal_objetivo:parseInt(document.getElementById('nc-kcal').value)||null,
-        proteina_objetivo:parseInt(document.getElementById('nc-prot').value)||null,
-        carbos_objetivo:parseInt(document.getElementById('nc-carb').value)||null,
-        grasas_objetivo:parseInt(document.getElementById('nc-gras').value)||null,
-        notas_entrenador:document.getElementById('nc-not').value.trim()||null,
+        nombre:nom,
+        apellido:_t('nc-ape'),
+        email:_t('nc-email'),
+        codigo_acceso:cod,
+        activo:true,
+        peso_inicial:_n('nc-peso'),
+        altura:_n('nc-alt'),
+        edad:_i('nc-edad'),
+        sexo:_v('nc-sex')||'H',
+        objetivo:objetivo,
+        n_comidas:nComidas,
+        kcal_objetivo:_i(kcalId),
+        proteina_objetivo:_i(protId),
+        carbos_objetivo:_i(carbId),
+        grasas_objetivo:_i(grasId),
+        notas_entrenador:_t('nc-not'),
       })});
     var newId=Array.isArray(res)?res[0]&&res[0].id:res&&res.id;
-    if(newId){
-      // Columnas nuevas via RPC (schema cache workaround)
-      try{
-        var _ncExtras={
-          p_id:newId,
-          p_tipo_cliente:tipoCliente,
-          p_kcal_descanso:parseInt(document.getElementById('nc-kcal-d').value)||null,
-          p_proteina_descanso:parseInt(document.getElementById('nc-prot-d').value)||null,
-          p_carbos_descanso:parseInt(document.getElementById('nc-carb-d').value)||null,
-          p_grasas_descanso:parseInt(document.getElementById('nc-gras-d').value)||null,
-          p_dias_entreno:parseInt(document.getElementById('nc-dias-ent').value)||3,
-          p_semanas_protocolo:parseInt(document.getElementById('nc-sem-prot').value)||null,
-        };
-        if(tipoCliente==='combate'){
-          var _fp=document.getElementById('nc-fecha-pelea')?document.getElementById('nc-fecha-pelea').value||null:null;
-          var _pc=document.getElementById('nc-peso-cat')?parseFloat(document.getElementById('nc-peso-cat').value)||null:null;
-          var _pa=document.getElementById('nc-perfil-atleta')?document.getElementById('nc-perfil-atleta').value||null:null;
-          if(_fp) _ncExtras.p_fecha_pelea=_fp;
-          if(_pc) _ncExtras.p_peso_categoria=_pc;
-          if(_pa){
-            // guardar perfil_atleta en cuestionario_datos via p_datos
-            _ncExtras.p_datos={cuestionario_datos:{perfil_atleta:_pa}};
-          }
+    if(!newId) throw new Error('No se obtuvo ID del cliente creado');
+
+    // Columnas nuevas y datos extras via RPC
+    try{
+      var _ncExtras={p_id:newId, p_tipo_cliente:tipoCliente};
+
+      // Macros descanso
+      var kcalD=_i(kcalDId),protD=_i(protDId),carbD=_i(carbDId),grasD=_i(grasDId);
+      if(kcalD) _ncExtras.p_kcal_descanso=kcalD;
+      if(protD) _ncExtras.p_proteina_descanso=protD;
+      if(carbD) _ncExtras.p_carbos_descanso=carbD;
+      if(grasD) _ncExtras.p_grasas_descanso=grasD;
+
+      // cuestionario_datos — datos que van en JSONB
+      var _qd={};
+
+      if(isCombate){
+        // === COMBATE ===
+        var fp=_v('nc-fecha-pelea')||null;
+        var pc=_n('nc-peso-cat');
+        var deporte=_v('nc-deporte')||null;
+        var nivel=_v('nc-nivel-combate')||null;
+        var ww=_n('nc-walking-weight');
+        var perfil=_v('nc-perfil-atleta')||null;
+        var falloPesaje=_v('nc-fallo-pesaje')||'no';
+        var numPeleas=_i('nc-num-peleas');
+        var diasTec=_i('nc-dias-tec');
+        var material=_v('nc-material')||null;
+        var horaEntreno=_v('nc-hora-entreno')||null;
+        var horarioVaria=_v('nc-horario-varia')||null;
+        var lesiones=_t('nc-lesiones');
+        var histLesiones=_t('nc-historial-lesiones');
+        var diasPrepFisica=_i('nc-dias-ent');
+
+        if(fp) _ncExtras.p_fecha_pelea=fp;
+        if(pc) _ncExtras.p_peso_categoria=pc;
+        if(deporte) _ncExtras.p_deporte=deporte;
+        if(nivel) _ncExtras.p_nivel_combate=nivel;
+        if(diasPrepFisica) _ncExtras.p_dias_prep_fisica=diasPrepFisica;
+        if(material) _ncExtras.p_material_disponible=material;
+        if(diasTec) _ncExtras.p_dias_tecnica=diasTec;
+
+        // Calcular fase ATR automáticamente
+        if(fp){
+          var diasPelea=Math.ceil((new Date(fp)-new Date())/(24*3600*1000));
+          var faseAuto=diasPelea>=112?'base':diasPelea>=56?'camp_cronico':diasPelea>=28?'peaking':diasPelea>=7?'fight_week':'post_pelea';
+          _ncExtras.p_fase_combate=faseAuto;
         }
-        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify(_ncExtras)});
-      }catch(e2){console.warn('extras RPC:',e2);}
-    }
+
+        // Campos nuevos en cuestionario_datos
+        if(perfil) _qd.perfil_atleta=perfil;
+        if(ww) _qd.walking_weight=ww;
+        if(falloPesaje) _qd.ha_fallado_pesaje=falloPesaje;
+        if(numPeleas!==null) _qd.num_peleas=numPeleas;
+        if(lesiones) _qd.lesiones_actuales=lesiones;
+        if(histLesiones) _qd.historial_lesiones=histLesiones;
+        if(horaEntreno) _qd.hora_entreno=horaEntreno;
+        if(horarioVaria) _qd.horario_varia=horarioVaria;
+
+        // Nutrición combate
+        var tipoDieta=_v('nc-tipo-dieta')||null;
+        var alergias=_t('nc-alergias');
+        var evitar=_t('nc-evitar');
+        var bascula=_v('nc-bascula');
+        var proteinas=_chks(['nc-p-pollo','nc-p-pavo','nc-p-ternera','nc-p-salmon','nc-p-merluza','nc-p-atun','nc-p-huevos','nc-p-legumbres','nc-p-tofu']);
+        var carbos=_chks(['nc-c-arroz','nc-c-pasta','nc-c-patata','nc-c-pan','nc-c-avena','nc-c-fruta','nc-c-tortitas','nc-c-boniato']);
+        var suplementos=_chks(['nc-s-proteina','nc-s-creatina','nc-s-cafeina','nc-s-ninguno']);
+        if(tipoDieta) _qd.tipo_dieta=tipoDieta;
+        if(alergias) _qd.alergias=alergias;
+        if(evitar) _qd.alimentos_evitar=evitar;
+        if(bascula) _qd.tiene_bascula=(bascula==='si');
+        if(proteinas.length) _qd.proteinas_favoritas=proteinas;
+        if(carbos.length) _qd.carbos_favoritos=carbos;
+        if(suplementos.length) _qd.suplementos=suplementos;
+
+        // Alerta corte real
+        if(ww&&pc){
+          var corteReal=parseFloat((ww-pc).toFixed(1));
+          if(corteReal>0) _qd.corte_real=corteReal;
+          if(ww>0&&corteReal/ww>0.08) _qd.riesgo_corte=true;
+        }
+        // Flag riesgo pesaje
+        if(falloPesaje&&falloPesaje!=='no') _qd.flag_riesgo_pesaje=true;
+
+      } else {
+        // === FITNESS ===
+        var diasEntFit=_i('nc-dias-ent-fit');
+        var semProt=_i('nc-sem-prot');
+        var fechaProt=_v('nc-fecha-prot')||null;
+        if(diasEntFit) _ncExtras.p_dias_entreno=diasEntFit;
+        if(semProt) _ncExtras.p_semanas_protocolo=semProt;
+        if(fechaProt) _ncExtras.p_inicio_protocolo=fechaProt;
+      }
+
+      if(Object.keys(_qd).length>0) _ncExtras.p_datos={cuestionario_datos:_qd};
+
+      await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify(_ncExtras)});
+    }catch(e2){console.warn('extras RPC:',e2);}
+
     hideM('m-nuevo');toast('✅ Cliente '+nom+' creado. Código: '+cod,'ok');loadAdmin();
-  }catch(e){toast('Error: '+(e.message.includes('duplicate')?'Código ya existe':e.message),'err');}
+  }catch(e){toast('Error: '+(e.message&&e.message.includes('duplicate')?'Código ya existe':e.message||e),'err');}
 }
 
 async function verCliente(id){
@@ -15893,49 +16219,88 @@ function calcularMacrosAuto(){
   var peso=parseFloat(document.getElementById('nc-peso')&&document.getElementById('nc-peso').value)||0;
   var alt=parseFloat(document.getElementById('nc-alt')&&document.getElementById('nc-alt').value)||0;
   var edad=parseInt(document.getElementById('nc-edad')&&document.getElementById('nc-edad').value)||0;
-  var sexo=document.getElementById('nc-sex')&&document.getElementById('nc-sex').value;
-  var diasEnt=parseInt(document.getElementById('nc-dias-ent')&&document.getElementById('nc-dias-ent').value)||3;
-  var workAct=parseFloat(document.getElementById('nc-act')&&document.getElementById('nc-act').value)||1.375;
-  var obj=document.getElementById('nc-obj')&&document.getElementById('nc-obj').value;
+  var sexo=document.getElementById('nc-sex')&&document.getElementById('nc-sex').value||'H';
   if(!peso||!alt||!edad){toast('Rellena peso, altura y edad primero','err');return;}
-  var bmr=sexo==='H'?(10*peso+6.25*alt-5*edad+5):(10*peso+6.25*alt-5*edad-161);
-  var actByDays={0:1.2,2:1.35,3:1.45,4:1.55,5:1.65,6:1.725}[diasEnt]||1.375;
-  var act=Math.min(1.9,actByDays+(workAct>1.55?0.1:workAct>1.375?0.05:0));
-  var tdee=Math.round(bmr*act);
 
-  // --- DÍA DE ENTRENO ---
-  var protGkg = obj==='deficit_agresivo' ? 1.8 : 1.5;
-  var kcalAdj;
-  if(obj==='deficit') kcalAdj=tdee-400;
-  else if(obj==='deficit_agresivo') kcalAdj=tdee-600;
-  else if(obj==='recomp') kcalAdj=tdee-250;
-  else if(obj==='superavit') kcalAdj=tdee+300;
-  else if(obj==='volumen_hc') kcalAdj=tdee+500;
-  else kcalAdj=tdee-250;
-  var kcal=Math.max(1200,kcalAdj);
-  var prot=Math.round(peso*protGkg);
-  var gras=Math.round(peso*0.6);
-  var carb=Math.max(50,Math.round((kcal-(prot*4)-(gras*9))/4));
-  var kcalFinal=Math.round(prot*4+carb*4+gras*9);
-  document.getElementById('nc-kcal').value=kcalFinal;
-  document.getElementById('nc-prot').value=prot;
-  document.getElementById('nc-carb').value=carb;
-  document.getElementById('nc-gras').value=gras;
+  var tipoCliente=document.getElementById('nc-tipo')&&document.getElementById('nc-tipo').value||'fitness';
+  var isCombate=tipoCliente==='combate';
 
-  // --- DÍA DE DESCANSO (carb cycling) ---
-  // Volumen HC → descanso a mantenimiento (TDEE). Resto → mismas kcal base
-  var kcalBase = obj==='volumen_hc' ? tdee : kcal;
-  var grasD=Math.round(peso*0.8);
-  var carbD=Math.max(30,Math.round((kcalBase-(prot*4)-(grasD*9))/4));
-  var kcalD=Math.round(prot*4+carbD*4+grasD*9);
-  var dEl=document.getElementById('nc-kcal-d');
-  if(dEl){
-    document.getElementById('nc-kcal-d').value=kcalD;
-    document.getElementById('nc-prot-d').value=prot;
-    document.getElementById('nc-carb-d').value=carbD;
-    document.getElementById('nc-gras-d').value=grasD;
+  var kcalId=isCombate?'nc-kcal':'nc-kcal-f';
+  var protId=isCombate?'nc-prot':'nc-prot-f';
+  var carbId=isCombate?'nc-carb':'nc-carb-f';
+  var grasId=isCombate?'nc-gras':'nc-gras-f';
+  var kcalDId=isCombate?'nc-kcal-d':'nc-kcal-df';
+  var protDId=isCombate?'nc-prot-d':'nc-prot-df';
+  var carbDId=isCombate?'nc-carb-d':'nc-carb-df';
+  var grasDId=isCombate?'nc-gras-d':'nc-gras-df';
+
+  var kcal,prot,carb,gras,kcalD,protD,carbD,grasD,tdee;
+
+  if(isCombate){
+    // Método UFC Performance Institute
+    // Calcular fase desde fecha de pelea si existe
+    var fase='base';
+    var fpVal=document.getElementById('nc-fecha-pelea')&&document.getElementById('nc-fecha-pelea').value;
+    if(fpVal){
+      var diasPF=Math.ceil((new Date(fpVal)-new Date())/(24*3600*1000));
+      fase=diasPF>=112?'base':diasPF>=56?'camp_cronico':diasPF>=28?'peaking':'fight_week';
+    }
+    var diasEnt=parseInt(document.getElementById('nc-dias-ent')&&document.getElementById('nc-dias-ent').value)||3;
+    // g/kg según fase
+    var faseParams={base:{prot:1.8,carb:5.0,gras:1.2},camp_cronico:{prot:2.0,carb:5.5,gras:1.0},peaking:{prot:2.2,carb:4.5,gras:0.9},fight_week:{prot:2.2,carb:3.5,gras:0.8}};
+    var fp=faseParams[fase]||faseParams['base'];
+    prot=Math.round(peso*fp.prot);
+    carb=Math.round(peso*fp.carb);
+    gras=Math.round(peso*fp.gras);
+    kcal=Math.round(prot*4+carb*4+gras*9);
+    // Descanso: -20% carbs
+    var carbDR=Math.round(carb*0.8);
+    var grasDR=Math.round(gras*1.1);
+    kcalD=Math.round(prot*4+carbDR*4+grasDR*9);
+    protD=prot; carbD=carbDR; grasD=grasDR;
+    // Aviso déficit
+    var bmr2=sexo==='H'?(10*peso+6.25*alt-5*edad+5):(10*peso+6.25*alt-5*edad-161);
+    tdee=Math.round(bmr2*({2:1.55,3:1.65,4:1.725}[diasEnt]||1.65));
+    var aviso=document.getElementById('nc-macros-aviso');
+    if(aviso){
+      var deficit=tdee-kcal;
+      if(deficit>500){aviso.style.display='';aviso.textContent='⚠️ Déficit de '+deficit+' kcal — puede ser excesivo. Ajusta manualmente.';}
+      else{aviso.style.display='none';}
+    }
+  } else {
+    // Fitness — Mifflin-St Jeor + objetivo
+    var diasEntFit=parseInt(document.getElementById('nc-dias-ent-fit')&&document.getElementById('nc-dias-ent-fit').value)||3;
+    var workAct=parseFloat(document.getElementById('nc-act')&&document.getElementById('nc-act').value)||1.375;
+    var obj=document.getElementById('nc-obj')&&document.getElementById('nc-obj').value;
+    var bmr=sexo==='H'?(10*peso+6.25*alt-5*edad+5):(10*peso+6.25*alt-5*edad-161);
+    var actByDays={0:1.2,2:1.35,3:1.45,4:1.55,5:1.65,6:1.725}[diasEntFit]||1.375;
+    var act=Math.min(1.9,actByDays+(workAct>1.55?0.1:workAct>1.375?0.05:0));
+    tdee=Math.round(bmr*act);
+    var protGkg = obj==='deficit_agresivo' ? 1.8 : 1.5;
+    var kcalAdj;
+    if(obj==='deficit') kcalAdj=tdee-400;
+    else if(obj==='deficit_agresivo') kcalAdj=tdee-600;
+    else if(obj==='recomp') kcalAdj=tdee-250;
+    else if(obj==='superavit') kcalAdj=tdee+300;
+    else if(obj==='volumen_hc') kcalAdj=tdee+500;
+    else kcalAdj=tdee-250;
+    kcal=Math.max(1200,kcalAdj);
+    prot=Math.round(peso*protGkg);
+    gras=Math.round(peso*0.6);
+    carb=Math.max(50,Math.round((kcal-(prot*4)-(gras*9))/4));
+    kcal=Math.round(prot*4+carb*4+gras*9);
+    var kcalBase=obj==='volumen_hc'?tdee:kcal;
+    grasD=Math.round(peso*0.8);
+    carbD=Math.max(30,Math.round((kcalBase-(prot*4)-(grasD*9))/4));
+    kcalD=Math.round(prot*4+carbD*4+grasD*9);
+    protD=prot;
   }
-  toast('⚡ TDEE '+tdee+' kcal · Entreno: '+kcalFinal+' kcal · Descanso: '+kcalD+' kcal','ok');
+
+  // Escribir resultados
+  var setV=function(id,val){var el=document.getElementById(id);if(el)el.value=val;};
+  setV(kcalId,kcal); setV(protId,prot); setV(carbId,carb); setV(grasId,gras);
+  setV(kcalDId,kcalD); setV(protDId,protD); setV(carbDId,carbD); setV(grasDId,grasD);
+  toast('⚡ TDEE ~'+(tdee||'?')+' kcal · Entreno: '+kcal+' kcal · Descanso: '+kcalD+' kcal','ok');
 }
 
 // ═══════════════════════════════════════
