@@ -426,6 +426,91 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
     </div>
   </div>
 
+  <!-- ADMIN: BIBLIOTECA DE PLATOS -->
+  <div class="sec" id="sec-platos">
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <button class="btn bg bsm" onclick="onTab('admin',document.querySelector('[onclick*=\'admin\']'))">← Volver</button>
+      <div style="font-size:20px;font-weight:900;letter-spacing:2px">🍳 BIBLIOTECA DE PLATOS</div>
+    </div>
+
+    <!-- Creador de plato -->
+    <div class="card" style="margin-bottom:1rem">
+      <div class="ch">➕ Crear nuevo plato</div>
+      <div class="cb">
+        <!-- Nombre + categoría + icono -->
+        <div class="g2" style="margin-bottom:.75rem">
+          <div class="field"><label>Nombre del plato</label>
+            <input type="text" id="bp-nombre" placeholder="ej. Pollo con boniato y espinacas">
+          </div>
+          <div class="field"><label>Categoría</label>
+            <select id="bp-cat">
+              <option value="Desayuno">🌅 Desayuno</option>
+              <option value="Bocadillo">🥖 Bocadillo / Sandwich</option>
+              <option value="Comida" selected>🍽️ Comida principal</option>
+              <option value="Cena">🌙 Cena</option>
+              <option value="Snack">🥜 Snack / Merienda</option>
+              <option value="Pre Entreno">⚡ Pre Entreno</option>
+              <option value="Post Entreno">💪 Post Entreno</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Buscador de alimento -->
+        <div style="background:#070E1A;border:1px solid #1A2A40;border-radius:10px;padding:12px;margin-bottom:.75rem">
+          <div style="font-size:10px;font-weight:700;color:#4D9FFF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Añadir ingrediente</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <div class="field" style="margin:0;flex:1;min-width:160px">
+              <label style="font-size:10px">Alimento (busca en ALIMENTOS_DB)</label>
+              <input type="text" id="bp-alim-search" placeholder="ej. pechuga..." oninput="bpFiltrarAlimentos(this.value)"
+                style="width:100%;box-sizing:border-box" autocomplete="off">
+              <div id="bp-alim-dropdown" style="display:none;position:absolute;z-index:200;background:#0D1528;border:1px solid #2A3A50;border-radius:8px;max-height:200px;overflow-y:auto;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.6)"></div>
+            </div>
+            <div class="field" style="margin:0;width:88px">
+              <label style="font-size:10px">Gramos</label>
+              <input type="number" id="bp-alim-g" placeholder="150" min="1" max="2000" style="width:100%;box-sizing:border-box;text-align:center">
+            </div>
+            <button onclick="bpAgregarIngrediente()" style="padding:9px 14px;background:rgba(0,85,255,.15);border:1px solid rgba(0,85,255,.35);border-radius:8px;color:#4D9FFF;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">+ Añadir</button>
+          </div>
+        </div>
+
+        <!-- Lista de ingredientes añadidos -->
+        <div id="bp-ingredientes-lista" style="margin-bottom:.75rem;display:none">
+          <div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Ingredientes del plato</div>
+          <div id="bp-ing-items" style="display:flex;flex-direction:column;gap:4px"></div>
+        </div>
+
+        <!-- Macros totales en tiempo real -->
+        <div id="bp-macros-preview" style="display:none;background:rgba(0,85,255,.05);border:1px solid rgba(0,85,255,.15);border-radius:10px;padding:10px 14px;margin-bottom:.75rem">
+          <div style="font-size:10px;font-weight:700;color:#4D9FFF;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Macros totales calculados</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:900;color:#7986CB" id="bp-m-k">0 kcal</span>
+            <span style="font-size:14px;font-weight:900;color:#00E5FF" id="bp-m-p">P: 0g</span>
+            <span style="font-size:14px;font-weight:900;color:#FFB300" id="bp-m-c">C: 0g</span>
+            <span style="font-size:14px;font-weight:900;color:#F48FB1" id="bp-m-g">G: 0g</span>
+          </div>
+        </div>
+
+        <!-- Nota opcional -->
+        <div class="field" style="margin-bottom:.75rem">
+          <label>Nota / preparación (opcional)</label>
+          <textarea id="bp-nota" placeholder="Ej: cocinar el pollo a la plancha, mezclar en bowl..." style="height:50px;resize:none"></textarea>
+        </div>
+
+        <button onclick="bpGuardarPlato()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0055FF,#003DB5);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer">💾 Guardar plato</button>
+      </div>
+    </div>
+
+    <!-- Lista de platos guardados -->
+    <div class="card">
+      <div class="ch">📚 Platos guardados
+        <div id="bp-filtros" style="display:flex;gap:6px;flex-wrap:wrap;margin-left:auto"></div>
+      </div>
+      <div class="cb" id="bp-lista" style="min-height:60px">
+        <div style="color:#4A5568;font-size:13px;text-align:center;padding:20px">Cargando...</div>
+      </div>
+    </div>
+  </div>
+
     <!-- CLIENTE: CUESTIONARIO INICIAL -->
   <div class="sec" id="sec-cuestionario">
     <div id="perfil-area"></div>
@@ -6149,7 +6234,7 @@ function logout(){
 function buildTabs(){
   var tabs, mobTabs;
   if(S.isAdmin){
-    tabs=[['admin','👥 Clientes'],['vc','👤 Ver Cliente'],['recetas','🍽️ Recetas']];
+    tabs=[['admin','👥 Clientes'],['vc','👤 Ver Cliente'],['recetas','🍽️ Recetas'],['platos','🍳 Platos']];
     mobTabs=null; // hide mob-nav for admin
   } else if(S.user&&S.user.tipo_cliente==='combate'){
     tabs=[['inicio','🏠 Inicio'],['camp','🥊 Camp'],['entreno','🏋️ Entreno'],['nutri','🥗 Nutrición'],['prog','📈 Progreso'],['cuestionario','👤 Perfil']];
@@ -6181,6 +6266,7 @@ function onTab(id,btn){
   btn.classList.add('active');
   showSec(id);
   if(id==='recetas')loadRecetasAdmin();
+  if(id==='platos')loadPlatos();
   if(id==='camp')loadCamp();
   if(id==='nutri')loadNutri();
   if(id==='entreno')loadEntreno();
@@ -7521,6 +7607,215 @@ async function eliminarRecetaCustom(id, nombre){
     toast('🗑️ Receta eliminada','ok');
     loadRecetasAdmin();
   }catch(e){ toast('Error: '+e.message,'err'); }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// BIBLIOTECA DE PLATOS — Creador de platos para admin
+// Guarda en tabla platos_personalizados (Supabase)
+// ══════════════════════════════════════════════════════════════════
+var _bpIngredientes=[];   // array temporal: [{nombre, cantidad_g}]
+var _bpAlimSelec=null;    // nombre del alimento seleccionado en el dropdown
+
+async function loadPlatos(){
+  _bpIngredientes=[];
+  _bpAlimSelec=null;
+  bpActualizarLista();
+  bpRenderIngredientes();
+  // Cargar platos guardados
+  try{
+    var rows=await db.get('platos_personalizados','select=*&order=creado_en.desc');
+    bpRenderPlatos(rows||[]);
+  }catch(e){
+    var el=document.getElementById('bp-lista');
+    if(el) el.innerHTML='<div style="color:#FF6B6B;padding:1rem;font-size:12px">Error cargando platos: '+e.message+'</div>';
+  }
+}
+
+function bpFiltrarAlimentos(q){
+  var dd=document.getElementById('bp-alim-dropdown');
+  if(!dd) return;
+  var q2=(q||'').toLowerCase().trim();
+  if(q2.length<2){dd.style.display='none';return;}
+  var matches=Object.keys(ALIMENTOS_DB).filter(function(k){return k.toLowerCase().indexOf(q2)>=0;}).slice(0,10);
+  if(!matches.length){dd.style.display='none';return;}
+  dd.style.display='';
+  dd.innerHTML=matches.map(function(k){
+    var v=ALIMENTOS_DB[k];
+    return '<div onclick="bpSeleccionarAlimento(\''+k.replace(/'/g,'&#39;')+'\')" style="padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #1A2A40;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'#1A2A40\'" onmouseout="this.style.background=\'\'">'+
+      '<span style="color:#F0F4FF;font-weight:700">'+k+'</span>'+
+      '<span style="color:#4A5568;font-size:10px;white-space:nowrap;margin-left:8px">P:'+v[0]+' C:'+v[1]+' G:'+v[2]+'</span>'+
+    '</div>';
+  }).join('');
+}
+
+function bpSeleccionarAlimento(nombre){
+  _bpAlimSelec=nombre;
+  var search=document.getElementById('bp-alim-search');
+  var dd=document.getElementById('bp-alim-dropdown');
+  if(search) search.value=nombre;
+  if(dd) dd.style.display='none';
+  var gEl=document.getElementById('bp-alim-g');
+  if(gEl){gEl.focus();gEl.select();}
+}
+
+function bpAgregarIngrediente(){
+  var nombre=_bpAlimSelec||(document.getElementById('bp-alim-search')||{}).value||'';
+  nombre=nombre.trim();
+  var g=parseInt((document.getElementById('bp-alim-g')||{}).value)||0;
+  if(!nombre){toast('Selecciona un alimento de la lista','err');return;}
+  if(!ALIMENTOS_DB[nombre]){toast('Alimento no encontrado en la base de datos','err');return;}
+  if(g<=0){toast('Introduce la cantidad en gramos','err');return;}
+  _bpIngredientes.push({nombre:nombre,cantidad_g:g});
+  // Limpiar inputs
+  var s=document.getElementById('bp-alim-search');var gEl=document.getElementById('bp-alim-g');
+  if(s) s.value='';if(gEl) gEl.value='';
+  _bpAlimSelec=null;
+  bpRenderIngredientes();
+  bpActualizarMacros();
+}
+
+function bpEliminarIngrediente(idx){
+  _bpIngredientes.splice(idx,1);
+  bpRenderIngredientes();
+  bpActualizarMacros();
+}
+
+function bpRenderIngredientes(){
+  var cont=document.getElementById('bp-ingredientes-lista');
+  var items=document.getElementById('bp-ing-items');
+  if(!cont||!items) return;
+  if(!_bpIngredientes.length){cont.style.display='none';return;}
+  cont.style.display='';
+  items.innerHTML=_bpIngredientes.map(function(ing,i){
+    var v=ALIMENTOS_DB[ing.nombre]||[0,0,0,0];
+    var f=ing.cantidad_g/100;
+    var p=Math.round(v[0]*f),c=Math.round(v[1]*f),g=Math.round(v[2]*f),k=Math.round(v[3]*f);
+    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#0D1528;border-radius:8px;border:1px solid #1A2A40">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:12px;font-weight:700;color:#F0F4FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+ing.nombre+'</div>'+
+        '<div style="font-size:10px;color:#4A5568">'+ing.cantidad_g+'g · '+k+' kcal · P:'+p+'g C:'+c+'g G:'+g+'g</div>'+
+      '</div>'+
+      '<button onclick="bpEliminarIngrediente('+i+')" style="flex-shrink:0;width:26px;height:26px;border-radius:50%;background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.3);color:#FF6B6B;font-size:14px;cursor:pointer;line-height:1">×</button>'+
+    '</div>';
+  }).join('');
+}
+
+function bpActualizarMacros(){
+  var prev=document.getElementById('bp-macros-preview');
+  if(!_bpIngredientes.length){if(prev)prev.style.display='none';return;}
+  var totP=0,totC=0,totG=0,totK=0;
+  _bpIngredientes.forEach(function(ing){
+    var v=ALIMENTOS_DB[ing.nombre]||[0,0,0,0];
+    var f=ing.cantidad_g/100;
+    totP+=v[0]*f;totC+=v[1]*f;totG+=v[2]*f;totK+=v[3]*f;
+  });
+  totP=Math.round(totP);totC=Math.round(totC);totG=Math.round(totG);totK=Math.round(totK);
+  if(prev) prev.style.display='';
+  var kEl=document.getElementById('bp-m-k');var pEl=document.getElementById('bp-m-p');
+  var cEl=document.getElementById('bp-m-c');var gEl=document.getElementById('bp-m-g');
+  if(kEl) kEl.textContent=totK+' kcal';
+  if(pEl) pEl.textContent='P: '+totP+'g';
+  if(cEl) cEl.textContent='C: '+totC+'g';
+  if(gEl) gEl.textContent='G: '+totG+'g';
+}
+
+function bpActualizarLista(){
+  // Nada aquí por ahora — lista se carga en loadPlatos
+}
+
+async function bpGuardarPlato(){
+  var nombre=(document.getElementById('bp-nombre')||{}).value||'';
+  nombre=nombre.trim();
+  if(!nombre){toast('Pon un nombre al plato','err');return;}
+  if(!_bpIngredientes.length){toast('Añade al menos un ingrediente','err');return;}
+  // Calcular macros totales
+  var totP=0,totC=0,totG=0,totK=0;
+  _bpIngredientes.forEach(function(ing){
+    var v=ALIMENTOS_DB[ing.nombre]||[0,0,0,0];
+    var f=ing.cantidad_g/100;
+    totP+=v[0]*f;totC+=v[1]*f;totG+=v[2]*f;totK+=v[3]*f;
+  });
+  var macros={p:Math.round(totP),c:Math.round(totC),g:Math.round(totG),k:Math.round(totK)};
+  var cat=(document.getElementById('bp-cat')||{}).value||'Comida';
+  var nota=(document.getElementById('bp-nota')||{}).value||'';
+  var icono={Desayuno:'🌅',Bocadillo:'🥖',Comida:'🍽️',Cena:'🌙',Snack:'🥜','Pre Entreno':'⚡','Post Entreno':'💪'}[cat]||'🍽️';
+  var body={nombre:nombre,categoria:cat,icono:icono,ingredientes:_bpIngredientes,macros:macros,nota:nota.trim()||null};
+  try{
+    var res=await fetch(SB+'/rest/v1/platos_personalizados',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(!res.ok){var err=await res.json();toast(err.message||'Error al guardar','err');return;}
+    // Limpiar formulario
+    ['bp-nombre','bp-nota','bp-alim-search','bp-alim-g'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+    _bpIngredientes=[];_bpAlimSelec=null;
+    bpRenderIngredientes();
+    bpActualizarMacros();
+    document.getElementById('bp-macros-preview').style.display='none';
+    toast('✅ Plato guardado: '+nombre,'ok');
+    loadPlatos();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+async function bpEliminarPlato(id, nombre){
+  if(!confirm('¿Eliminar el plato "'+nombre+'"? Esta acción no se puede deshacer.')) return;
+  try{
+    var res=await fetch(SB+'/rest/v1/platos_personalizados?id=eq.'+id,{
+      method:'DELETE',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    if(!res.ok){toast('Error al eliminar','err');return;}
+    toast('🗑️ Plato eliminado','ok');
+    loadPlatos();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+var _bpFiltroActivo='Todos';
+function bpRenderPlatos(rows){
+  var filtEl=document.getElementById('bp-filtros');
+  var lista=document.getElementById('bp-lista');
+  if(!lista) return;
+  // Categorías únicas
+  var cats=['Todos'].concat([...new Set(rows.map(function(r){return r.categoria||'Sin categoría';}))].sort());
+  if(filtEl){
+    filtEl.innerHTML=cats.map(function(cat){
+      var act=cat===_bpFiltroActivo;
+      return '<button onclick="bpSetFiltro(\''+cat+'\','+JSON.stringify(rows)+')" style="padding:4px 10px;border-radius:20px;border:1px solid '+(act?'rgba(0,85,255,.5)':'rgba(255,255,255,.1)')+';background:'+(act?'rgba(0,85,255,.15)':'transparent')+';color:'+(act?'#4D9FFF':'#4A5568')+';font-size:10px;font-weight:700;cursor:pointer">'+cat+(cat==='Todos'?' ('+rows.length+')':'')+'</button>';
+    }).join('');
+  }
+  var filtered=_bpFiltroActivo==='Todos'?rows:rows.filter(function(r){return r.categoria===_bpFiltroActivo;});
+  if(!filtered.length){
+    lista.innerHTML='<div style="color:#4A5568;font-size:13px;text-align:center;padding:20px">No hay platos guardados aún. ¡Crea el primero!</div>';
+    return;
+  }
+  lista.innerHTML=filtered.map(function(r){
+    var m=r.macros||{};
+    var ings=(r.ingredientes||[]).map(function(i){return i.cantidad_g+'g '+i.nombre;}).join(' · ');
+    return '<div style="border:1px solid #1A2A40;border-radius:10px;padding:12px;margin-bottom:8px">'+
+      '<div style="display:flex;align-items:flex-start;gap:10px">'+
+        '<div style="font-size:22px;flex-shrink:0">'+r.icono+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:13px;font-weight:800;color:#F0F4FF;margin-bottom:3px">'+r.nombre+'</div>'+
+          '<div style="font-size:10px;color:#4A5568;margin-bottom:5px;display:inline-flex;align-items:center;background:#0D1528;padding:2px 8px;border-radius:20px">'+r.categoria+'</div>'+
+          '<div style="font-size:10px;color:#A0B0C0;line-height:1.4;margin-bottom:5px;word-break:break-word">'+ings+'</div>'+
+          '<div style="display:flex;gap:8px;font-size:11px;font-weight:700">'+
+            '<span style="color:#7986CB">'+m.k+' kcal</span>'+
+            '<span style="color:#00E5FF">P:'+m.p+'g</span>'+
+            '<span style="color:#FFB300">C:'+m.c+'g</span>'+
+            '<span style="color:#F48FB1">G:'+m.g+'g</span>'+
+          '</div>'+
+          (r.nota?'<div style="font-size:10px;color:rgba(77,159,255,.7);margin-top:4px;font-style:italic">ℹ️ '+r.nota+'</div>':'')+
+        '</div>'+
+        '<button onclick="bpEliminarPlato(\''+r.id+'\',\''+r.nombre.replace(/'/g,'&#39;')+'\')" style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(255,23,68,.08);border:1px solid rgba(255,23,68,.25);color:#FF6B6B;font-size:16px;cursor:pointer">×</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function bpSetFiltro(cat, rows){
+  _bpFiltroActivo=cat;
+  bpRenderPlatos(rows);
 }
 
 async function toggleRecetaActivo(id, activo){
