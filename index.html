@@ -312,6 +312,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         <div style="font-size:20px;font-weight:900;letter-spacing:2px" id="vc-title"></div>
         <div style="margin-left:auto;display:flex;gap:8px">
           <button class="btn bg bsm" id="btn-plan">📋 Asignar plan</button>
+          <button id="btn-archivar" class="btn bsm" style="background:rgba(255,107,53,.12);border:1px solid rgba(255,107,53,.35);color:#FF6B35" onclick="archivarCliente()">🗂 Archivar</button>
         </div>
       </div>
       <div class="g4" id="vc-stats" style="margin-bottom:.75rem"></div>
@@ -6494,14 +6495,19 @@ async function loadAdmin(){
     // ── FILTRO TIPO CLIENTE
     S._nutriHoy = nutriHoy; S._entrenoHoy = entrenoHoy;
     if(!S._filtroTipo) S._filtroTipo='todos';
-    var nFit = S.todos.filter(function(c){return (c.tipo_cliente||'fitness')==='fitness';}).length;
-    var nCom = S.todos.filter(function(c){return c.tipo_cliente==='combate';}).length;
+    if(S._verArchivados===undefined) S._verArchivados=false;
+    var activos = S.todos.filter(function(c){return c.activo;});
+    var archivados = S.todos.filter(function(c){return !c.activo;});
+    var listaVis = S._verArchivados ? archivados : activos;
+    var nFit = listaVis.filter(function(c){return (c.tipo_cliente||'fitness')==='fitness';}).length;
+    var nCom = listaVis.filter(function(c){return c.tipo_cliente==='combate';}).length;
     document.getElementById('admin-tipo-tabs').innerHTML =
-      '<div style="display:flex;gap:4px">'+
-        [['todos','👥 Todos ('+S.todos.length+')'],['fitness','💪 Fitness ('+nFit+')'],['combate','🥊 Combate ('+nCom+')']].map(function(t){
+      '<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">'+
+        [['todos','👥 Todos ('+(S._verArchivados?archivados.length:activos.length)+')'],['fitness','💪 Fit ('+nFit+')'],['combate','🥊 Comb. ('+nCom+')']].map(function(t){
           var act=S._filtroTipo===t[0];
           return '<button onclick="filtrarAdminGrid(\''+t[0]+'\',this)" style="padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid '+(act?'rgba(0,85,255,.6)':'rgba(255,255,255,.08)')+';background:'+(act?'rgba(0,85,255,.15)':'transparent')+';color:'+(act?'#60A5FA':'#6B7280')+'">'+t[1]+'</button>';
         }).join('')+
+        (archivados.length>0?'<button onclick="toggleVerArchivados()" style="margin-left:auto;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid '+(S._verArchivados?'rgba(255,107,53,.5)':'rgba(255,255,255,.08)')+';background:'+(S._verArchivados?'rgba(255,107,53,.15)':'transparent')+';color:'+(S._verArchivados?'#FF6B35':'#6B7280')+'">'+(S._verArchivados?'← Activos':'🗂 Archivados ('+archivados.length+')')+'</button>':'')+
       '</div>';
 
     // ── CLIENTES GRID
@@ -6522,15 +6528,26 @@ function filtrarAdminGrid(f,btn){
   renderAdminGrid();
 }
 
+function toggleVerArchivados(){
+  S._verArchivados=!S._verArchivados;
+  S._filtroTipo='todos';
+  loadAdmin();
+}
+
 function renderAdminGrid(){
   var nutriHoy=S._nutriHoy||{}, entrenoHoy=S._entrenoHoy||{};
+  var verArch=S._verArchivados||false;
   var lista=S.todos.filter(function(c){
+    // Filtrar por activo/archivado
+    if(verArch){ if(c.activo) return false; }
+    else { if(!c.activo) return false; }
+    // Filtrar por tipo
     if(!S._filtroTipo||S._filtroTipo==='todos') return true;
     return (c.tipo_cliente||'fitness')===S._filtroTipo;
   });
 
   if(!lista.length){
-    document.getElementById('clientes-grid').innerHTML='<div class="empty">Sin clientes. ¡Crea el primero!</div>';
+    document.getElementById('clientes-grid').innerHTML='<div class="empty">'+(verArch?'No hay clientes archivados.':'Sin clientes. ¡Crea el primero!')+'</div>';
     return;
   }
 
@@ -6837,6 +6854,21 @@ async function verCliente(id){
   if(!S.ca)return;
   const c=S.ca;
   document.getElementById('vc-title').textContent=(c.nombre+' '+(c.apellido||'')).toUpperCase();
+  // Botón archivar/reactivar según estado
+  var btnArch=document.getElementById('btn-archivar');
+  if(btnArch){
+    if(c.activo){
+      btnArch.textContent='🗂 Archivar';
+      btnArch.style.background='rgba(255,107,53,.12)';
+      btnArch.style.borderColor='rgba(255,107,53,.35)';
+      btnArch.style.color='#FF6B35';
+    } else {
+      btnArch.textContent='✅ Reactivar';
+      btnArch.style.background='rgba(0,200,83,.12)';
+      btnArch.style.borderColor='rgba(0,200,83,.3)';
+      btnArch.style.color='#00C853';
+    }
+  }
   document.getElementById('vc-stats').innerHTML=[
     ['Semana',sem(c.fecha_inicio),'seguimiento'],
     ['Kcal',c.kcal_objetivo||'—','objetivo/día'],
@@ -8203,6 +8235,37 @@ async function toggleActivo(){
   const c=S.ca;
   await db.patch('clientes','id=eq.'+c.id,{activo:!c.activo});
   c.activo=!c.activo;toast(c.activo?'✅ Activado':'🚫 Desactivado','ok');loadAdmin();
+}
+
+async function archivarCliente(){
+  const c=S.ca;
+  if(!c) return;
+  if(c.activo){
+    if(!confirm('¿Archivar a '+c.nombre+'?\n\nNo se eliminan sus datos. Puedes reactivarlo en cualquier momento.')) return;
+    await db.patch('clientes','id=eq.'+c.id,{activo:false});
+    c.activo=false;
+    toast('🗂 '+c.nombre+' archivado','ok');
+  } else {
+    await db.patch('clientes','id=eq.'+c.id,{activo:true});
+    c.activo=true;
+    toast('✅ '+c.nombre+' reactivado','ok');
+  }
+  await loadAdmin();
+  // Actualizar botón en la vista actual
+  var btnArch=document.getElementById('btn-archivar');
+  if(btnArch){
+    if(c.activo){
+      btnArch.textContent='🗂 Archivar';
+      btnArch.style.background='rgba(255,107,53,.12)';
+      btnArch.style.borderColor='rgba(255,107,53,.35)';
+      btnArch.style.color='#FF6B35';
+    } else {
+      btnArch.textContent='✅ Reactivar';
+      btnArch.style.background='rgba(0,200,83,.12)';
+      btnArch.style.borderColor='rgba(0,200,83,.3)';
+      btnArch.style.color='#00C853';
+    }
+  }
 }
 
 async function respCI(id){
