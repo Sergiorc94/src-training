@@ -1801,6 +1801,9 @@ const AL = {
 // ALIMENTOS CAMPAMENTO (simples, batch-cooking, portátiles)
 // [P, C, G, Kcal] por 100g
 // ═══════════════════════════════════════════
+// ── Base de alimentos completa (187 alimentos · valores por 100g: [P,C,G,Kcal]) ──
+const ALIMENTOS_DB = {"Pechuga de pollo cruda":[23.0,0.0,1.8,110],"Pechuga de pollo cocinada":[31.0,0.0,3.6,165],"Muslo de pollo sin hueso":[20.0,0.0,9.0,165],"Pollo entero asado":[25.0,0.0,8.0,177],"Pavo pechuga cruda":[24.0,0.0,1.0,105],"Pavo pechuga cocinada":[30.0,0.0,1.0,135],"Ternera filete":[21.0,0.0,7.0,155],"Carne picada ternera 5%":[21.0,0.0,5.0,137],"Carne picada ternera 15%":[19.0,0.0,15.0,215],"Carne picada mixta":[18.0,0.0,12.0,188],"Solomillo de ternera":[22.0,0.0,5.0,140],"Entrecot de ternera":[20.0,0.0,12.0,192],"Lomo de cerdo":[22.0,0.0,4.0,126],"Solomillo de cerdo":[21.0,0.0,3.5,118],"Costillas de cerdo":[18.0,0.0,20.0,256],"Jamón york":[17.0,2.0,5.0,121],"Jamón serrano":[30.0,0.5,8.0,195],"Chorizo":[22.0,1.5,38.0,440],"Salchichón":[22.0,1.0,35.0,415],"Pechuga de pavo loncheada":[18.0,2.0,2.0,98],"Salchicha frankfurt":[12.0,3.0,26.0,295],"Bacon":[14.0,0.5,38.0,400],"Cordero pierna":[18.0,0.0,12.0,184],"Salmón fresco":[20.0,0.0,13.0,200],"Salmón ahumado":[25.0,0.0,12.0,215],"Merluza":[18.0,0.0,1.5,86],"Bacalao fresco":[18.0,0.0,0.7,82],"Bacalao salado":[26.0,0.0,0.9,116],"Atún fresco":[23.0,0.0,4.0,130],"Atún en lata al natural":[26.0,0.0,1.0,113],"Atún en lata en aceite":[25.0,0.0,8.0,175],"Sardinas en lata":[22.0,0.0,10.0,180],"Caballa en lata":[21.0,0.0,8.0,159],"Boquerones":[20.0,0.0,4.5,120],"Dorada":[18.0,0.0,3.5,105],"Lubina":[18.5,0.0,3.0,100],"Trucha":[20.0,0.0,3.5,110],"Rape":[18.0,0.0,1.0,80],"Gambas":[18.0,1.5,1.5,90],"Langostinos":[20.0,0.5,1.5,95],"Mejillones":[12.0,4.0,2.0,82],"Calamares":[16.0,2.5,1.5,88],"Pulpo cocido":[15.0,2.0,1.0,76],"Huevo entero":[13.0,1.1,11.0,155],"Clara de huevo":[11.0,0.7,0.2,52],"Yema de huevo":[16.0,3.6,27.0,318],"Leche entera":[3.2,4.7,3.5,61],"Leche semidesnatada":[3.3,4.8,1.5,46],"Leche desnatada":[3.4,4.9,0.2,35],"Leche sin lactosa entera":[3.2,4.7,3.5,61],"Yogur natural entero":[3.8,4.7,3.0,61],"Yogur natural desnatado":[4.5,5.5,0.2,42],"Yogur griego 0%":[10.0,4.0,0.2,59],"Yogur griego entero":[9.0,4.0,5.0,100],"Skyr":[11.0,4.0,0.2,62],"Queso fresco batido 0%":[8.0,4.0,0.2,49],"Queso fresco":[8.0,4.0,4.0,83],"Queso cottage":[11.0,3.0,4.0,90],"Queso mozzarella":[22.0,2.0,17.0,250],"Queso manchego curado":[30.0,0.5,33.0,420],"Queso en lonchas light":[20.0,3.5,10.0,185],"Queso parmesano":[36.0,0.0,26.0,391],"Requeson":[11.0,4.0,8.0,134],"Nata para cocinar":[2.5,3.5,20.0,206],"Mantequilla":[0.7,0.5,82.0,740],"Proteína whey":[80.0,5.0,5.0,390],"Proteína caseína":[78.0,5.0,2.0,352],"Arroz blanco crudo":[7.0,80.0,0.6,358],"Arroz blanco cocido":[2.5,28.0,0.2,130],"Arroz integral crudo":[8.0,76.0,2.0,362],"Arroz integral cocido":[2.6,23.0,0.9,111],"Pasta seca":[12.0,74.0,1.5,360],"Pasta cocida":[4.0,26.0,0.5,130],"Pasta integral seca":[13.0,68.0,2.0,348],"Avena en copos":[13.0,67.0,7.0,389],"Pan blanco de molde":[8.0,49.0,3.0,265],"Pan integral de molde":[9.0,43.0,3.5,247],"Baguette":[9.5,55.0,1.5,278],"Pan de pita":[9.0,57.0,1.5,275],"Tortilla de trigo":[8.0,52.0,6.0,300],"Tortilla de maíz":[7.0,46.0,5.0,255],"Tortita de arroz":[7.0,78.0,2.5,382],"Copos de maíz":[7.0,84.0,1.0,375],"Granola":[8.0,66.0,8.0,380],"Harina de trigo":[10.0,76.0,1.0,364],"Harina de avena":[13.0,67.0,7.0,389],"Quinoa cocida":[4.0,21.0,2.0,120],"Cuscús cocido":[3.8,23.0,0.6,112],"Pan de centeno":[8.5,48.0,2.0,244],"Lentejas crudas":[24.0,54.0,1.5,335],"Lentejas cocidas":[9.0,20.0,0.4,116],"Garbanzos crudos":[19.0,61.0,6.0,378],"Garbanzos cocidos":[8.0,22.0,2.5,145],"Alubias blancas cocidas":[8.0,21.0,0.5,120],"Alubias negras cocidas":[8.5,23.0,0.5,130],"Edamame":[11.0,8.0,5.0,121],"Tofu firme":[8.0,2.0,4.0,76],"Hummus":[8.0,14.0,9.0,170],"Patata cruda":[2.0,17.0,0.1,77],"Patata cocida":[1.8,15.0,0.1,70],"Boniato cocido":[1.5,20.0,0.1,90],"Brócoli":[3.0,7.0,0.4,34],"Espinacas":[2.9,3.6,0.4,23],"Lechuga":[1.2,2.9,0.2,15],"Tomate":[0.9,3.9,0.2,18],"Pepino":[0.6,3.6,0.1,16],"Zanahoria":[0.9,10.0,0.2,41],"Pimiento rojo":[1.0,6.0,0.3,31],"Pimiento verde":[0.9,4.6,0.3,24],"Calabacín":[1.2,3.1,0.3,17],"Berenjena":[1.0,5.7,0.2,25],"Cebolla":[1.1,9.3,0.1,40],"Ajo":[6.0,33.0,0.5,149],"Champiñones":[3.1,3.3,0.3,22],"Setas":[2.5,5.0,0.5,33],"Espárragos":[2.2,3.9,0.1,20],"Judías verdes":[1.8,7.1,0.2,35],"Guisantes":[5.4,14.5,0.4,81],"Maíz dulce":[3.3,19.0,1.2,96],"Coliflor":[1.9,5.0,0.3,25],"Col":[1.3,5.8,0.1,25],"Rúcula":[2.6,3.7,0.7,25],"Apio":[0.7,3.0,0.2,16],"Puerro":[1.5,14.0,0.3,61],"Tomate frito":[1.5,8.0,3.5,68],"Tomate cherry":[0.9,5.8,0.2,25],"Plátano":[1.1,23.0,0.3,89],"Manzana":[0.3,14.0,0.2,52],"Naranja":[0.9,12.0,0.1,47],"Mandarina":[0.6,11.5,0.2,53],"Uva":[0.6,18.0,0.2,69],"Fresa":[0.7,8.0,0.3,33],"Frutos rojos mix":[1.0,12.0,0.3,57],"Arándanos":[0.7,14.5,0.3,57],"Kiwi":[1.1,15.0,0.5,61],"Mango":[0.8,15.0,0.4,60],"Piña":[0.5,13.0,0.1,50],"Sandía":[0.6,7.5,0.2,30],"Melón":[0.6,9.0,0.2,34],"Pera":[0.4,15.0,0.1,57],"Melocotón":[0.9,10.0,0.3,39],"Dátiles":[1.8,75.0,0.2,277],"Orejones":[3.4,63.0,0.5,241],"Arándanos deshidratados":[0.1,82.0,0.5,308],"Pasas":[3.1,79.0,0.5,299],"Plátano deshidratado":[3.9,89.0,1.8,346],"Almendras":[21.0,22.0,49.0,575],"Nueces":[15.0,14.0,65.0,654],"Anacardos":[18.0,30.0,44.0,553],"Cacahuetes":[26.0,16.0,49.0,567],"Pistachos":[20.0,28.0,44.0,562],"Avellanas":[15.0,17.0,61.0,628],"Pipas de girasol":[21.0,20.0,51.0,584],"Semillas de chía":[17.0,42.0,31.0,486],"Semillas de lino":[18.0,29.0,42.0,534],"Mantequilla de cacahuete":[25.0,20.0,50.0,588],"Mantequilla de almendras":[21.0,19.0,56.0,614],"Aceite de oliva virgen extra":[0.0,0.0,100.0,900],"Aceite de coco":[0.0,0.0,100.0,900],"Aceite de girasol":[0.0,0.0,100.0,900],"Aguacate":[2.0,9.0,15.0,160],"Salsa de tomate casera":[1.5,8.0,3.0,65],"Ketchup":[1.5,26.0,0.1,112],"Mostaza":[4.0,5.0,4.0,66],"Mayonesa":[1.5,2.0,75.0,680],"Salsa de soja":[8.0,7.0,0.1,60],"Vinagre":[0.0,0.6,0.0,22],"Miel":[0.3,82.0,0.0,304],"Mermelada":[0.5,60.0,0.1,250],"Cacao puro en polvo":[20.0,58.0,14.0,375],"Chocolate negro 85%":[12.0,22.0,50.0,600],"Leche de avena":[1.0,9.0,1.5,45],"Leche de almendras":[0.5,3.0,1.1,24],"Zumo de naranja natural":[0.7,10.0,0.2,45],"Bebida isotónica":[0.0,6.0,0.0,24],"Proteína whey vainilla":[80.0,5.0,5.0,390],"Proteína whey chocolate":[78.0,7.0,5.0,390],"Creatina monohidrato":[0.0,0.0,0.0,0],"Gel de carbohidratos":[0.0,65.0,0.0,260],"Bebida de recuperación":[15.0,55.0,2.0,300],"Aceitunas":[0.8,6.3,15.0,145],"Pepinillos":[0.7,2.7,0.2,17],"Caldo de pollo":[1.5,0.5,0.3,10],"Caldo de verduras":[0.5,1.0,0.1,7],"Levadura nutricional":[50.0,35.0,2.0,325],"Azúcar":[0.0,100.0,0.0,400],"Azúcar moreno":[0.0,97.0,0.0,380]};
+
 const ALIM_CAMP = {
   "Pollo cocido (camp)":                  [28,  0,  3, 138],
   "Atún en lata al natural":              [26,  0,  1, 116],
@@ -7602,6 +7605,46 @@ async function adminTab(tab,btn){
       var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
       var _opts=_qdc.opciones_nutri||null;
       var _peso=c.peso||75;
+      // ── Semana de registro libre (admin view) ────────────────────
+      var _diasEnAppAdmin=999;
+      if(c.fecha_inicio){
+        var _fiA=new Date(c.fecha_inicio+'T12:00:00');
+        var _hdA=new Date(hoy()+'T12:00:00');
+        _diasEnAppAdmin=Math.max(1,Math.ceil((_hdA-_fiA)/(24*3600*1000))+1);
+      }
+      var _registroLibreHtml='';
+      if(c.tipo_cliente==='combate'&&!(_opts&&_opts.aprobado)&&_diasEnAppAdmin<=7){
+        var _rlRecs=await db.get('registros_nutricion','cliente_id=eq.'+c.id+'&order=fecha.asc&limit=7');
+        var _diasRegistrados=(_rlRecs||[]).filter(function(r){return r.registro_libre&&(typeof r.registro_libre==='string'?JSON.parse(r.registro_libre):r.registro_libre).length>0;}).length;
+        _registroLibreHtml='<div class="card" style="margin-bottom:.75rem;border-color:rgba(255,179,0,.3)"><div class="ch" style="color:#FFB300">📋 Semana de registro libre — Día '+_diasEnAppAdmin+' de 7'+
+          '<div style="margin-left:auto;font-size:10px;color:#4A5568">'+_diasRegistrados+'/7 días con datos</div>'+
+          '</div><div class="cb">';
+        // Barra de progreso
+        _registroLibreHtml+='<div style="background:#1A2A40;border-radius:4px;height:6px;margin-bottom:12px"><div style="background:#FFB300;border-radius:4px;height:6px;width:'+Math.round(_diasEnAppAdmin/7*100)+'%"></div></div>';
+        // Días registrados
+        var DIAS_ES_ADMIN=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+        for(var _di=1;_di<=Math.min(_diasEnAppAdmin,7);_di++){
+          var _dFecha=new Date(c.fecha_inicio+'T12:00:00');
+          _dFecha.setDate(_dFecha.getDate()+_di-1);
+          var _dStr=_dFecha.toISOString().split('T')[0];
+          var _dRec=(_rlRecs||[]).find(function(r){return r.fecha===_dStr;});
+          var _dItems=_dRec&&_dRec.registro_libre?(typeof _dRec.registro_libre==='string'?JSON.parse(_dRec.registro_libre):_dRec.registro_libre):[];
+          var _dTot={p:0,c:0,g:0,k:0};
+          _dItems.forEach(function(it){_dTot.p+=it.macros.p;_dTot.c+=it.macros.c;_dTot.g+=it.macros.g;_dTot.k+=it.macros.k;});
+          _registroLibreHtml+='<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #1A2A40">'+
+            '<div style="font-size:11px;font-weight:800;color:'+((_dItems.length)?'#F0F4FF':'#2A3A50')+';margin-bottom:4px">'+
+              'DÍA '+_di+' — '+DIAS_ES_ADMIN[_dFecha.getDay()]+' '+_dStr.slice(5)+
+              (_dItems.length?'<span style="margin-left:8px;font-size:10px;color:#00C853">✓ '+_dItems.length+' alimentos · P:'+Math.round(_dTot.p)+'g · C:'+Math.round(_dTot.c)+'g · '+Math.round(_dTot.k)+' kcal</span>':'<span style="color:#2A3A50;font-size:10px;margin-left:6px">Sin registrar</span>')+
+            '</div>';
+          if(_dItems.length){
+            _registroLibreHtml+='<div style="font-size:11px;color:#4A5568">'+_dItems.map(function(it){return '• '+it.alimento+' '+it.cantidad_g+'g';}).join(' · ')+'</div>';
+          }
+          _registroLibreHtml+='</div>';
+        }
+        _registroLibreHtml+='<button onclick="adminGenerarOpcionesNutri()" class="btn bp bbl" '+(_diasRegistrados<3?'disabled style="opacity:.4;cursor:not-allowed"':'')+'>⚡ Generar plan nutricional'+((_diasRegistrados<3)?' (disponible desde día 3)':'')+'</button>';
+        _registroLibreHtml+='</div></div>';
+      }
+
       var nutEditorHtml='';
       if(c.tipo_cliente==='combate'){
         var _aprobado=_opts&&_opts.aprobado;
@@ -7624,7 +7667,7 @@ async function adminTab(tab,btn){
           '</div>'+
         '</div>';
       }
-      cont.innerHTML=nutEditorHtml+'<div id="admin-nutri-dia"></div>';
+      cont.innerHTML=_registroLibreHtml+nutEditorHtml+'<div id="admin-nutri-dia"></div>';
 
       // ── Resumen de hoy ───────────────────────────────────────────
       S.rn=nutriArr&&nutriArr[0]||null;
@@ -10361,7 +10404,15 @@ async function loadNutri(){
       if(_optsNutri&&_optsNutri.aprobado){
         renderNutricionOpciones(c,S.rn,_optsNutri);
       } else {
-        renderNutricionPendiente(c);
+        // Calcular días en app desde fecha_inicio
+        var _diasEnApp=999;
+        if(c.fecha_inicio){
+          var _fi=new Date(c.fecha_inicio+'T12:00:00');
+          var _hd=new Date(hoy()+'T12:00:00');
+          _diasEnApp=Math.max(1,Math.ceil((_hd-_fi)/(24*3600*1000))+1);
+        }
+        _diasEnAppActual=_diasEnApp;
+        renderNutricionPendiente(c,_diasEnApp);
       }
       return;
     } else {
@@ -10445,45 +10496,197 @@ async function enviarNutriCheckIn(){
 // NUEVA VISTA DE NUTRICIÓN COMBATE — SISTEMA DE OPCIONES
 // ══════════════════════════════════════════════════════════════════
 
-function renderNutricionPendiente(c){
+function renderNutricionPendiente(c, diasEnApp){
   var cont=document.getElementById('n-comidas');
   var stickyEl=document.getElementById('n-sticky');
   if(stickyEl) stickyEl.style.display='none';
   if(!cont) return;
-  var qd=c.cuestionario_datos||{};
-  var fase=c.fase_combate||'base';
-  var faseLabel={base:'Base',camp_cronico:'Camp',peaking:'Peaking',fight_week:'Fight Week',post_pelea:'Post-pelea'}[fase]||'Base';
-  cont.innerHTML=
-    '<div style="background:rgba(77,159,255,.06);border:1.5px solid rgba(77,159,255,.2);border-radius:14px;padding:20px 16px;text-align:center;margin-bottom:.75rem">'+
-      '<div style="font-size:28px;margin-bottom:10px">🥗</div>'+
-      '<div style="font-size:15px;font-weight:900;color:#F0F4FF;margin-bottom:6px">Plan nutricional en preparación</div>'+
-      '<div style="font-size:12px;color:#6E8090;line-height:1.6">Tu entrenador está diseñando tu plan de nutrición personalizado.<br>Estará listo en breve.</div>'+
-      '<div style="margin-top:14px;display:inline-flex;align-items:center;gap:8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;padding:8px 14px">'+
-        '<span style="font-size:11px;color:#FFB300;font-weight:700">Fase actual:</span>'+
-        '<span style="font-size:11px;color:#F0F4FF;font-weight:800">'+faseLabel+'</span>'+
-      '</div>'+
+  diasEnApp=diasEnApp||999;
+  if(diasEnApp<=7){
+    renderSemanaRegistro(c, diasEnApp);
+  } else {
+    var fase=c.fase_combate||'base';
+    var faseLabel={base:'Base',camp_cronico:'Camp',peaking:'Peaking',fight_week:'Fight Week',post_pelea:'Post-pelea'}[fase]||'Base';
+    cont.innerHTML=
+      '<div style="background:rgba(77,159,255,.06);border:1.5px solid rgba(77,159,255,.2);border-radius:14px;padding:24px 16px;text-align:center">'+
+        '<div style="font-size:32px;margin-bottom:10px">🥗</div>'+
+        '<div style="font-size:15px;font-weight:900;color:#F0F4FF;margin-bottom:8px">Tu entrenador está preparando tu plan nutricional.</div>'+
+        '<div style="font-size:13px;color:#6E8090;line-height:1.6">En breve lo tendrás listo.</div>'+
+        '<div style="margin-top:14px;display:inline-flex;align-items:center;gap:8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;padding:8px 14px">'+
+          '<span style="font-size:11px;color:#FFB300;font-weight:700">Fase:</span>'+
+          '<span style="font-size:11px;color:#F0F4FF;font-weight:800">'+faseLabel+'</span>'+
+        '</div>'+
+      '</div>';
+  }
+}
+
+// ── Semana de registro libre ─────────────────────────────────────────────────
+var _regLibreHoy=[];  // array de items del día en memoria
+
+function renderSemanaRegistro(c, diaNum){
+  var cont=document.getElementById('n-comidas');
+  if(!cont) return;
+  // Cargar registro del día desde S.rn si existe
+  _regLibreHoy=(S.rn&&S.rn.registro_libre)?
+    (typeof S.rn.registro_libre==='string'?JSON.parse(S.rn.registro_libre):S.rn.registro_libre):[];
+  _renderRegistroLibre(c, diaNum);
+}
+
+function _renderRegistroLibre(c, diaNum){
+  var cont=document.getElementById('n-comidas');
+  if(!cont) return;
+  // Calcular totales
+  var tot={p:0,c:0,g:0,k:0};
+  _regLibreHoy.forEach(function(item){tot.p+=item.macros.p;tot.c+=item.macros.c;tot.g+=item.macros.g;tot.k+=item.macros.k;});
+  var html=
+    '<div style="background:rgba(77,159,255,.06);border:1.5px solid rgba(77,159,255,.2);border-radius:12px;padding:14px 16px;margin-bottom:.75rem">'+
+      '<div style="font-size:10px;font-weight:700;color:rgba(77,159,255,.8);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">📋 SEMANA DE REGISTRO — DÍA '+diaNum+' DE 7</div>'+
+      '<div style="font-size:12px;color:#6E8090;line-height:1.5">Esta semana no cambia nada. Come como siempre y anota lo que haces. Con eso tu entrenador diseñará tu plan personalizado.</div>'+
     '</div>'+
-    // Registro simple de peso del día
-    '<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:12px;padding:14px 16px;margin-bottom:.75rem">'+
-      '<div style="font-size:11px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📊 Registro diario</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'+
-        '<div class="field"><label>Peso hoy (kg)</label><input type="number" id="nutpend-peso" step="0.1" placeholder="75.0" style="font-size:16px"></div>'+
-        '<div class="field"><label>Comidas realizadas</label><select id="nutpend-ncom"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></div>'+
+    '<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:12px;padding:14px;margin-bottom:.75rem">'+
+      '<div style="font-size:11px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🍽️ COMIDAS DE HOY</div>';
+  // Lista de alimentos añadidos
+  if(_regLibreHoy.length){
+    _regLibreHoy.forEach(function(item,i){
+      html+=
+        '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #1A2A40">'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="font-size:13px;font-weight:700;color:#F0F4FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+item.alimento+'</div>'+
+            '<div style="font-size:11px;color:#4A5568">'+item.cantidad_g+'g · '+Math.round(item.macros.p)+'P · '+Math.round(item.macros.c)+'C · '+Math.round(item.macros.g)+'G · '+Math.round(item.macros.k)+' kcal</div>'+
+          '</div>'+
+          '<button onclick="eliminarAlimentoRegistro('+i+')" style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.2);color:#FF1744;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;flex-shrink:0">✕</button>'+
+        '</div>';
+    });
+  } else {
+    html+='<div style="font-size:12px;color:#2A3A50;text-align:center;padding:12px 0">Aún no has añadido nada hoy</div>';
+  }
+  html+=
+      '<button onclick="mostrarBuscadorAlimento()" style="width:100%;margin-top:10px;padding:10px;border-radius:8px;border:1.5px dashed rgba(77,159,255,.3);background:rgba(77,159,255,.05);color:#4D9FFF;font-size:13px;font-weight:700;cursor:pointer">+ Añadir alimento</button>'+
+    '</div>';
+  // Buscador inline (oculto por defecto)
+  html+=
+    '<div id="rl-buscador" style="display:none;background:#0D1528;border:1px solid #1A2A40;border-radius:12px;padding:14px;margin-bottom:.75rem">'+
+      '<div style="font-size:11px;font-weight:700;color:#4A5568;margin-bottom:8px">Busca un alimento</div>'+
+      '<input type="text" id="rl-search" placeholder="Escribe un alimento..." oninput="filtrarAlimentos(this.value)" autocomplete="off"'+
+        ' style="width:100%;padding:9px 12px;background:#060E1A;border:1.5px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:13px;outline:none;box-sizing:border-box">'+
+      '<div id="rl-resultados" style="margin-top:6px;max-height:180px;overflow-y:auto"></div>'+
+      '<div id="rl-form-manual" style="display:none;margin-top:8px">'+
+        '<div style="font-size:11px;color:#4A5568;margin-bottom:6px">Alimento no encontrado — introduce los macros manualmente:</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">'+
+          '<div class="field"><label>Nombre</label><input type="text" id="rl-m-nombre" placeholder="Nombre del alimento"></div>'+
+          '<div class="field"><label>Cantidad (g)</label><input type="number" id="rl-m-g" placeholder="100" min="1"></div>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px">'+
+          '<div class="field"><label>Prot(g)</label><input type="number" id="rl-m-p" placeholder="0" min="0"></div>'+
+          '<div class="field"><label>Carb(g)</label><input type="number" id="rl-m-c" placeholder="0" min="0"></div>'+
+          '<div class="field"><label>Gras(g)</label><input type="number" id="rl-m-g2" placeholder="0" min="0"></div>'+
+          '<div class="field"><label>Kcal</label><input type="number" id="rl-m-k" placeholder="0" min="0"></div>'+
+        '</div>'+
+        '<button onclick="agregarAlimentoManual()" class="btn bp bsm">Añadir</button>'+
       '</div>'+
-      '<div class="field" style="margin-bottom:10px"><label>¿Cómo te has sentido hoy? (opcional)</label><textarea id="nutpend-nota" placeholder="Energía buena, algo de hambre por la tarde..." style="height:50px;resize:none"></textarea></div>'+
-      '<button onclick="guardarRegistroPendiente()" class="btn bp bbl">✅ Guardar registro</button>'+
+      '<div style="display:flex;gap:6px;margin-top:10px">'+
+        '<button onclick="document.getElementById(\'rl-buscador\').style.display=\'none\'" class="btn bg bsm" style="flex:1">Cancelar</button>'+
+      '</div>'+
+    '</div>';
+  // Resumen macros
+  if(_regLibreHoy.length){
+    html+=
+      '<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:12px;padding:12px 14px;margin-bottom:.75rem">'+
+        '<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 RESUMEN DE HOY</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'+
+          [['Proteína',Math.round(tot.p)+'g','#00E5FF'],['Carbos',Math.round(tot.c)+'g','#FFB300'],['Grasa',Math.round(tot.g)+'g','#F48FB1'],['Kcal',Math.round(tot.k),'#7986CB']].map(function(x){
+            return '<div style="text-align:center;background:#060E1A;border-radius:8px;padding:8px 4px">'+
+              '<div style="font-size:16px;font-weight:900;color:'+x[2]+'">'+x[1]+'</div>'+
+              '<div style="font-size:9px;color:#4A5568;font-weight:700;text-transform:uppercase;margin-top:2px">'+x[0]+'</div>'+
+            '</div>';
+          }).join('')+
+        '</div>'+
+      '</div>';
+  }
+  html+='<button onclick="guardarRegistroLibre()" class="btn bp bbl">✅ Guardar día</button>';
+  cont.innerHTML=html;
+}
+
+function mostrarBuscadorAlimento(){
+  var b=document.getElementById('rl-buscador');
+  if(b){b.style.display='';document.getElementById('rl-search').focus();}
+}
+
+function filtrarAlimentos(q){
+  var res=document.getElementById('rl-resultados');
+  var manual=document.getElementById('rl-form-manual');
+  if(!res) return;
+  if(!q||q.length<2){res.innerHTML='';return;}
+  var q2=q.toLowerCase().trim();
+  var keys=Object.keys(ALIMENTOS_DB).filter(function(k){return k.toLowerCase().indexOf(q2)>=0;}).slice(0,8);
+  if(!keys.length){
+    res.innerHTML='<div style="font-size:12px;color:#4A5568;padding:6px 0">No encontrado</div>';
+    if(manual) manual.style.display='';
+    return;
+  }
+  if(manual) manual.style.display='none';
+  res.innerHTML=keys.map(function(k){
+    var v=ALIMENTOS_DB[k];
+    return '<div onclick="seleccionarAlimento(\''+k.replace(/'/g,"\\'")+'\')" style="padding:8px 10px;border-radius:6px;cursor:pointer;border-bottom:1px solid #1A2A40;transition:background .1s" onmouseover="this.style.background=\'#0D1528\'" onmouseout="this.style.background=\'\'">'+
+      '<div style="font-size:13px;font-weight:700;color:#F0F4FF">'+k+'</div>'+
+      '<div style="font-size:10px;color:#4A5568">P:'+v[0]+'g · C:'+v[1]+'g · G:'+v[2]+'g · '+v[3]+' kcal por 100g</div>'+
+    '</div>';
+  }).join('');
+}
+
+function seleccionarAlimento(nombre){
+  var buscador=document.getElementById('rl-buscador');
+  if(!buscador) return;
+  var v=ALIMENTOS_DB[nombre];
+  buscador.innerHTML=
+    '<div style="font-size:12px;font-weight:700;color:#F0F4FF;margin-bottom:8px">'+nombre+'</div>'+
+    '<div style="font-size:11px;color:#4A5568;margin-bottom:10px">por 100g: P:'+v[0]+'g · C:'+v[1]+'g · G:'+v[2]+'g · '+v[3]+' kcal</div>'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+      '<input type="number" id="rl-cant" placeholder="100" min="1" value="100" style="width:90px;padding:8px;background:#060E1A;border:1.5px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:16px;font-weight:800;text-align:center;outline:none">'+
+      '<span style="color:#4A5568;font-size:13px;font-weight:700">gramos</span>'+
+    '</div>'+
+    '<div style="display:flex;gap:6px">'+
+      '<button onclick="agregarAlimentoDB(\''+nombre.replace(/'/g,"\\'")+'\')" class="btn bp bsm" style="flex:1">✅ Añadir</button>'+
+      '<button onclick="mostrarBuscadorAlimento()" class="btn bg bsm">← Volver</button>'+
     '</div>';
 }
 
-async function guardarRegistroPendiente(){
-  var peso=parseFloat((document.getElementById('nutpend-peso')||{}).value)||null;
-  var ncom=parseInt((document.getElementById('nutpend-ncom')||{}).value)||null;
-  var nota=(document.getElementById('nutpend-nota')||{}).value||'';
-  var datos={pendiente_plan:true,ncom_real:ncom,nota_libre:nota};
-  if(peso){datos.peso=peso;}
-  await saveNutri({config_dia:{ncom:ncom,modo:'lineal'},notas:nota});
-  if(peso) await db.patch('clientes','id=eq.'+S.user.id,{peso_inicial:peso}).catch(function(){});
-  toast('✅ Registro guardado','ok');
+function agregarAlimentoDB(nombre){
+  var g=parseFloat((document.getElementById('rl-cant')||{}).value)||100;
+  var v=ALIMENTOS_DB[nombre];
+  if(!v){toast('Alimento no encontrado','err');return;}
+  var factor=g/100;
+  _regLibreHoy.push({alimento:nombre,cantidad_g:g,macros:{p:Math.round(v[0]*factor*10)/10,c:Math.round(v[1]*factor*10)/10,g:Math.round(v[2]*factor*10)/10,k:Math.round(v[3]*factor)}});
+  _renderRegistroLibre(S.user, _diasEnAppActual||1);
+}
+
+function agregarAlimentoManual(){
+  var nombre=(document.getElementById('rl-m-nombre')||{}).value||'';
+  var g=parseFloat((document.getElementById('rl-m-g')||{}).value)||100;
+  var p=parseFloat((document.getElementById('rl-m-p')||{}).value)||0;
+  var c=parseFloat((document.getElementById('rl-m-c')||{}).value)||0;
+  var gras=parseFloat((document.getElementById('rl-m-g2')||{}).value)||0;
+  var k=parseFloat((document.getElementById('rl-m-k')||{}).value)||Math.round(p*4+c*4+gras*9);
+  if(!nombre){toast('Escribe el nombre del alimento','err');return;}
+  _regLibreHoy.push({alimento:nombre,cantidad_g:g,macros:{p:p,c:c,g:gras,k:k}});
+  _renderRegistroLibre(S.user, _diasEnAppActual||1);
+}
+
+function eliminarAlimentoRegistro(idx){
+  _regLibreHoy.splice(idx,1);
+  _renderRegistroLibre(S.user, _diasEnAppActual||1);
+}
+
+var _diasEnAppActual=1;
+
+async function guardarRegistroLibre(){
+  try{
+    await saveNutri({registro_libre:_regLibreHoy});
+    // Actualizar S.rn en memoria
+    if(S.rn) S.rn.registro_libre=_regLibreHoy;
+    else S.rn={registro_libre:_regLibreHoy};
+    toast('✅ Día guardado','ok');
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 function renderNutricionOpciones(c, rn, optsNutri){
