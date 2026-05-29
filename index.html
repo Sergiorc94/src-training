@@ -283,7 +283,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         <div style="font-size:22px;font-weight:900;letter-spacing:2px">DASHBOARD</div>
         <div style="font-size:12px;color:#4A5568;margin-top:2px" id="admin-fecha"></div>
       </div>
-      <button class="btn bp" onclick="showM('m-nuevo')">+ Nuevo cliente</button>
+      <button class="btn bp" onclick="abrirModalNuevoCliente()">+ Nuevo cliente</button>
     </div>
 
     <!-- KPIs -->
@@ -1468,7 +1468,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
       <div class="field" style="margin-bottom:1rem"><label>Notas internas (solo las ve Sergio)</label><textarea id="nc-not" placeholder="Trabajo a turnos, lesión antigua de rodilla, motivación alta..." style="height:56px;resize:none"></textarea></div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button class="btn bg" onclick="hideM('m-nuevo')">Cancelar</button>
-        <button class="btn bp" id="btn-crear" onclick="crearCliente()">🥊 Crear cliente</button>
+        <button class="btn bp" id="btn-crear" onclick="crearCliente()">💪 Crear cliente</button>
       </div>
 
     </div>
@@ -6641,6 +6641,26 @@ function renderAdminGrid(){
     }).join('');
 }
 
+
+function abrirModalNuevoCliente(){
+  // Reset completo del formulario
+  var form=document.getElementById('m-nuevo');
+  if(!form) return;
+  // Limpiar todos los inputs de texto/número/date
+  form.querySelectorAll('input[type=text],input[type=number],input[type=date],input[type=time],input[type=email],textarea').forEach(function(el){el.value='';});
+  // Limpiar selects a su primer valor
+  form.querySelectorAll('select').forEach(function(el){el.selectedIndex=0;});
+  // Desmarcar todos los checkboxes
+  form.querySelectorAll('input[type=checkbox]').forEach(function(el){el.checked=false;});
+  // Ocultar alerta de corte
+  var corteEl=document.getElementById('nc-corte-alerta');
+  if(corteEl) corteEl.style.display='none';
+  var macrosAviso=document.getElementById('nc-macros-aviso');
+  if(macrosAviso) macrosAviso.style.display='none';
+  // Resetear tipo a fitness
+  ncSetTipo('fitness');
+  showM('m-nuevo');
+}
 
 function ncSetTipo(tipo){
   document.getElementById('nc-tipo').value=tipo;
