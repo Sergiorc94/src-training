@@ -782,6 +782,12 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
       <!-- Banner cuestionario (si hay pendiente, siempre arriba) -->
       <div id="cuest-banner"></div>
 
+      <!-- FIGHT COUNTDOWN (solo combate con fecha de pelea — lo primero que ve) -->
+      <div id="fight-countdown" style="margin-bottom:.75rem"></div>
+
+      <!-- MENSAJE DEL ENTRENADOR (si hay mensaje nuevo) -->
+      <div id="msg-coach-card" style="margin-bottom:.75rem"></div>
+
       <!-- 1. SALUDO — lo primero que ve el usuario -->
       <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:.9rem">
         <div>
@@ -1136,7 +1142,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         <div class="field"><label>Apellido</label><input type="text" id="nc-ape" placeholder="Apellido"></div>
         <div class="field"><label>Email</label><input type="email" id="nc-email" placeholder="email@..."></div>
         <div class="field"><label>Código acceso *</label><input type="text" id="nc-cod" placeholder="ej. CARLOS01"></div>
-        <div class="field"><label>Tipo de cliente</label><select id="nc-tipo"><option value="fitness">💪 Fitness</option><option value="combate">🥊 Combate</option></select></div>
+        <div class="field"><label>Tipo de cliente</label><select id="nc-tipo" onchange="toggleNuevoClienteCombate()"><option value="fitness">💪 Fitness</option><option value="combate">🥊 Combate</option></select></div>
         <div class="field"><label>Peso (kg)</label><input type="number" id="nc-peso" step="0.5" placeholder="80"></div>
         <div class="field"><label>Altura (cm)</label><input type="number" id="nc-alt" placeholder="175"></div>
         <div class="field"><label>Edad</label><input type="number" id="nc-edad" placeholder="32"></div>
@@ -1173,6 +1179,23 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         </div>
         <div class="field"><label>Semanas de protocolo</label><input type="number" id="nc-sem-prot" placeholder="8" min="1" max="52"></div>
         <div class="field"><label>Inicio protocolo</label><input type="date" id="nc-fecha-prot"></div>
+      </div>
+      <!-- CAMPOS COMBATE — visibles solo cuando tipo = combate -->
+      <div id="nc-combate-fields" style="display:none;background:rgba(255,23,68,.04);border:1px solid rgba(255,23,68,.15);border-radius:10px;padding:12px;margin-bottom:1rem">
+        <div style="font-size:11px;font-weight:800;color:#FF6B35;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">⚔️ Datos de combate</div>
+        <div class="g2">
+          <div class="field"><label>📅 Fecha próxima pelea</label><input type="date" id="nc-fecha-pelea"></div>
+          <div class="field"><label>⚖️ Categoría de peso (kg)</label><input type="number" id="nc-peso-cat" step="0.5" placeholder="70"></div>
+          <div class="field"><label>🎯 Perfil ATR</label>
+            <select id="nc-perfil-atleta">
+              <option value="">— Sin definir —</option>
+              <option value="halcon">🦅 Halcón — equilibrado, base</option>
+              <option value="hulk">💪 Hulk — fuerza alta, velocidad baja</option>
+              <option value="flash">⚡ Flash — velocidad alta, fuerza baja</option>
+              <option value="superman">🦸 Superman — equilibrado nivel alto</option>
+            </select>
+          </div>
+        </div>
       </div>
       <button onclick="calcularMacrosAuto()" style="width:100%;padding:10px;background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.3);color:#00C853;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:1rem">
         ⚡ Calcular macros automáticamente
@@ -6343,6 +6366,12 @@ function renderAdminGrid(){
 }
 
 
+function toggleNuevoClienteCombate(){
+  var tipo=document.getElementById('nc-tipo').value;
+  var cf=document.getElementById('nc-combate-fields');
+  if(cf) cf.style.display=(tipo==='combate')?'':'none';
+}
+
 async function crearCliente(){
   const nom=document.getElementById('nc-nom').value.trim();
   const cod=document.getElementById('nc-cod').value.trim().toUpperCase();
@@ -6372,7 +6401,7 @@ async function crearCliente(){
     if(newId){
       // Columnas nuevas via RPC (schema cache workaround)
       try{
-        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({
+        var _ncExtras={
           p_id:newId,
           p_tipo_cliente:tipoCliente,
           p_kcal_descanso:parseInt(document.getElementById('nc-kcal-d').value)||null,
@@ -6381,7 +6410,19 @@ async function crearCliente(){
           p_grasas_descanso:parseInt(document.getElementById('nc-gras-d').value)||null,
           p_dias_entreno:parseInt(document.getElementById('nc-dias-ent').value)||3,
           p_semanas_protocolo:parseInt(document.getElementById('nc-sem-prot').value)||null,
-        })});
+        };
+        if(tipoCliente==='combate'){
+          var _fp=document.getElementById('nc-fecha-pelea')?document.getElementById('nc-fecha-pelea').value||null:null;
+          var _pc=document.getElementById('nc-peso-cat')?parseFloat(document.getElementById('nc-peso-cat').value)||null:null;
+          var _pa=document.getElementById('nc-perfil-atleta')?document.getElementById('nc-perfil-atleta').value||null:null;
+          if(_fp) _ncExtras.p_fecha_pelea=_fp;
+          if(_pc) _ncExtras.p_peso_categoria=_pc;
+          if(_pa){
+            // guardar perfil_atleta en cuestionario_datos via p_datos
+            _ncExtras.p_datos={cuestionario_datos:{perfil_atleta:_pa}};
+          }
+        }
+        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify(_ncExtras)});
       }catch(e2){console.warn('extras RPC:',e2);}
     }
     hideM('m-nuevo');toast('✅ Cliente '+nom+' creado. Código: '+cod,'ok');loadAdmin();
@@ -6561,6 +6602,31 @@ function adminEditarOpcion(idx){
     toast('✅ Opción actualizada','ok');
     adminTab('nutri',document.getElementById('at-nutri'));
   }).catch(function(e){toast('Error: '+e.message,'err');});
+}
+
+// ── Mensaje directo entrenador → atleta ──────────────
+async function enviarMensajeEntrenador(textoForzado){
+  var c=S.ca;
+  if(!c){toast('No hay cliente seleccionado','err');return;}
+  var texto=textoForzado!==undefined?textoForzado:(document.getElementById('admin-msg-texto')?document.getElementById('admin-msg-texto').value.trim():'');
+  var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+  if(texto===''){
+    delete _qdc.mensaje_entrenador;
+  } else {
+    _qdc.mensaje_entrenador={
+      texto:texto,
+      enviado_en:new Date().toISOString(),
+      leido:false,
+      leido_en:null
+    };
+  }
+  try{
+    await db.rpc('actualizar_cliente_extras',{p_id:c.id,p_datos:{cuestionario_datos:_qdc}});
+    c.cuestionario_datos=_qdc;
+    S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
+    toast(texto?'📤 Mensaje enviado a '+c.nombre:'🗑️ Mensaje borrado','ok');
+    adminTab('hoy',document.getElementById('at-hoy'));
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 // ══════════════════════════════════════════════════════
@@ -6798,7 +6864,32 @@ async function adminTab(tab,btn){
           (maxKg?'<span style="margin-left:8px;color:#FFB300">🏆 '+maxKg+'kg en '+maxEj+'</span>':'')+
         '</div>';
       }
-      cont.innerHTML=alertPeso+wellnessHoy+'<div class="g2">'+
+      // ── Mensaje directo al atleta ──
+      var _qdMsg=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+      var _msgActual=_qdMsg.mensaje_entrenador||null;
+      var _msgLeido=_msgActual&&_msgActual.leido;
+      var _msgTextoActual=_msgActual&&_msgActual.texto||'';
+      var _msgEnviadoEn=_msgActual&&_msgActual.enviado_en?new Date(_msgActual.enviado_en).toLocaleDateString('es-ES',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+      var msgCard='<div class="card" style="margin-bottom:.75rem">'+
+        '<div class="ch">💬 Mensaje para hoy'+
+          (_msgActual&&_msgLeido?'<span style="margin-left:auto;font-size:10px;color:#00C853">✅ Visto</span>':
+           _msgActual&&!_msgLeido?'<span style="margin-left:auto;font-size:10px;color:#FFB300">⏳ Sin leer</span>':'')+
+        '</div>'+
+        '<div class="cb">'+
+          (_msgActual?'<div style="background:#0D1528;border-radius:8px;padding:10px;margin-bottom:.75rem;font-size:12px;color:#A0B0C0;border-left:3px solid rgba(0,85,255,.4)">'+
+            '<div style="font-size:10px;color:#4A5568;margin-bottom:4px">Mensaje actual'+(c.nombre?' para '+c.nombre:'')+(_msgEnviadoEn?' · '+_msgEnviadoEn:'')+(_msgLeido?' · <span style="color:#00C853">leído</span>':' · <span style="color:#FFB300">no leído</span>')+'</div>'+
+            '<div style="font-style:italic;color:#F0F4FF">"'+_msgTextoActual+'"</div>'+
+          '</div>':'<div style="font-size:12px;color:#4A5568;margin-bottom:.5rem">Sin mensaje activo para este cliente</div>')+
+          '<textarea id="admin-msg-texto" placeholder="Escribe un mensaje para '+(c.nombre||'el atleta')+'..." rows="3" '+
+            'style="width:100%;padding:10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:13px;resize:vertical;font-family:inherit;box-sizing:border-box">'+_msgTextoActual+'</textarea>'+
+          '<div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">'+
+            (_msgActual?'<button onclick="enviarMensajeEntrenador(\'\')" style="padding:7px 14px;background:rgba(74,85,104,.2);border:1px solid rgba(74,85,104,.4);color:#4A5568;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">🗑️ Borrar</button>':'')+
+            '<button onclick="enviarMensajeEntrenador()" style="padding:7px 16px;background:rgba(0,85,255,.15);border:1px solid rgba(0,85,255,.4);color:#4D9FFF;border-radius:7px;font-size:12px;font-weight:800;cursor:pointer">📤 Enviar mensaje</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+
+      cont.innerHTML=alertPeso+msgCard+wellnessHoy+'<div class="g2">'+
         '<div class="card"><div class="ch">🥗 Nutrición hoy<div style="margin-left:auto;font-size:11px;color:'+(rn&&rn.completado?'#00C853':'#FFB300')+'">'+(rn&&rn.completado?'✅ Completado':'⏳ Pendiente')+'</div></div><div class="cb">'+
           (rn?'<div class="g4" style="margin-bottom:.75rem">'+
             [['Kcal',Math.round(rn.kcal_real),'#7986CB'],['P',Math.round(rn.proteina_real)+'g','#00E5FF'],['C',Math.round(rn.carbos_real)+'g','#FFB300'],['G',Math.round(rn.grasas_real)+'g','#F48FB1']].map(([l,v,col])=>'<div class="mp"><div class="mpv" style="color:'+col+'">'+v+'</div><div class="mpl">'+l+'</div></div>').join('')+
@@ -8105,6 +8196,65 @@ async function loadInicio(){
     perfilBadgeEl.innerHTML='<span style="display:inline-flex;align-items:center;gap:4px;background:rgba('+pbc+',.12);border:1px solid rgba('+pbc+',.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:rgba('+pbc+',1)">'+pb.name+'</span>';
     perfilBadgeEl.style.display='';
   } else if(perfilBadgeEl){perfilBadgeEl.style.display='none';}
+
+  // ── FIGHT COUNTDOWN (grande y visible, solo combate con fecha de pelea) ──
+  var fightCdEl=document.getElementById('fight-countdown');
+  if(fightCdEl){
+    if(c.tipo_cliente==='combate'&&c.fecha_pelea){
+      var _fp0=new Date(c.fecha_pelea),_hD0=new Date();_hD0.setHours(0,0,0,0);
+      var _dias0=Math.max(0,Math.ceil((_fp0-_hD0)/(24*3600*1000)));
+      var _fase0=getFaseCombate(c);
+      var _faseP0=FASE_COMBATE_PARAMS[_fase0]||{};
+      var _cdBg=_dias0<=7?'rgba(255,23,68,.15), rgba(255,107,53,.10)':_dias0<=21?'rgba(255,179,0,.12), rgba(255,107,53,.08)':'rgba(0,85,255,.10), rgba(77,159,255,.06)';
+      var _cdBorder=_dias0<=7?'rgba(255,23,68,.4)':_dias0<=21?'rgba(255,179,0,.35)':'rgba(77,159,255,.25)';
+      var _cdNumCol=_dias0<=7?'#FF1744':_dias0<=21?'#FFB300':'#4D9FFF';
+      var _cdLbl=_dias0<=7?'FIGHT WEEK ⚔️':_dias0===0?'¡HOY ES LA PELEA!':'PRÓXIMA PELEA';
+      fightCdEl.innerHTML=
+        '<div style="background:linear-gradient(135deg,'+_cdBg+');border:1px solid '+_cdBorder+';border-radius:12px;padding:16px;text-align:center">'+
+          '<div style="font-size:11px;color:#FF6B35;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">'+_cdLbl+'</div>'+
+          '<div style="font-size:48px;font-weight:900;color:'+_cdNumCol+';line-height:1">'+(_dias0===0?'🥊':_dias0)+'</div>'+
+          (_dias0>0?'<div style="font-size:13px;color:#F0F4FF;margin-top:2px">días</div>':'')+
+          '<div style="font-size:11px;color:#4A5568;margin-top:8px">'+_faseP0.label+' · '+c.fecha_pelea+'</div>'+
+        '</div>';
+    } else {
+      fightCdEl.innerHTML='';
+    }
+  }
+
+  // ── MENSAJE DEL ENTRENADOR ──
+  var msgCoachEl=document.getElementById('msg-coach-card');
+  if(msgCoachEl){
+    var _qd1=c.cuestionario_datos||{};
+    var _msg=_qd1.mensaje_entrenador||null;
+    if(_msg&&_msg.texto){
+      var _msLeido=_msg.leido||false;
+      var _msFecha=_msg.enviado_en?new Date(_msg.enviado_en):null;
+      var _msHace='';
+      if(_msFecha){
+        var _msDiff=Math.floor((Date.now()-_msFecha.getTime())/60000);
+        _msHace=_msDiff<60?'Hace '+_msDiff+' min':_msDiff<1440?'Hace '+Math.floor(_msDiff/60)+' h':'Hace '+Math.floor(_msDiff/1440)+' días';
+      }
+      msgCoachEl.innerHTML=
+        '<div style="background:rgba(0,85,255,.07);border:1px solid rgba(0,85,255,.25);border-radius:10px;padding:12px 14px">'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+            '<span style="font-size:16px">💬</span>'+
+            '<span style="font-size:11px;font-weight:800;color:#4D9FFF;text-transform:uppercase;letter-spacing:.5px">Sergio</span>'+
+            (_msFecha?'<span style="font-size:10px;color:#4A5568;margin-left:auto">'+_msHace+'</span>':'')+
+            (!_msLeido?'<span style="width:7px;height:7px;background:#0055FF;border-radius:50%;flex-shrink:0"></span>':'')+
+          '</div>'+
+          '<div style="font-size:13px;color:#F0F4FF;line-height:1.5;font-style:italic">"'+_msg.texto+'"</div>'+
+        '</div>';
+      // Marcar como leído si no lo estaba
+      if(!_msLeido){
+        try{
+          var _qdMark=Object.assign({},_qd1,{mensaje_entrenador:Object.assign({},_msg,{leido:true,leido_en:new Date().toISOString()})});
+          api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:c.id,p_datos:{cuestionario_datos:_qdMark}})}).catch(function(){});
+        }catch(e){}
+      }
+    } else {
+      msgCoachEl.innerHTML='';
+    }
+  }
 
   // Widget de peso (solo clientes de combate)
   var pesoWidget=document.getElementById('peso-widget');
@@ -12316,6 +12466,47 @@ async function loadEntrenoCombate(){
     '</div>';
   }
 
+  // ── TATAMI SESSION CARD ──
+  var _ts=reCombate&&reCombate.tatami_sesion||null;
+  var _tsTipos=[
+    {id:'tecnica_suave',label:'Técnica suave',ic:'🥋',color:'77,159,255'},
+    {id:'tecnica_resistencia',label:'Técnica con resistencia',ic:'⚡',color:'255,179,0'},
+    {id:'sparring_controlado',label:'Sparring controlado',ic:'🥊',color:'0,200,83'},
+    {id:'sparring_duro',label:'Sparring duro',ic:'🔥',color:'255,107,53'},
+    {id:'competicion',label:'Competición',ic:'🏆',color:'255,23,68'},
+    {id:'no_hoy',label:'No hoy',ic:'🛌',color:'74,85,104'},
+  ];
+  var _tsSel=_ts?_ts.tipo||null:null;
+  var _tsEner=_ts?_ts.energia||7:7;
+  var _tsNota=_ts?_ts.nota||'':'';
+  var _tsBtns=_tsTipos.map(function(t){
+    var _sel=_tsSel===t.id;
+    return '<button onclick="tatamiBtnClick(\''+t.id+'\')" data-tatami-btn="'+t.id+'" '+
+      'style="padding:7px 10px;border-radius:8px;border:1.5px solid rgba('+t.color+','+(_sel?'.8':'.25')+');'+
+      'background:rgba('+t.color+','+(_sel?'.15':'.04')+');color:rgba('+t.color+','+(_sel?'1':'.7')+');'+
+      'font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap">'+
+      t.ic+' '+t.label+'</button>';
+  }).join('');
+  html+='<div class="card" style="margin-top:.75rem">'+
+    '<div class="ch">🥊 Sesión en el tatami hoy</div>'+
+    '<div class="cb">'+
+      '<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:.75rem" id="tatami-btns">'+_tsBtns+'</div>'+
+      '<div id="tatami-detail" style="'+((_tsSel&&_tsSel!=='no_hoy')?'':'display:none')+'">'+
+        '<div style="margin-bottom:.5rem">'+
+          '<label style="font-size:11px;color:#4A5568;font-weight:700;display:block;margin-bottom:4px">¿Cómo ha ido? <span id="tatami-ener-val" style="color:#FFB300;font-weight:900">'+_tsEner+'</span>/10</label>'+
+          '<input type="range" id="tatami-ener" min="1" max="10" value="'+_tsEner+'" '+
+            'oninput="document.getElementById(\'tatami-ener-val\').textContent=this.value" '+
+            'style="width:100%;accent-color:#FFB300">'+
+        '</div>'+
+        '<div class="field"><label>Nota rápida (opcional)</label>'+
+          '<input type="text" id="tatami-nota" value="'+(_tsNota.replace(/"/g,'&quot;'))+'" placeholder="ej: buen ritmo, cansancio al final...">'+
+        '</div>'+
+      '</div>'+
+      '<button onclick="guardarTatami()" style="margin-top:.5rem;width:100%;padding:9px;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);color:#FF6B35;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer">'+
+        '💾 Guardar sesión tatami</button>'+
+    '</div>'+
+  '</div>';
+
   cont.innerHTML=html;
   renderEncuesta();
   renderFatigaBanner(reCombateHistory,'e-rutina');
@@ -12418,6 +12609,65 @@ async function guardarEntrenoCombate(){
     okSav();
     S.eSueno=null;S.eFatiga=null;S.eEstres=null;renderEncuesta();
     toast('✅ '+diaNom+' guardada','ok');
+    loadEntrenoCombate();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+// Tatami: toggle tipo de sesión (highlight selected button, show/hide detail)
+function tatamiBtnClick(tipo){
+  // Update state
+  if(!S.reCombate) S.reCombate={fecha:new Date().toISOString().split('T')[0],ejercicios:{}};
+  if(!S.reCombate.tatami_sesion) S.reCombate.tatami_sesion={};
+  S.reCombate.tatami_sesion.tipo=tipo;
+  // Re-style all buttons
+  var _tipos={
+    tecnica_suave:'77,159,255',tecnica_resistencia:'255,179,0',
+    sparring_controlado:'0,200,83',sparring_duro:'255,107,53',
+    competicion:'255,23,68',no_hoy:'74,85,104'
+  };
+  document.querySelectorAll('[data-tatami-btn]').forEach(function(btn){
+    var t=btn.dataset.tatamiBtn;
+    var col=_tipos[t]||'74,85,104';
+    var sel=(t===tipo);
+    btn.style.border='1.5px solid rgba('+col+','+(sel?'.8':'.25')+')';
+    btn.style.background='rgba('+col+','+(sel?'.15':'.04')+')';
+    btn.style.color='rgba('+col+','+(sel?'1':'.7')+')';
+  });
+  // Show/hide detail section
+  var det=document.getElementById('tatami-detail');
+  if(det) det.style.display=(tipo&&tipo!=='no_hoy')?'':'none';
+}
+
+async function guardarTatami(){
+  var c=S.user, fHoy=new Date().toISOString().split('T')[0];
+  if(!S.reCombate||!S.reCombate.tatami_sesion||!S.reCombate.tatami_sesion.tipo){
+    toast('Selecciona el tipo de sesión primero','err'); return;
+  }
+  var enerEl=document.getElementById('tatami-ener');
+  var notaEl=document.getElementById('tatami-nota');
+  var ts={
+    tipo: S.reCombate.tatami_sesion.tipo,
+    energia: enerEl?parseInt(enerEl.value)||7:7,
+    nota: notaEl?notaEl.value.trim():'',
+    guardado_en: new Date().toISOString()
+  };
+  try{
+    showSav();
+    // Upsert preserving existing gym data
+    var existing=await db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=eq.'+fHoy);
+    var rec=existing&&existing[0]||null;
+    var payload={cliente_id:c.id, fecha:fHoy, tatami_sesion:ts};
+    if(rec){
+      // PATCH to add tatami_sesion without overwriting gym session
+      await api('registros_entreno?cliente_id=eq.'+c.id+'&fecha=eq.'+fHoy,{
+        method:'PATCH',body:JSON.stringify({tatami_sesion:ts})
+      });
+    } else {
+      await db.upsert('registros_entreno',payload,'cliente_id,fecha');
+    }
+    okSav();
+    var _tLbl={tecnica_suave:'Técnica suave',tecnica_resistencia:'Técnica con resistencia',sparring_controlado:'Sparring controlado',sparring_duro:'Sparring duro',competicion:'Competición',no_hoy:'Sin tatami'};
+    toast('🥊 '+(_tLbl[ts.tipo]||ts.tipo)+' guardado','ok');
     loadEntrenoCombate();
   }catch(e){toast('Error: '+e.message,'err');}
 }
