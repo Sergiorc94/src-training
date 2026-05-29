@@ -1075,7 +1075,8 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <div id="weight-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:.75rem"></div>
         </div>
       </div>
-      <div class="card">
+      <!-- CHECK-IN FITNESS (solo clientes fitness) -->
+      <div class="card" id="ci-card-fitness">
         <div class="ch">📋 Check-in Semanal<div style="margin-left:auto;font-size:11px;color:#4A5568" id="ci-sem"></div></div>
         <div class="cb">
           <div class="g2">
@@ -1105,6 +1106,74 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <div class="field"><label>Logros</label><textarea id="ci-log" placeholder="Lo que has conseguido..."></textarea></div>
           <div class="field"><label>Preguntas para Sergio</label><textarea id="ci-preg" placeholder="Dudas, ajustes..."></textarea></div>
           <button class="btn bp bbl" style="margin-top:.75rem" id="btn-ci">📤 Enviar check-in a Sergio</button>
+        </div>
+      </div>
+
+      <!-- CHECK-IN COMBATE (solo clientes de combate — 5 campos) -->
+      <div class="card" id="ci-card-combate" style="display:none">
+        <div class="ch">📋 Check-in Semanal<div style="margin-left:auto;font-size:11px;color:#4A5568" id="ci-combat-sem"></div></div>
+        <div class="cb">
+          <div class="g2" style="margin-bottom:.75rem">
+            <div class="field">
+              <label>⚖️ Peso hoy (kg)</label>
+              <input type="number" id="ci-c-peso" step="0.1" placeholder="82.5">
+            </div>
+            <div class="field">
+              <label>⚡ Energía esta semana <span id="ci-c-en-v" style="color:#FFB300;font-weight:900">7</span>/10</label>
+              <div class="sw"><input type="range" min="1" max="10" value="7" id="ci-c-en" oninput="document.getElementById('ci-c-en-v').textContent=this.value"><div class="swv" id="ci-c-en-disp">7</div></div>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:.75rem">
+            <label>🥗 ¿Has seguido el plan de nutrición?</label>
+            <select id="ci-c-nutri">
+              <option value="siempre">✅ Siempre</option>
+              <option value="mayoria" selected>👍 La mayoría de días</option>
+              <option value="poco">⚠️ Poco</option>
+            </select>
+          </div>
+          <div class="field" style="margin-bottom:.75rem">
+            <label>🩹 ¿Tienes alguna molestia física?</label>
+            <div style="display:flex;gap:8px;margin-top:4px" id="ci-c-mol-btns">
+              <button onclick="ciCombateMolestia(false)" id="ci-c-mol-no" class="btn bp bsm" style="flex:1">✅ No, todo bien</button>
+              <button onclick="ciCombateMolestia(true)" id="ci-c-mol-si" class="btn bg bsm" style="flex:1">🩹 Sí, tengo algo</button>
+            </div>
+            <div id="ci-c-mol-detail" style="display:none;margin-top:.5rem">
+              <div style="font-size:11px;color:#4A5568;font-weight:700;margin-bottom:6px">¿Dónde?</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px" id="ci-c-mol-zona">
+                <button onclick="ciCombateZona(this,'rodilla')" class="btn bg bsm">🦵 Rodilla</button>
+                <button onclick="ciCombateZona(this,'hombro')" class="btn bg bsm">💪 Hombro</button>
+                <button onclick="ciCombateZona(this,'espalda')" class="btn bg bsm">🔙 Espalda</button>
+                <button onclick="ciCombateZona(this,'cuello')" class="btn bg bsm">🦒 Cuello</button>
+                <button onclick="ciCombateZona(this,'cadera')" class="btn bg bsm">🫀 Cadera</button>
+                <button onclick="ciCombateZona(this,'otro')" class="btn bg bsm">❓ Otro</button>
+              </div>
+              <div style="display:flex;gap:6px" id="ci-c-mol-int">
+                <button onclick="ciCombateIntensidad(this,'leve')" class="btn bg bsm" style="flex:1">Leve</button>
+                <button onclick="ciCombateIntensidad(this,'moderada')" class="btn bg bsm" style="flex:1">Moderada</button>
+                <button onclick="ciCombateIntensidad(this,'fuerte')" class="btn bg bsm" style="flex:1;background:rgba(255,23,68,.08);border-color:rgba(255,23,68,.25);color:#FF6B6B">Fuerte</button>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label>💬 Algo que quieras comentarme (opcional)</label>
+            <textarea id="ci-c-comentario" placeholder="Dudas, ajustes, cómo te has sentido esta semana..." style="height:60px;resize:none"></textarea>
+          </div>
+          <button class="btn bp bbl" style="margin-top:.75rem" id="btn-ci-combate">📤 Enviar check-in a Sergio</button>
+        </div>
+      </div>
+
+      <!-- MEDIDAS MENSUALES (combate — separado del check-in semanal) -->
+      <div class="card" id="ci-medidas-card" style="display:none;margin-top:.75rem">
+        <div class="ch">📐 Medidas mensuales
+          <span style="margin-left:auto;font-size:10px;color:#4A5568">Solo una vez al mes</span>
+        </div>
+        <div class="cb">
+          <div class="g2">
+            <div class="field"><label>Cintura (cm)</label><input type="number" id="ci-c-cin" step="0.5" placeholder="88"></div>
+            <div class="field"><label>Cadera (cm)</label><input type="number" id="ci-c-cad" step="0.5" placeholder="100"></div>
+            <div class="field"><label>Brazo (cm)</label><input type="number" id="ci-c-bra" step="0.5" placeholder="35"></div>
+          </div>
+          <button class="btn bg bsm" style="margin-top:.5rem" id="btn-ci-medidas">💾 Guardar medidas</button>
         </div>
       </div>
       <div class="card" id="resp-card" style="display:none">
@@ -7014,7 +7083,7 @@ async function adminTab(tab,btn){
   else if(tab==='bien'){
     try{
       const wRecs=await db.get('registros_entreno',
-        'cliente_id=eq.'+c.id+'&completado=eq.true&select=fecha,sensaciones,sueno,fatiga_percibida,estres,dia_nombre&order=fecha.desc&limit=20');
+        'cliente_id=eq.'+c.id+'&select=fecha,sensaciones,sueno,fatiga_percibida,estres,dia_nombre,molestia_sesion,tatami_sesion&order=fecha.desc&limit=20');
       var SUE_E=['','😵','😕','😐','😊','😴'];
       var FAT_E=['','😩','😓','😐','😊','⚡'];
       var EST_E=['','😤','😟','😐','😌','🧘'];
@@ -7058,6 +7127,57 @@ async function adminTab(tab,btn){
         '</tr>';
       });
       html+='</tbody></table></div></div></div>';
+
+      // ── Historial de molestias ──
+      var molRecs=(wRecs||[]).filter(function(r){return r.molestia_sesion&&r.molestia_sesion.tiene_algo;});
+      if(molRecs.length){
+        var _molIntCols={leve:'0,200,83',moderada:'255,179,0',fuerte:'255,23,68'};
+        html+='<div class="card"><div class="ch">🩹 Historial de molestias</div><div class="cb">';
+        // Count repeats by zone
+        var zonaCount={};
+        molRecs.forEach(function(r){var z=r.molestia_sesion.zona;if(z)zonaCount[z]=(zonaCount[z]||0)+1;});
+        var alertaZonas=Object.keys(zonaCount).filter(function(z){return zonaCount[z]>=2;});
+        if(alertaZonas.length){
+          html+='<div style="background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.3);border-radius:8px;padding:8px 12px;margin-bottom:.5rem;font-size:12px;font-weight:700;color:#FFB300">'+
+            '⚠️ Zona repetida: '+alertaZonas.map(function(z){return z+' ('+zonaCount[z]+'x)';}).join(', ')+'</div>';
+        }
+        html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+        html+='<thead><tr style="border-bottom:1px solid #1A2A40"><th style="padding:6px;text-align:left;color:#4A5568;font-size:10px">Fecha</th><th style="padding:6px;text-align:left;color:#4A5568;font-size:10px">Zona</th><th style="padding:6px;text-align:left;color:#4A5568;font-size:10px">Intensidad</th></tr></thead><tbody>';
+        molRecs.forEach(function(r){
+          var m=r.molestia_sesion;
+          var col=_molIntCols[m.intensidad]||'74,85,104';
+          html+='<tr style="border-bottom:1px solid #0D1528">'+
+            '<td style="padding:6px;color:#4A5568;font-size:11px">'+r.fecha+'</td>'+
+            '<td style="padding:6px;font-weight:700;color:#F0F4FF">'+(m.zona||'—')+'</td>'+
+            '<td style="padding:6px"><span style="background:rgba('+col+',.12);color:rgba('+col+',1);border-radius:4px;padding:2px 7px;font-size:10px;font-weight:800">'+(m.intensidad||'—')+'</span></td>'+
+          '</tr>';
+        });
+        html+='</tbody></table></div></div></div>';
+      }
+
+      // ── Historial de sesiones tatami ──
+      if(c.tipo_cliente==='combate'){
+        var tatRecs=(wRecs||[]).filter(function(r){return r.tatami_sesion&&r.tatami_sesion.tipo&&r.tatami_sesion.tipo!=='no_hoy';});
+        if(tatRecs.length){
+          var _tatColors={tecnica_suave:'77,159,255',tecnica_resistencia:'255,179,0',sparring_controlado:'0,200,83',sparring_duro:'255,107,53',competicion:'255,23,68'};
+          var _tatNames={tecnica_suave:'Técnica suave',tecnica_resistencia:'Técnica c/resistencia',sparring_controlado:'Sparring controlado',sparring_duro:'Sparring duro',competicion:'Competición'};
+          html+='<div class="card"><div class="ch">🥊 Historial tatami</div><div class="cb">';
+          html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+          html+='<thead><tr style="border-bottom:1px solid #1A2A40"><th style="padding:6px;text-align:left;color:#4A5568;font-size:10px">Fecha</th><th style="padding:6px;text-align:left;color:#4A5568;font-size:10px">Tipo</th><th style="padding:6px;text-align:center;color:#FFB300;font-size:10px">Energía</th><th style="padding:6px;text-align:left;color:#4A5568;font-size:10px">Nota</th></tr></thead><tbody>';
+          tatRecs.forEach(function(r){
+            var t=r.tatami_sesion;
+            var col=_tatColors[t.tipo]||'74,85,104';
+            html+='<tr style="border-bottom:1px solid #0D1528">'+
+              '<td style="padding:6px;color:#4A5568;font-size:11px;white-space:nowrap">'+r.fecha+'</td>'+
+              '<td style="padding:6px"><span style="background:rgba('+col+',.12);color:rgba('+col+',1);border-radius:4px;padding:2px 7px;font-size:10px;font-weight:800">'+(_tatNames[t.tipo]||t.tipo)+'</span></td>'+
+              '<td style="padding:6px;text-align:center;font-weight:800;color:#FFB300">'+(t.energia||'—')+'</td>'+
+              '<td style="padding:6px;font-size:11px;color:#6E8090;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(t.nota||'')+'</td>'+
+            '</tr>';
+          });
+          html+='</tbody></table></div></div></div>';
+        }
+      }
+
       cont.innerHTML=html;
     }catch(e){cont.innerHTML='<div class="empty">Error: '+e.message+'</div>';}
   }
@@ -12507,6 +12627,52 @@ async function loadEntrenoCombate(){
     '</div>'+
   '</div>';
 
+  // ── MOLESTIAS / LESIONES CARD ──
+  var _mol=reCombate&&reCombate.molestia_sesion||null;
+  var _molZona=_mol&&_mol.zona||null;
+  var _molInt=_mol&&_mol.intensidad||null;
+  var _molZonas=['rodilla','hombro','espalda','cuello','cadera','otro'];
+  var _molIcons={rodilla:'🦵',hombro:'💪',espalda:'🔙',cuello:'🦒',cadera:'🫀',otro:'❓'};
+  var _molIntensidades=['leve','moderada','fuerte'];
+  var _molIntColors={leve:'0,200,83',moderada:'255,179,0',fuerte:'255,23,68'};
+  var _molZonaBtns=_molZonas.map(function(z){
+    var sel=_molZona===z;
+    return '<button onclick="molestaZonaClick(\''+z+'\')" data-mol-zona="'+z+'" '+
+      'style="padding:6px 10px;border-radius:7px;border:1.5px solid rgba(255,179,0,'+
+      (sel?'.7':'.2')+');background:rgba(255,179,0,'+(sel?'.15':'.03')+');color:rgba(255,179,0,'+(sel?'1':'.6')+');font-size:11px;font-weight:700;cursor:pointer">'+
+      _molIcons[z]+' '+z.charAt(0).toUpperCase()+z.slice(1)+'</button>';
+  }).join('');
+  var _molIntBtns=_molIntensidades.map(function(i){
+    var sel=_molInt===i;
+    var col=_molIntColors[i];
+    return '<button onclick="molestaIntClick(\''+i+'\')" data-mol-int="'+i+'" '+
+      'style="flex:1;padding:6px;border-radius:7px;border:1.5px solid rgba('+col+','+(sel?'.7':'.2')+');background:rgba('+col+','+(sel?'.15':'.03')+');color:rgba('+col+','+(sel?'1':'.6')+');font-size:11px;font-weight:700;cursor:pointer">'+
+      i.charAt(0).toUpperCase()+i.slice(1)+'</button>';
+  }).join('');
+  var _molTieneAlgo=_mol&&_mol.tiene_algo||false;
+  html+='<div class="card" style="margin-top:.75rem">'+
+    '<div class="ch">🩹 ¿Tienes alguna molestia hoy?</div>'+
+    '<div class="cb">'+
+      '<div style="display:flex;gap:8px;margin-bottom:.5rem" id="mol-resp-btns">'+
+        '<button onclick="molestaRespClick(false)" data-mol-resp="no" '+
+          'style="flex:1;padding:8px;border-radius:8px;border:1.5px solid rgba(0,200,83,'+
+          (!_molTieneAlgo&&_mol?'.7':'.2')+');background:rgba(0,200,83,'+(!_molTieneAlgo&&_mol?'.15':'.03')+');color:rgba(0,200,83,'+(!_molTieneAlgo&&_mol?'1':'.6')+');font-size:12px;font-weight:700;cursor:pointer">'+
+          '✅ No, todo bien</button>'+
+        '<button onclick="molestaRespClick(true)" data-mol-resp="si" '+
+          'style="flex:1;padding:8px;border-radius:8px;border:1.5px solid rgba(255,179,0,'+
+          (_molTieneAlgo?'.7':'.2')+');background:rgba(255,179,0,'+(_molTieneAlgo?'.15':'.03')+');color:rgba(255,179,0,'+(_molTieneAlgo?'1':'.6')+');font-size:12px;font-weight:700;cursor:pointer">'+
+          '🩹 Sí, tengo algo</button>'+
+      '</div>'+
+      '<div id="mol-detail" style="'+((_molTieneAlgo)?'':'display:none')+'">'+
+        '<div style="font-size:11px;color:#4A5568;font-weight:700;margin-bottom:6px">¿Dónde?</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.5rem" id="mol-zona-btns">'+_molZonaBtns+'</div>'+
+        '<div style="font-size:11px;color:#4A5568;font-weight:700;margin-bottom:6px">Intensidad</div>'+
+        '<div style="display:flex;gap:6px;margin-bottom:.5rem" id="mol-int-btns">'+_molIntBtns+'</div>'+
+      '</div>'+
+      '<button onclick="guardarMolestia()" style="width:100%;padding:8px;background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.25);color:#FFB300;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px">💾 Guardar</button>'+
+    '</div>'+
+  '</div>';
+
   cont.innerHTML=html;
   renderEncuesta();
   renderFatigaBanner(reCombateHistory,'e-rutina');
@@ -12669,6 +12835,116 @@ async function guardarTatami(){
     var _tLbl={tecnica_suave:'Técnica suave',tecnica_resistencia:'Técnica con resistencia',sparring_controlado:'Sparring controlado',sparring_duro:'Sparring duro',competicion:'Competición',no_hoy:'Sin tatami'};
     toast('🥊 '+(_tLbl[ts.tipo]||ts.tipo)+' guardado','ok');
     loadEntrenoCombate();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+// Molestias — interacción de botones
+function molestaRespClick(tieneAlgo){
+  if(!S.reCombate) S.reCombate={fecha:new Date().toISOString().split('T')[0],ejercicios:{}};
+  if(!S.reCombate.molestia_sesion) S.reCombate.molestia_sesion={};
+  S.reCombate.molestia_sesion.tiene_algo=tieneAlgo;
+  // Re-style
+  var noBtn=document.querySelector('[data-mol-resp="no"]');
+  var siBtn=document.querySelector('[data-mol-resp="si"]');
+  if(noBtn){noBtn.style.borderColor='rgba(0,200,83,'+(!tieneAlgo?'.7':'.2')+')';noBtn.style.background='rgba(0,200,83,'+(!tieneAlgo?'.15':'.03')+')';noBtn.style.color='rgba(0,200,83,'+(!tieneAlgo?'1':'.6')+')';}
+  if(siBtn){siBtn.style.borderColor='rgba(255,179,0,'+(tieneAlgo?'.7':'.2')+')';siBtn.style.background='rgba(255,179,0,'+(tieneAlgo?'.15':'.03')+')';siBtn.style.color='rgba(255,179,0,'+(tieneAlgo?'1':'.6')+')';}
+  var det=document.getElementById('mol-detail');
+  if(det) det.style.display=tieneAlgo?'':'none';
+}
+
+function molestaZonaClick(zona){
+  if(!S.reCombate) S.reCombate={fecha:new Date().toISOString().split('T')[0],ejercicios:{}};
+  if(!S.reCombate.molestia_sesion) S.reCombate.molestia_sesion={};
+  S.reCombate.molestia_sesion.zona=zona;
+  document.querySelectorAll('[data-mol-zona]').forEach(function(btn){
+    var sel=btn.dataset.molZona===zona;
+    btn.style.borderColor='rgba(255,179,0,'+(sel?'.7':'.2')+')';
+    btn.style.background='rgba(255,179,0,'+(sel?'.15':'.03')+')';
+    btn.style.color='rgba(255,179,0,'+(sel?'1':'.6')+')';
+  });
+}
+
+function molestaIntClick(intensidad){
+  if(!S.reCombate) S.reCombate={fecha:new Date().toISOString().split('T')[0],ejercicios:{}};
+  if(!S.reCombate.molestia_sesion) S.reCombate.molestia_sesion={};
+  S.reCombate.molestia_sesion.intensidad=intensidad;
+  var cols={leve:'0,200,83',moderada:'255,179,0',fuerte:'255,23,68'};
+  document.querySelectorAll('[data-mol-int]').forEach(function(btn){
+    var i=btn.dataset.molInt; var sel=(i===intensidad); var col=cols[i]||'74,85,104';
+    btn.style.borderColor='rgba('+col+','+(sel?'.7':'.2')+')';
+    btn.style.background='rgba('+col+','+(sel?'.15':'.03')+')';
+    btn.style.color='rgba('+col+','+(sel?'1':'.6')+')';
+  });
+}
+
+async function guardarMolestia(){
+  var c=S.user, fHoy=new Date().toISOString().split('T')[0];
+  var mol=S.reCombate&&S.reCombate.molestia_sesion||{};
+  if(!mol.tiene_algo&&mol.tiene_algo!==false){toast('Indica si tienes molestia o no','err');return;}
+  if(mol.tiene_algo&&!mol.zona){toast('Indica la zona afectada','err');return;}
+  mol.guardado_en=new Date().toISOString();
+  try{
+    showSav();
+    var existing=await db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=eq.'+fHoy);
+    var rec=existing&&existing[0]||null;
+    if(rec){
+      await api('registros_entreno?cliente_id=eq.'+c.id+'&fecha=eq.'+fHoy,{method:'PATCH',body:JSON.stringify({molestia_sesion:mol})});
+    } else {
+      await db.upsert('registros_entreno',{cliente_id:c.id,fecha:fHoy,molestia_sesion:mol},'cliente_id,fecha');
+    }
+    okSav();
+    toast(mol.tiene_algo?'🩹 Molestia registrada — Sergio lo verá':'✅ Sin molestias registrado','ok');
+    loadEntrenoCombate();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+// Combat check-in helper buttons
+function ciCombateMolestia(tiene){
+  var noBtn=document.getElementById('ci-c-mol-no');
+  var siBtn=document.getElementById('ci-c-mol-si');
+  var det=document.getElementById('ci-c-mol-detail');
+  if(noBtn){noBtn.className=!tiene?'btn bp bsm':'btn bg bsm';}
+  if(siBtn){siBtn.className=tiene?'btn bp bsm':'btn bg bsm';}
+  if(det) det.style.display=tiene?'':'none';
+  window._ciCombateMolestia=tiene;
+}
+function ciCombateZona(btn,zona){
+  document.querySelectorAll('#ci-c-mol-zona button').forEach(function(b){b.className='btn bg bsm';});
+  btn.className='btn bp bsm';
+  window._ciCombateZona=zona;
+}
+function ciCombateIntensidad(btn,int){
+  document.querySelectorAll('#ci-c-mol-int button').forEach(function(b){b.className='btn bg bsm';});
+  btn.className='btn bp bsm';
+  window._ciCombateInt=int;
+}
+
+async function enviarCheckinCombate(existingId,semNum){
+  var pesoEl=document.getElementById('ci-c-peso');
+  if(!pesoEl||!pesoEl.value){toast('Introduce al menos tu peso','err');return;}
+  var c=S.user;
+  var molestia=null;
+  if(window._ciCombateMolestia===true){
+    molestia={tiene_algo:true,zona:window._ciCombateZona||null,intensidad:window._ciCombateInt||'leve'};
+  } else {
+    molestia={tiene_algo:false};
+  }
+  var data={
+    cliente_id:c.id,semana_num:semNum,fecha:hoy(),
+    peso:parseFloat(document.getElementById('ci-c-peso').value)||null,
+    en:parseInt(document.getElementById('ci-c-en').value)||7,
+    ad:document.getElementById('ci-c-nutri')?({siempre:100,mayoria:75,poco:30}[document.getElementById('ci-c-nutri').value]||80):80,
+    preg:document.getElementById('ci-c-comentario')?document.getElementById('ci-c-comentario').value||'':'',
+    molestia_ci:JSON.stringify(molestia),
+    dif:'',log:'',respondido:false
+  };
+  try{
+    showSav();
+    if(existingId) await db.patch('checkins','id=eq.'+existingId,data);
+    else await db.post('checkins',data);
+    okSav();
+    toast('✅ Check-in enviado a Sergio','ok');
+    loadProg();
   }catch(e){toast('Error: '+e.message,'err');}
 }
 
@@ -13657,6 +13933,39 @@ async function loadProgCombate(){
       var el=document.getElementById(id);
       if(el) el.style.display='none';
     });
+
+    // ── Check-in semanal combate (simplificado) ──
+    var ciFit=document.getElementById('ci-card-fitness');
+    var ciCombate=document.getElementById('ci-card-combate');
+    var ciMedidas=document.getElementById('ci-medidas-card');
+    if(ciFit) ciFit.style.display='none';
+    if(ciCombate) ciCombate.style.display='';
+    if(ciMedidas) ciMedidas.style.display='';
+
+    // Cargar check-in actual + fijar botón
+    try{
+      var semNum=sem(c.fecha_inicio);
+      var ciRes=await db.get('checkins','cliente_id=eq.'+c.id+'&semana_num=eq.'+semNum+'&limit=1');
+      var ciActual=ciRes&&ciRes[0]||null;
+      var ciSemEl=document.getElementById('ci-combat-sem');
+      if(ciSemEl) ciSemEl.textContent='Semana '+semNum;
+      // Prefill if already submitted this week
+      if(ciActual){
+        var pp=document.getElementById('ci-c-peso');if(pp&&ciActual.peso)pp.value=ciActual.peso;
+        var pe=document.getElementById('ci-c-en');if(pe&&ciActual.en)pe.value=ciActual.en;
+        var pev=document.getElementById('ci-c-en-v');if(pev&&ciActual.en)pev.textContent=ciActual.en;
+      }
+      var btnCC=document.getElementById('btn-ci-combate');
+      if(btnCC) btnCC.onclick=function(){enviarCheckinCombate(ciActual&&ciActual.id,semNum);};
+      var btnMed=document.getElementById('btn-ci-medidas');
+      if(btnMed) btnMed.onclick=function(){
+        var cinV=parseFloat(document.getElementById('ci-c-cin')?document.getElementById('ci-c-cin').value:'')||null;
+        var cadV=parseFloat(document.getElementById('ci-c-cad')?document.getElementById('ci-c-cad').value:'')||null;
+        var braV=parseFloat(document.getElementById('ci-c-bra')?document.getElementById('ci-c-bra').value:'')||null;
+        if(ciActual&&ciActual.id){db.patch('checkins','id=eq.'+ciActual.id,{cin:cinV,cad:cadV,bra:braV}).then(function(){toast('📐 Medidas guardadas','ok');}).catch(function(e){toast('Error: '+e.message,'err');});}
+        else{db.post('checkins',{cliente_id:c.id,semana_num:semNum,fecha:hoy(),cin:cinV,cad:cadV,bra:braV,respondido:false}).then(function(){toast('📐 Medidas guardadas','ok');}).catch(function(e){toast('Error: '+e.message,'err');});}
+      };
+    }catch(e2){console.warn('ci combate:',e2);}
 
   }catch(e){
     if(dyn) dyn.innerHTML='<div style="color:#FF6B6B;padding:1rem">Error: '+e.message+'</div>';
