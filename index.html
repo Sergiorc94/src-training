@@ -6751,6 +6751,8 @@ async function crearCliente(){
   const cod=document.getElementById('nc-cod').value.trim().toUpperCase();
   if(!nom||!cod){toast('Nombre y código obligatorios','err');return;}
   const tipoCliente=document.getElementById('nc-tipo').value||'fitness';
+  console.log('[crearCliente] nc-tipo.value =', document.getElementById('nc-tipo').value);
+  console.log('[crearCliente] tipoCliente =', tipoCliente);
 
   // Helper para leer checkboxes múltiples
   function _chks(ids){return ids.filter(function(id){var el=document.getElementById(id);return el&&el.checked;}).map(function(id){return id.replace('nc-p-','').replace('nc-c-','').replace('nc-s-','');});}
@@ -6798,11 +6800,14 @@ async function crearCliente(){
         notas_entrenador:_t('nc-not'),
       })});
     var newId=Array.isArray(res)?res[0]&&res[0].id:res&&res.id;
+    console.log('[crearCliente] POST result:', JSON.stringify(Array.isArray(res)?res[0]:res));
+    console.log('[crearCliente] tipo_cliente en BD tras INSERT:', (Array.isArray(res)?res[0]:res)&&(Array.isArray(res)?res[0]:res).tipo_cliente);
     if(!newId) throw new Error('No se obtuvo ID del cliente creado');
 
     // Columnas nuevas y datos extras via RPC
     try{
       var _ncExtras={p_id:newId, p_tipo_cliente:tipoCliente};
+      console.log('[crearCliente] RPC payload p_tipo_cliente =', tipoCliente);
 
       // Macros descanso
       var kcalD=_i(kcalDId),protD=_i(protDId),carbD=_i(carbDId),grasD=_i(grasDId);
@@ -6895,7 +6900,13 @@ async function crearCliente(){
       if(Object.keys(_qd).length>0) _ncExtras.p_datos={cuestionario_datos:_qd};
 
       await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify(_ncExtras)});
-    }catch(e2){console.warn('extras RPC:',e2);}
+      console.log('[crearCliente] RPC ejecutado OK. Verificando BD...');
+      // Verificar estado final en BD
+      try{
+        var check=await api('clientes?id=eq.'+newId+'&select=tipo_cliente');
+        console.log('[crearCliente] tipo_cliente en BD tras RPC:', JSON.stringify(check));
+      }catch(ec){console.warn('check:',ec);}
+    }catch(e2){console.warn('[crearCliente] extras RPC ERROR:',e2);}
 
     hideM('m-nuevo');toast('✅ Cliente '+nom+' creado. Código: '+cod,'ok');loadAdmin();
   }catch(e){toast('Error: '+(e.message&&e.message.includes('duplicate')?'Código ya existe':e.message||e),'err');}
