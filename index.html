@@ -814,6 +814,9 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
       <!-- 3b. PASOS DIARIOS / NEAT (solo combate) -->
       <div id="pasos-widget" style="margin-bottom:.75rem"></div>
 
+      <!-- 3c. TATAMI HOY (solo combate) -->
+      <div id="tatami-inicio-widget" style="margin-bottom:.75rem"></div>
+
       <!-- 4. BANNER DE FASE / PLAN -->
       <div id="plan-banner" style="margin-bottom:.75rem"></div>
 
@@ -9206,6 +9209,15 @@ async function loadInicio(){
     S.rn=_rn&&_rn[0]||null;
     var reHoy=_re&&_re[0]||null;
     var peHoy=_pe&&_pe[0]||null;
+    // Sincronizar reCombate con datos de hoy para widgets
+    if(c.tipo_cliente==='combate'){
+      if(!S.reCombate||S.reCombate.fecha!==hoy()) S.reCombate={fecha:hoy(),ejercicios:{}};
+      if(reHoy&&reHoy.tatami_sesion) S.reCombate.tatami_sesion=reHoy.tatami_sesion;
+      renderTatamiInicioWidget(reHoy);
+    } else {
+      var twEl=document.getElementById('tatami-inicio-widget');
+      if(twEl) twEl.style.display='none';
+    }
     const pct=iObj.k>0?Math.min(100,Math.round((S.rn&&S.rn.kcal_real||0)/iObj.k*100)):0;
     document.getElementById('i-prog').style.width=pct+'%';
     document.getElementById('i-pct').textContent=pct+'%';
@@ -9657,6 +9669,81 @@ async function guardarPasos(){
     renderPasosWidget();
     toast('👟 '+n.toLocaleString('es-ES')+' pasos guardados','ok');
   }catch(e){toast('Error: '+e.message,'err');}
+}
+
+// ── TATAMI INICIO WIDGET ─────────────────────────────────────────────────────
+function renderTatamiInicioWidget(reHoy){
+  var el=document.getElementById('tatami-inicio-widget');
+  if(!el) return;
+  var c=S.user;
+  if(!c||c.tipo_cliente!=='combate'){el.style.display='none';return;}
+  el.style.display='';
+  var _ts=reHoy&&reHoy.tatami_sesion||null;
+  var _tsSel=_ts?(_ts.tipo||null):null;
+  var tipos=[
+    {id:'tecnica_suave',       label:'Técnica',        ic:'🥋', color:'77,159,255'},
+    {id:'tecnica_resistencia', label:'T. Resistencia',  ic:'⚡', color:'255,179,0'},
+    {id:'sparring_controlado', label:'Sparring',        ic:'🥊', color:'0,200,83'},
+    {id:'sparring_duro',       label:'Duro',            ic:'🔥', color:'255,107,53'},
+    {id:'competicion',         label:'Competición',     ic:'🏆', color:'255,23,68'},
+    {id:'no_hoy',              label:'No hoy',          ic:'🛌', color:'74,85,104'},
+  ];
+  var labelGuardado={
+    tecnica_suave:'Técnica suave', tecnica_resistencia:'Técnica c/ resistencia',
+    sparring_controlado:'Sparring controlado', sparring_duro:'Sparring duro',
+    competicion:'Competición', no_hoy:'Sin tatami hoy'
+  };
+  var btnHtml=tipos.map(function(t){
+    var sel=_tsSel===t.id;
+    return '<button onclick="tatamiInicioClick(\''+t.id+'\')" data-ti-btn="'+t.id+'" '+
+      'style="padding:6px 10px;border-radius:8px;border:1.5px solid rgba('+t.color+','+
+      (sel?'.8':'.2')+');background:rgba('+t.color+','+(sel?'.15':'.04')+');'+
+      'color:rgba('+t.color+','+(sel?'1':'.6')+');font-size:11px;font-weight:700;cursor:pointer;'+
+      'display:flex;align-items:center;gap:4px;white-space:nowrap">'+
+      t.ic+' '+t.label+'</button>';
+  }).join('');
+  el.innerHTML=
+    '<div class="card">'+
+      '<div class="ch">🥊 Tatami hoy'+
+        (_tsSel&&_tsSel!=='no_hoy'?'<span style="margin-left:auto;font-size:11px;font-weight:700;color:#00C853">✅ '+labelGuardado[_tsSel]+'</span>':
+         _tsSel==='no_hoy'?'<span style="margin-left:auto;font-size:11px;color:#4A5568">Sin sesión</span>':
+         '<span style="margin-left:auto;font-size:11px;color:#4A5568">Sin registrar</span>')+
+      '</div>'+
+      '<div class="cb">'+
+        '<div style="display:flex;flex-wrap:wrap;gap:6px">'+btnHtml+'</div>'+
+      '</div>'+
+    '</div>';
+}
+
+function tatamiInicioClick(tipo){
+  var c=S.user; if(!c) return;
+  // Actualizar estado visual
+  document.querySelectorAll('[data-ti-btn]').forEach(function(btn){
+    var t=btn.dataset.tiBtn;
+    var tipos={
+      tecnica_suave:'77,159,255',tecnica_resistencia:'255,179,0',
+      sparring_controlado:'0,200,83',sparring_duro:'255,107,53',
+      competicion:'255,23,68',no_hoy:'74,85,104'
+    };
+    var col=tipos[t]||'77,159,255';
+    var sel=t===tipo;
+    btn.style.borderColor='rgba('+col+','+(sel?'.8':'.2')+')';
+    btn.style.background='rgba('+col+','+(sel?'.15':'.04')+')';
+    btn.style.color='rgba('+col+','+(sel?'1':'.6')+')';
+  });
+  // Guardar inmediatamente
+  var ts={tipo:tipo,guardado_desde:'inicio'};
+  var fHoy=hoy();
+  if(!S.reCombate) S.reCombate={fecha:fHoy,ejercicios:{}};
+  S.reCombate.tatami_sesion=ts;
+  db.upsert('registros_entreno',{cliente_id:c.id,fecha:fHoy,tatami_sesion:ts},'cliente_id,fecha').then(function(){
+    var labels={tecnica_suave:'Técnica suave',tecnica_resistencia:'Técnica c/ resistencia',
+      sparring_controlado:'Sparring controlado',sparring_duro:'Sparring duro',
+      competicion:'Competición',no_hoy:'Sin tatami'};
+    toast('🥊 '+labels[tipo]+ ' guardado','ok');
+    // Re-render para mostrar estado "guardado"
+    renderTatamiInicioWidget(S.reCombate);
+  }).catch(function(e){toast('Error: '+e.message,'err');});
 }
 
 function abrirDiaModal(idx){
@@ -15042,7 +15129,7 @@ async function loadProgCombate(){
     var ciMedidas=document.getElementById('ci-medidas-card');
     if(ciFit) ciFit.style.display='none';
     if(ciCombate) ciCombate.style.display='';
-    if(ciMedidas) ciMedidas.style.display='';
+    if(ciMedidas) ciMedidas.style.display='none'; // Medidas corporales no relevantes para combate
 
     // Cargar check-in actual + fijar botón
     try{
