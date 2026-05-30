@@ -7949,35 +7949,35 @@ async function adminTab(tab,btn){
         _diasEnAppAdmin=Math.max(1,Math.ceil((_hdA-_fiA)/(24*3600*1000))+1);
       }
       var _registroLibreHtml='';
-      if(c.tipo_cliente==='combate'&&!(_opts&&_opts.aprobado)&&_diasEnAppAdmin<=7){
-        var _rlRecs=await db.get('registros_nutricion','cliente_id=eq.'+c.id+'&order=fecha.asc&limit=7');
-        var _diasRegistrados=(_rlRecs||[]).filter(function(r){return r.registro_libre&&(typeof r.registro_libre==='string'?JSON.parse(r.registro_libre):r.registro_libre).length>0;}).length;
-        _registroLibreHtml='<div class="card" style="margin-bottom:.75rem;border-color:rgba(255,179,0,.3)"><div class="ch" style="color:#FFB300">📋 Semana de registro libre — Día '+_diasEnAppAdmin+' de 7'+
-          '<div style="margin-left:auto;font-size:10px;color:#4A5568">'+_diasRegistrados+'/7 días con datos</div>'+
+      if(c.tipo_cliente==='combate'&&!(_opts&&_opts.aprobado)&&_diasEnAppAdmin<=2){
+        var _rlRecs=await db.get('registros_nutricion','cliente_id=eq.'+c.id+'&order=fecha.asc&limit=2');
+        var _diasRegistrados=(_rlRecs||[]).filter(function(r){
+          if(!r.registro_libre) return false;
+          var _ro=typeof r.registro_libre==='string'?JSON.parse(r.registro_libre):r.registro_libre;
+          return (_ro&&_ro.texto&&_ro.texto.trim().length>0)||false;
+        }).length;
+        _registroLibreHtml='<div class="card" style="margin-bottom:.75rem;border-color:rgba(255,179,0,.3)"><div class="ch" style="color:#FFB300">📋 Registro libre — Día '+_diasEnAppAdmin+' de 2'+
+          '<div style="margin-left:auto;font-size:10px;color:#4A5568">'+_diasRegistrados+'/2 días con datos</div>'+
           '</div><div class="cb">';
-        // Barra de progreso
-        _registroLibreHtml+='<div style="background:#1A2A40;border-radius:4px;height:6px;margin-bottom:12px"><div style="background:#FFB300;border-radius:4px;height:6px;width:'+Math.round(_diasEnAppAdmin/7*100)+'%"></div></div>';
-        // Días registrados
+        _registroLibreHtml+='<div style="background:#1A2A40;border-radius:4px;height:6px;margin-bottom:12px"><div style="background:#FFB300;border-radius:4px;height:6px;width:'+Math.round(_diasEnAppAdmin/2*100)+'%"></div></div>';
         var DIAS_ES_ADMIN=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-        for(var _di=1;_di<=Math.min(_diasEnAppAdmin,7);_di++){
+        for(var _di=1;_di<=Math.min(_diasEnAppAdmin,2);_di++){
           var _dFecha=new Date(c.fecha_inicio+'T12:00:00');
           _dFecha.setDate(_dFecha.getDate()+_di-1);
           var _dStr=_dFecha.toISOString().split('T')[0];
           var _dRec=(_rlRecs||[]).find(function(r){return r.fecha===_dStr;});
-          var _dItems=_dRec&&_dRec.registro_libre?(typeof _dRec.registro_libre==='string'?JSON.parse(_dRec.registro_libre):_dRec.registro_libre):[];
-          var _dTot={p:0,c:0,g:0,k:0};
-          _dItems.forEach(function(it){_dTot.p+=it.macros.p;_dTot.c+=it.macros.c;_dTot.g+=it.macros.g;_dTot.k+=it.macros.k;});
+          var _dRlRaw=_dRec&&_dRec.registro_libre?_dRec.registro_libre:null;
+          var _dRlObj=_dRlRaw?(typeof _dRlRaw==='string'?JSON.parse(_dRlRaw):_dRlRaw):null;
+          var _dTexto=_dRlObj&&_dRlObj.texto?_dRlObj.texto:'';
           _registroLibreHtml+='<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #1A2A40">'+
-            '<div style="font-size:11px;font-weight:800;color:'+((_dItems.length)?'#F0F4FF':'#2A3A50')+';margin-bottom:4px">'+
+            '<div style="font-size:11px;font-weight:800;color:'+(_dTexto?'#F0F4FF':'#2A3A50')+';margin-bottom:6px">'+
               'DÍA '+_di+' — '+DIAS_ES_ADMIN[_dFecha.getDay()]+' '+_dStr.slice(5)+
-              (_dItems.length?'<span style="margin-left:8px;font-size:10px;color:#00C853">✓ '+_dItems.length+' alimentos · P:'+Math.round(_dTot.p)+'g · C:'+Math.round(_dTot.c)+'g · '+Math.round(_dTot.k)+' kcal</span>':'<span style="color:#2A3A50;font-size:10px;margin-left:6px">Sin registrar</span>')+
-            '</div>';
-          if(_dItems.length){
-            _registroLibreHtml+='<div style="font-size:11px;color:#4A5568">'+_dItems.map(function(it){return '• '+it.alimento+' '+it.cantidad_g+'g';}).join(' · ')+'</div>';
-          }
-          _registroLibreHtml+='</div>';
+              (_dTexto?'<span style="margin-left:8px;font-size:10px;color:#00C853">✓ Registrado</span>':'<span style="color:#2A3A50;font-size:10px;margin-left:6px">Sin registrar</span>')+
+            '</div>'+
+            (_dTexto?'<div style="font-size:12px;color:#8A9BB0;line-height:1.55;background:#060E1A;border-radius:8px;padding:10px;white-space:pre-wrap">'+_dTexto.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>':'')+
+          '</div>';
         }
-        _registroLibreHtml+='<button onclick="adminGenerarOpcionesNutri()" class="btn bp bbl" '+(_diasRegistrados<3?'disabled style="opacity:.4;cursor:not-allowed"':'')+'>⚡ Generar plan nutricional'+((_diasRegistrados<3)?' (disponible desde día 3)':'')+'</button>';
+        _registroLibreHtml+='<button onclick="adminGenerarOpcionesNutri()" class="btn bp bbl">⚡ Generar plan nutricional</button>';
         _registroLibreHtml+='</div></div>';
       }
 
@@ -10927,8 +10927,8 @@ function renderNutricionPendiente(c, diasEnApp){
   if(stickyEl) stickyEl.style.display='none';
   if(!cont) return;
   diasEnApp=diasEnApp||999;
-  if(diasEnApp<=7){
-    renderSemanaRegistro(c, diasEnApp);
+  if(diasEnApp<=2){
+    renderRegistroTextoLibre(c, diasEnApp);
   } else {
     var fase=c.fase_combate||'base';
     var faseLabel={base:'Base',camp_cronico:'Camp',peaking:'Peaking',fight_week:'Fight Week',post_pelea:'Post-pelea'}[fase]||'Base';
@@ -10945,172 +10945,50 @@ function renderNutricionPendiente(c, diasEnApp){
   }
 }
 
-// ── Semana de registro libre ─────────────────────────────────────────────────
-var _regLibreHoy=[];  // array de items del día en memoria
-
-function renderSemanaRegistro(c, diaNum){
-  var cont=document.getElementById('n-comidas');
-  if(!cont) return;
-  // Cargar registro del día desde S.rn si existe
-  _regLibreHoy=(S.rn&&S.rn.registro_libre)?
-    (typeof S.rn.registro_libre==='string'?JSON.parse(S.rn.registro_libre):S.rn.registro_libre):[];
-  _renderRegistroLibre(c, diaNum);
-}
-
-function _renderRegistroLibre(c, diaNum){
-  var cont=document.getElementById('n-comidas');
-  if(!cont) return;
-  // Calcular totales
-  var tot={p:0,c:0,g:0,k:0};
-  _regLibreHoy.forEach(function(item){tot.p+=item.macros.p;tot.c+=item.macros.c;tot.g+=item.macros.g;tot.k+=item.macros.k;});
-  var html=
-    '<div style="background:rgba(77,159,255,.06);border:1.5px solid rgba(77,159,255,.2);border-radius:12px;padding:14px 16px;margin-bottom:.75rem">'+
-      '<div style="font-size:10px;font-weight:700;color:rgba(77,159,255,.8);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">📋 SEMANA DE REGISTRO — DÍA '+diaNum+' DE 7</div>'+
-      '<div style="font-size:12px;color:#6E8090;line-height:1.5">Esta semana no cambia nada. Come como siempre y anota lo que haces. Con eso tu entrenador diseñará tu plan personalizado.</div>'+
-    '</div>'+
-    '<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:12px;padding:14px;margin-bottom:.75rem">'+
-      '<div style="font-size:11px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🍽️ COMIDAS DE HOY</div>';
-  // Lista de alimentos añadidos
-  if(_regLibreHoy.length){
-    _regLibreHoy.forEach(function(item,i){
-      html+=
-        '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #1A2A40">'+
-          '<div style="flex:1;min-width:0">'+
-            '<div style="font-size:13px;font-weight:700;color:#F0F4FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+item.alimento+'</div>'+
-            '<div style="font-size:11px;color:#4A5568">'+item.cantidad_g+'g · '+Math.round(item.macros.p)+'P · '+Math.round(item.macros.c)+'C · '+Math.round(item.macros.g)+'G · '+Math.round(item.macros.k)+' kcal</div>'+
-          '</div>'+
-          '<button onclick="eliminarAlimentoRegistro('+i+')" style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.2);color:#FF1744;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;flex-shrink:0">✕</button>'+
-        '</div>';
-    });
-  } else {
-    html+='<div style="font-size:12px;color:#2A3A50;text-align:center;padding:12px 0">Aún no has añadido nada hoy</div>';
-  }
-  html+=
-      '<button onclick="mostrarBuscadorAlimento()" style="width:100%;margin-top:10px;padding:10px;border-radius:8px;border:1.5px dashed rgba(77,159,255,.3);background:rgba(77,159,255,.05);color:#4D9FFF;font-size:13px;font-weight:700;cursor:pointer">+ Añadir alimento</button>'+
-    '</div>';
-  // Buscador inline (oculto por defecto)
-  html+=
-    '<div id="rl-buscador" style="display:none;background:#0D1528;border:1px solid #1A2A40;border-radius:12px;padding:14px;margin-bottom:.75rem">'+
-      '<div style="font-size:11px;font-weight:700;color:#4A5568;margin-bottom:8px">Busca un alimento</div>'+
-      '<input type="text" id="rl-search" placeholder="Escribe un alimento..." oninput="filtrarAlimentos(this.value)" autocomplete="off"'+
-        ' style="width:100%;padding:9px 12px;background:#060E1A;border:1.5px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:13px;outline:none;box-sizing:border-box">'+
-      '<div id="rl-resultados" style="margin-top:6px;max-height:180px;overflow-y:auto"></div>'+
-      '<div id="rl-form-manual" style="display:none;margin-top:8px">'+
-        '<div style="font-size:11px;color:#4A5568;margin-bottom:6px">Alimento no encontrado — introduce los macros manualmente:</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">'+
-          '<div class="field"><label>Nombre</label><input type="text" id="rl-m-nombre" placeholder="Nombre del alimento"></div>'+
-          '<div class="field"><label>Cantidad (g)</label><input type="number" id="rl-m-g" placeholder="100" min="1"></div>'+
-        '</div>'+
-        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px">'+
-          '<div class="field"><label>Prot(g)</label><input type="number" id="rl-m-p" placeholder="0" min="0"></div>'+
-          '<div class="field"><label>Carb(g)</label><input type="number" id="rl-m-c" placeholder="0" min="0"></div>'+
-          '<div class="field"><label>Gras(g)</label><input type="number" id="rl-m-g2" placeholder="0" min="0"></div>'+
-          '<div class="field"><label>Kcal</label><input type="number" id="rl-m-k" placeholder="0" min="0"></div>'+
-        '</div>'+
-        '<button onclick="agregarAlimentoManual()" class="btn bp bsm">Añadir</button>'+
-      '</div>'+
-      '<div style="display:flex;gap:6px;margin-top:10px">'+
-        '<button onclick="document.getElementById(\'rl-buscador\').style.display=\'none\'" class="btn bg bsm" style="flex:1">Cancelar</button>'+
-      '</div>'+
-    '</div>';
-  // Resumen macros
-  if(_regLibreHoy.length){
-    html+=
-      '<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:12px;padding:12px 14px;margin-bottom:.75rem">'+
-        '<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 RESUMEN DE HOY</div>'+
-        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'+
-          [['Proteína',Math.round(tot.p)+'g','#00E5FF'],['Carbos',Math.round(tot.c)+'g','#FFB300'],['Grasa',Math.round(tot.g)+'g','#F48FB1'],['Kcal',Math.round(tot.k),'#7986CB']].map(function(x){
-            return '<div style="text-align:center;background:#060E1A;border-radius:8px;padding:8px 4px">'+
-              '<div style="font-size:16px;font-weight:900;color:'+x[2]+'">'+x[1]+'</div>'+
-              '<div style="font-size:9px;color:#4A5568;font-weight:700;text-transform:uppercase;margin-top:2px">'+x[0]+'</div>'+
-            '</div>';
-          }).join('')+
-        '</div>'+
-      '</div>';
-  }
-  html+='<button onclick="guardarRegistroLibre()" class="btn bp bbl">✅ Guardar día</button>';
-  cont.innerHTML=html;
-}
-
-function mostrarBuscadorAlimento(){
-  var b=document.getElementById('rl-buscador');
-  if(b){b.style.display='';document.getElementById('rl-search').focus();}
-}
-
-function filtrarAlimentos(q){
-  var res=document.getElementById('rl-resultados');
-  var manual=document.getElementById('rl-form-manual');
-  if(!res) return;
-  if(!q||q.length<2){res.innerHTML='';return;}
-  var q2=q.toLowerCase().trim();
-  var keys=Object.keys(ALIMENTOS_DB).filter(function(k){return k.toLowerCase().indexOf(q2)>=0;}).slice(0,8);
-  if(!keys.length){
-    res.innerHTML='<div style="font-size:12px;color:#4A5568;padding:6px 0">No encontrado</div>';
-    if(manual) manual.style.display='';
-    return;
-  }
-  if(manual) manual.style.display='none';
-  res.innerHTML=keys.map(function(k){
-    var v=ALIMENTOS_DB[k];
-    return '<div onclick="seleccionarAlimento(\''+k.replace(/'/g,"\\'")+'\')" style="padding:8px 10px;border-radius:6px;cursor:pointer;border-bottom:1px solid #1A2A40;transition:background .1s" onmouseover="this.style.background=\'#0D1528\'" onmouseout="this.style.background=\'\'">'+
-      '<div style="font-size:13px;font-weight:700;color:#F0F4FF">'+k+'</div>'+
-      '<div style="font-size:10px;color:#4A5568">P:'+v[0]+'g · C:'+v[1]+'g · G:'+v[2]+'g · '+v[3]+' kcal por 100g</div>'+
-    '</div>';
-  }).join('');
-}
-
-function seleccionarAlimento(nombre){
-  var buscador=document.getElementById('rl-buscador');
-  if(!buscador) return;
-  var v=ALIMENTOS_DB[nombre];
-  buscador.innerHTML=
-    '<div style="font-size:12px;font-weight:700;color:#F0F4FF;margin-bottom:8px">'+nombre+'</div>'+
-    '<div style="font-size:11px;color:#4A5568;margin-bottom:10px">por 100g: P:'+v[0]+'g · C:'+v[1]+'g · G:'+v[2]+'g · '+v[3]+' kcal</div>'+
-    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
-      '<input type="number" id="rl-cant" placeholder="100" min="1" value="100" style="width:90px;padding:8px;background:#060E1A;border:1.5px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:16px;font-weight:800;text-align:center;outline:none">'+
-      '<span style="color:#4A5568;font-size:13px;font-weight:700">gramos</span>'+
-    '</div>'+
-    '<div style="display:flex;gap:6px">'+
-      '<button onclick="agregarAlimentoDB(\''+nombre.replace(/'/g,"\\'")+'\')" class="btn bp bsm" style="flex:1">✅ Añadir</button>'+
-      '<button onclick="mostrarBuscadorAlimento()" class="btn bg bsm">← Volver</button>'+
-    '</div>';
-}
-
-function agregarAlimentoDB(nombre){
-  var g=parseFloat((document.getElementById('rl-cant')||{}).value)||100;
-  var v=ALIMENTOS_DB[nombre];
-  if(!v){toast('Alimento no encontrado','err');return;}
-  var factor=g/100;
-  _regLibreHoy.push({alimento:nombre,cantidad_g:g,macros:{p:Math.round(v[0]*factor*10)/10,c:Math.round(v[1]*factor*10)/10,g:Math.round(v[2]*factor*10)/10,k:Math.round(v[3]*factor)}});
-  _renderRegistroLibre(S.user, _diasEnAppActual||1);
-}
-
-function agregarAlimentoManual(){
-  var nombre=(document.getElementById('rl-m-nombre')||{}).value||'';
-  var g=parseFloat((document.getElementById('rl-m-g')||{}).value)||100;
-  var p=parseFloat((document.getElementById('rl-m-p')||{}).value)||0;
-  var c=parseFloat((document.getElementById('rl-m-c')||{}).value)||0;
-  var gras=parseFloat((document.getElementById('rl-m-g2')||{}).value)||0;
-  var k=parseFloat((document.getElementById('rl-m-k')||{}).value)||Math.round(p*4+c*4+gras*9);
-  if(!nombre){toast('Escribe el nombre del alimento','err');return;}
-  _regLibreHoy.push({alimento:nombre,cantidad_g:g,macros:{p:p,c:c,g:gras,k:k}});
-  _renderRegistroLibre(S.user, _diasEnAppActual||1);
-}
-
-function eliminarAlimentoRegistro(idx){
-  _regLibreHoy.splice(idx,1);
-  _renderRegistroLibre(S.user, _diasEnAppActual||1);
-}
-
+// ── Registro libre (2 días) ─────────────────────────────────────────────────
 var _diasEnAppActual=1;
 
-async function guardarRegistroLibre(){
+function renderRegistroTextoLibre(c, diaNum){
+  var cont=document.getElementById('n-comidas');
+  var stickyEl=document.getElementById('n-sticky');
+  var nStatsEl=document.querySelector('#sec-nutri .g4');
+  if(stickyEl) stickyEl.style.display='none';
+  if(nStatsEl) nStatsEl.style.display='none';
+  if(!cont) return;
+  // Recuperar texto guardado hoy si existe
+  var _rlRaw=S.rn&&S.rn.registro_libre?S.rn.registro_libre:null;
+  var _textoGuardado='';
+  if(_rlRaw){
+    var _rlObj=typeof _rlRaw==='string'?JSON.parse(_rlRaw):_rlRaw;
+    if(_rlObj&&_rlObj.texto) _textoGuardado=_rlObj.texto;
+  }
+  var _guardado=_textoGuardado.length>0;
+  cont.innerHTML=
+    '<div style="background:rgba(77,159,255,.06);border:1.5px solid rgba(77,159,255,.2);border-radius:14px;padding:16px;margin-bottom:.75rem">'+
+      '<div style="font-size:10px;font-weight:700;color:rgba(77,159,255,.8);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📋 REGISTRO LIBRE — DÍA '+diaNum+' DE 2</div>'+
+      '<div style="font-size:12px;color:#6E8090;line-height:1.55">Estos 2 días come como siempre. Escribe aquí lo que has comido hoy — sin complicarte. Tu entrenador lo usará para diseñar tu plan.</div>'+
+    '</div>'+
+    '<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:12px;padding:14px;margin-bottom:.75rem">'+
+      '<div style="font-size:11px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🍽️ ¿Qué has comido hoy?</div>'+
+      '<textarea id="rl-texto" rows="7" placeholder="Ej: Desayuno — tortitas de avena con plátano.&#10;Comida — pollo con arroz y ensalada.&#10;Merienda — yogur con nueces.&#10;Cena — salmón con patata al horno."'+
+        ' style="width:100%;padding:12px;background:#060E1A;border:1.5px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:13px;line-height:1.6;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit">'+(_guardado?_textoGuardado.replace(/</g,'&lt;').replace(/>/g,'&gt;'):'')+'</textarea>'+
+    '</div>'+
+    '<button onclick="guardarTextoLibre()" class="btn bp bbl">✅ Guardar día</button>'+
+    (_guardado?'<div style="margin-top:8px;font-size:11px;color:#00C853;text-align:center">✓ Guardado hoy</div>':'');
+}
+
+async function guardarTextoLibre(){
+  var ta=document.getElementById('rl-texto');
+  if(!ta) return;
+  var texto=(ta.value||'').trim();
+  if(!texto){toast('Escribe algo antes de guardar','err');return;}
   try{
-    await saveNutri({registro_libre:_regLibreHoy});
-    // Actualizar S.rn en memoria
-    if(S.rn) S.rn.registro_libre=_regLibreHoy;
-    else S.rn={registro_libre:_regLibreHoy};
+    var payload={texto:texto};
+    await saveNutri({registro_libre:payload});
+    if(S.rn) S.rn.registro_libre=payload;
+    else S.rn={registro_libre:payload};
     toast('✅ Día guardado','ok');
+    renderRegistroTextoLibre(S.user, _diasEnAppActual||1);
   }catch(e){toast('Error: '+e.message,'err');}
 }
 
