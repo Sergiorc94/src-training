@@ -810,38 +810,38 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <!-- Q1 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">1. ¿Cómo describirías tu golpeo?</label>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px" id="q-p1">
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp1" value="hulk" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 💪 Muy potente pero no muy rápido</label>
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp1" value="flash" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> ⚡ Muy rápido pero le falta pegada</label>
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp1" value="eq" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> ⚖️ Equilibrado</label>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px;overflow:hidden" id="q-p1">
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp1" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 💪 Muy potente pero no muy rápido</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp1" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> ⚡ Muy rápido pero le falta pegada</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden;grid-column:1/-1"><input type="radio" name="qp1" value="eq" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> ⚖️ Equilibrado</label>
             </div>
           </div>
           <!-- Q2 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">2. ¿Qué te pasa más en combate?</label>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp2" value="hulk" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🥵 Me canso rápido en intercambios cortos e intensos</label>
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp2" value="flash" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🎯 Buen cardio pero no termino las acciones</label>
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp2" value="halcon" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🦅 Aguanto bien pero me falta explosividad</label>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px;overflow:hidden">
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp2" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🥵 Me canso rápido en intercambios cortos</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp2" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🎯 Buen cardio pero no termino acciones</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden;grid-column:1/-1"><input type="radio" name="qp2" value="halcon" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🦅 Aguanto bien pero me falta explosividad</label>
             </div>
           </div>
           <!-- Q3 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">3. ¿Cuánto tiempo llevas entrenando combate?</label>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp3" value="menos2" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> Menos de 2 años</label>
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp3" value="2a5" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 2 – 5 años</label>
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp3" value="mas5" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> Más de 5 años</label>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px;overflow:hidden">
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp3" value="menos2" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> Menos de 2 años</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp3" value="2a5" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 2 – 5 años</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden;grid-column:1/-1"><input type="radio" name="qp3" value="mas5" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> Más de 5 años</label>
             </div>
           </div>
           <!-- Q4 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">4. ¿Cuál es tu mayor debilidad física?</label>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp4" value="hulk" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🐢 La velocidad de mis acciones</label>
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp4" value="flash" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🪶 La fuerza detrás de mis técnicas</label>
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp4" value="halcon" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> 🫁 La resistencia en los rounds tardíos</label>
-              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="radio" name="qp4" value="superman" style="accent-color:#9C6FFF" onchange="mostrarResultadoPerfil()"> ❓ No identifico una debilidad clara</label>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px;overflow:hidden">
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp4" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🐢 La velocidad de mis acciones</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp4" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🪶 La fuerza detrás de mis técnicas</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp4" value="halcon" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🫁 La resistencia en los rounds tardíos</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp4" value="superman" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> ❓ No identifico una debilidad clara</label>
             </div>
           </div>
           <!-- Resultado -->
@@ -9169,19 +9169,19 @@ async function enviarCuestionario(){
 
   try{
     showSav();
-    // Save to client record (columnas originales)
+    // Save to client record (columnas base — cuestionario_completado va vía RPC para evitar error de caché)
     var patchBase={
-      cuestionario_completado: true,
       cuestionario_datos: datos,
       peso_inicial: datos.peso,
       altura: datos.altura
     };
     if(planSemJson) patchBase.plan_semanal=planSemJson;
     await db.patch('clientes','id=eq.'+S.user.id, patchBase);
-    // Si es combate → guardar campos de combate vía RPC
+    // Marcar cuestionario completado + campos extra vía RPC (SECURITY DEFINER)
     if(esCombate){
       try{
         var rpcBody={
+          cuestionario_completado: true,
           tipo_cliente:'combate',
           deporte:datos.deporte||null,
           nivel_combate:datos.nivel_combate||null,
@@ -9202,6 +9202,11 @@ async function enviarCuestionario(){
           peso_categoria:datos.peso_categoria
         });
       }catch(e2){console.warn('extras combate:',e2);}
+    } else {
+      // No-combat: marcar cuestionario_completado vía RPC
+      try{
+        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:S.user.id,p_datos:{cuestionario_completado:true}})});
+      }catch(e3){console.warn('cuestionario_completado rpc:',e3);}
     }
     S.user.cuestionario_completado = true;
     S.user.cuestionario_datos = datos;
