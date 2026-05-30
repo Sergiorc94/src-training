@@ -8081,7 +8081,7 @@ async function adminTab(tab,btn){
   else if(tab==='bien'){
     try{
       const wRecs=await db.get('registros_entreno',
-        'cliente_id=eq.'+c.id+'&select=fecha,sensaciones,sueno,fatiga_percibida,estres,dia_nombre,molestia_sesion,tatami_sesion,pasos_diarios,horas_sueno,calidad_sueno,hora_dormir,energia_despertar&order=fecha.desc&limit=20');
+        'cliente_id=eq.'+c.id+'&order=fecha.desc&limit=20');
       var SUE_E=['','😵','😕','😐','😊','😴'];
       var FAT_E=['','😩','😓','😐','😊','⚡'];
       var EST_E=['','😤','😟','😐','😌','🧘'];
@@ -8177,65 +8177,67 @@ async function adminTab(tab,btn){
       }
 
       // ── Pasos diarios (NEAT) — últimos 7 días ──
-      var pasosRecs=await db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=gte.'+hace7dias+'&pasos_diarios=not.is.null&order=fecha.desc&limit=7');
-      if(pasosRecs&&pasosRecs.length){
-        var avgPasos=Math.round(pasosRecs.reduce(function(a,r){return a+(r.pasos_diarios||0);},0)/pasosRecs.length);
-        var pCol=avgPasos>=10000?'255,215,0':avgPasos>=7000?'0,200,83':avgPasos>=4000?'255,179,0':'255,23,68';
-        // Alerta 3 días consecutivos < 4000
-        var sorted=[].concat(pasosRecs).sort(function(a,b){return a.fecha<b.fecha?1:-1;});
-        var consec=0;
-        for(var _pi=0;_pi<sorted.length;_pi++){if((sorted[_pi].pasos_diarios||0)<4000) consec++; else break;}
-        html+='<div class="card"><div class="ch">👟 Pasos diarios (NEAT)</div><div class="cb">';
-        if(consec>=3) html+='<div style="background:rgba(255,23,68,.08);border:1px solid rgba(255,23,68,.3);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:12px;font-weight:700;color:#FF1744">⚠️ '+c.nombre+' lleva '+consec+' días con actividad muy baja fuera del entrenamiento.</div>';
-        html+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:.75rem">'+
-          '<div style="font-size:28px;font-weight:900;color:rgba('+pCol+',1)">'+avgPasos.toLocaleString('es-ES')+'</div>'+
-          '<div style="font-size:11px;color:#4A5568">pasos/día<br>media 7 días</div>'+
-        '</div>';
-        html+='<div style="display:flex;gap:4px">';
-        [].concat(pasosRecs).sort(function(a,b){return a.fecha>b.fecha?1:-1;}).forEach(function(r){
-          var p=r.pasos_diarios||0;
-          var pc=p>=10000?'255,215,0':p>=7000?'0,200,83':p>=4000?'255,179,0':'255,23,68';
-          var h=Math.max(10,Math.round(p/300));
-          html+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">'+
-            '<div style="font-size:8px;color:rgba('+pc+',1);font-weight:800">'+Math.round(p/1000*10)/10+'k</div>'+
-            '<div style="width:100%;height:'+h+'px;background:rgba('+pc+',.6);border-radius:3px;min-height:10px"></div>'+
-            '<div style="font-size:8px;color:#4A5568">'+r.fecha.slice(5)+'</div>'+
+      try{
+        var pasosRecs=await db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=gte.'+hace7dias+'&pasos_diarios=not.is.null&order=fecha.desc&limit=7');
+        if(pasosRecs&&pasosRecs.length){
+          var avgPasos=Math.round(pasosRecs.reduce(function(a,r){return a+(r.pasos_diarios||0);},0)/pasosRecs.length);
+          var pCol=avgPasos>=10000?'255,215,0':avgPasos>=7000?'0,200,83':avgPasos>=4000?'255,179,0':'255,23,68';
+          var sorted=[].concat(pasosRecs).sort(function(a,b){return a.fecha<b.fecha?1:-1;});
+          var consec=0;
+          for(var _pi=0;_pi<sorted.length;_pi++){if((sorted[_pi].pasos_diarios||0)<4000) consec++; else break;}
+          html+='<div class="card"><div class="ch">👟 Pasos diarios (NEAT)</div><div class="cb">';
+          if(consec>=3) html+='<div style="background:rgba(255,23,68,.08);border:1px solid rgba(255,23,68,.3);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:12px;font-weight:700;color:#FF1744">⚠️ '+c.nombre+' lleva '+consec+' días con actividad muy baja fuera del entrenamiento.</div>';
+          html+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:.75rem">'+
+            '<div style="font-size:28px;font-weight:900;color:rgba('+pCol+',1)">'+avgPasos.toLocaleString('es-ES')+'</div>'+
+            '<div style="font-size:11px;color:#4A5568">pasos/día<br>media 7 días</div>'+
           '</div>';
-        });
-        html+='</div></div></div>';
-      }
+          html+='<div style="display:flex;gap:4px">';
+          [].concat(pasosRecs).sort(function(a,b){return a.fecha>b.fecha?1:-1;}).forEach(function(r){
+            var p=r.pasos_diarios||0;
+            var pc=p>=10000?'255,215,0':p>=7000?'0,200,83':p>=4000?'255,179,0':'255,23,68';
+            var h=Math.max(10,Math.round(p/300));
+            html+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">'+
+              '<div style="font-size:8px;color:rgba('+pc+',1);font-weight:800">'+Math.round(p/1000*10)/10+'k</div>'+
+              '<div style="width:100%;height:'+h+'px;background:rgba('+pc+',.6);border-radius:3px;min-height:10px"></div>'+
+              '<div style="font-size:8px;color:#4A5568">'+r.fecha.slice(5)+'</div>'+
+            '</div>';
+          });
+          html+='</div></div></div>';
+        }
+      }catch(e2){console.warn('pasos_diarios no disponible:',e2.message);}
 
       // ── Sueño — últimos 7 días ──
-      var suenoRecs=await db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=gte.'+hace7dias+'&horas_sueno=not.is.null&order=fecha.asc&limit=7');
-      if(suenoRecs&&suenoRecs.length){
-        var avgH=Math.round(suenoRecs.reduce(function(a,r){return a+(r.horas_sueno||0);},0)/suenoRecs.length*10)/10;
-        var avgCal=suenoRecs.filter(function(r){return r.calidad_sueno;});
-        var avgCalVal=avgCal.length?Math.round(avgCal.reduce(function(a,r){return a+r.calidad_sueno;},0)/avgCal.length*10)/10:null;
-        var hCol=avgH>=7?'0,200,83':avgH>=6?'255,179,0':'255,23,68';
-        // Alertas
-        var sortedS=[].concat(suenoRecs).sort(function(a,b){return a.fecha<b.fecha?1:-1;});
-        var cons6h=0; for(var _si=0;_si<sortedS.length;_si++){if((sortedS[_si].horas_sueno||0)<6) cons6h++; else break;}
-        var consBad=0; for(var _si2=0;_si2<sortedS.length;_si2++){if((sortedS[_si2].calidad_sueno||5)<=2) consBad++; else break;}
-        var CAL_E=['','😫','😕','😐','🙂','😴'];
-        html+='<div class="card"><div class="ch">😴 Sueño esta semana</div><div class="cb">';
-        if(cons6h>=2) html+='<div style="background:rgba(255,23,68,.08);border:1px solid rgba(255,23,68,.3);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:12px;font-weight:700;color:#FF1744">⚠️ '+c.nombre+' lleva '+cons6h+' noches durmiendo menos de 6h.</div>';
-        if(consBad>=3) html+='<div style="background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.3);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:12px;font-weight:700;color:#FF6B35">⚠️ '+c.nombre+' reporta mala calidad de sueño esta semana.</div>';
-        html+='<div style="font-size:13px;font-weight:800;color:rgba('+hCol+',1);margin-bottom:.5rem">Media: '+avgH+'h'+
-          (avgCalVal?' · Calidad: '+avgCalVal+'/5':'')+
-        '</div>';
-        html+='<div style="display:flex;gap:5px;flex-wrap:wrap">';
-        suenoRecs.forEach(function(r){
-          var hh=r.horas_sueno||0;
-          var hc=hh>=7?'0,200,83':hh>=6?'255,179,0':'255,23,68';
-          var cal=r.calidad_sueno?CAL_E[Math.min(5,r.calidad_sueno)]:'';
-          html+='<div style="text-align:center;background:#0D1528;border:1px solid rgba('+hc+',.3);border-radius:8px;padding:6px 10px;min-width:44px">'+
-            '<div style="font-size:9px;color:#4A5568">'+r.fecha.slice(5)+'</div>'+
-            '<div style="font-size:15px;font-weight:900;color:rgba('+hc+',1)">'+hh+'h</div>'+
-            '<div style="font-size:14px">'+(cal||'')+'</div>'+
+      try{
+        var suenoRecs=await db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=gte.'+hace7dias+'&horas_sueno=not.is.null&order=fecha.asc&limit=7');
+        if(suenoRecs&&suenoRecs.length){
+          var avgH=Math.round(suenoRecs.reduce(function(a,r){return a+(r.horas_sueno||0);},0)/suenoRecs.length*10)/10;
+          var avgCal=suenoRecs.filter(function(r){return r.calidad_sueno;});
+          var avgCalVal=avgCal.length?Math.round(avgCal.reduce(function(a,r){return a+r.calidad_sueno;},0)/avgCal.length*10)/10:null;
+          var hCol=avgH>=7?'0,200,83':avgH>=6?'255,179,0':'255,23,68';
+          var sortedS=[].concat(suenoRecs).sort(function(a,b){return a.fecha<b.fecha?1:-1;});
+          var cons6h=0; for(var _si=0;_si<sortedS.length;_si++){if((sortedS[_si].horas_sueno||0)<6) cons6h++; else break;}
+          var consBad=0; for(var _si2=0;_si2<sortedS.length;_si2++){if((sortedS[_si2].calidad_sueno||5)<=2) consBad++; else break;}
+          var CAL_E=['','😫','😕','😐','🙂','😴'];
+          html+='<div class="card"><div class="ch">😴 Sueño esta semana</div><div class="cb">';
+          if(cons6h>=2) html+='<div style="background:rgba(255,23,68,.08);border:1px solid rgba(255,23,68,.3);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:12px;font-weight:700;color:#FF1744">⚠️ '+c.nombre+' lleva '+cons6h+' noches durmiendo menos de 6h.</div>';
+          if(consBad>=3) html+='<div style="background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.3);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:12px;font-weight:700;color:#FF6B35">⚠️ '+c.nombre+' reporta mala calidad de sueño esta semana.</div>';
+          html+='<div style="font-size:13px;font-weight:800;color:rgba('+hCol+',1);margin-bottom:.5rem">Media: '+avgH+'h'+
+            (avgCalVal?' · Calidad: '+avgCalVal+'/5':'')+
           '</div>';
-        });
-        html+='</div></div></div>';
-      }
+          html+='<div style="display:flex;gap:5px;flex-wrap:wrap">';
+          suenoRecs.forEach(function(r){
+            var hh=r.horas_sueno||0;
+            var hc=hh>=7?'0,200,83':hh>=6?'255,179,0':'255,23,68';
+            var cal=r.calidad_sueno?CAL_E[Math.min(5,r.calidad_sueno)]:'';
+            html+='<div style="text-align:center;background:#0D1528;border:1px solid rgba('+hc+',.3);border-radius:8px;padding:6px 10px;min-width:44px">'+
+              '<div style="font-size:9px;color:#4A5568">'+r.fecha.slice(5)+'</div>'+
+              '<div style="font-size:15px;font-weight:900;color:rgba('+hc+',1)">'+hh+'h</div>'+
+              '<div style="font-size:14px">'+(cal||'')+'</div>'+
+            '</div>';
+          });
+          html+='</div></div></div>';
+        }
+      }catch(e3){console.warn('horas_sueno no disponible:',e3.message);}
 
       cont.innerHTML=html;
     }catch(e){cont.innerHTML='<div class="empty">Error: '+e.message+'</div>';}
