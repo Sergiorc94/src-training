@@ -2004,6 +2004,112 @@ const COMIDAS_CAMP = {
   ]
 };
 
+// ── PLATOS_DB ─────────────────────────────────────────────────────────────────
+// 67 platos etiquetados para filtrado inteligente en sugerencias de IA.
+// et.mo: momentos (desayuno/pre1h/pre2h/post/comida/cena/snack)
+// et.td: tipo de día (rojo/verde/amarillo/todos)
+// et.cn/gn/fn: nivel carbos/grasa/fibra (alto/medio/bajo)
+// et.fw: apto fight week | et.pre: apto pre-entreno
+const PLATOS_DB=[
+{id:"desayuno_001",nombre:"Tostadas con aceite y jamón",categoria:"Desayuno básico",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Aceite de oliva virgen extra",g:10},{a:"Jamón serrano",g:60}],et:{mo:["desayuno","comida","cena"],td:["todos"],cn:"medio",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Clásico y digestivo. No usar como pre-entreno por la grasa del aceite."}},
+{id:"desayuno_002",nombre:"Tostadas con tomate y aceite",categoria:"Desayuno básico",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Tomate",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["desayuno","snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy digestivo. Apto fight week. No suficiente proteína para post-entreno."}},
+{id:"desayuno_003",nombre:"Cereales con leche",categoria:"Desayuno básico",ingredientes:[{a:"Copos de maíz",g:60},{a:"Leche semidesnatada",g:250}],et:{mo:["desayuno","pre1h"],td:["todos"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Carbos de absorción rápida. Apto como pre-entreno de 1h. Fight week sí."}},
+{id:"desayuno_004",nombre:"Cereales con leche y proteína",categoria:"Desayuno básico",ingredientes:[{a:"Copos de maíz",g:60},{a:"Leche semidesnatada",g:250},{a:"Proteína whey vainilla",g:25}],et:{mo:["desayuno","post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Buen post-entreno rápido. No como pre-entreno porque la proteína ralentiza."}},
+{id:"desayuno_005",nombre:"Avena con leche y plátano",categoria:"Desayuno básico",ingredientes:[{a:"Avena en copos",g:80},{a:"Leche semidesnatada",g:250},{a:"Plátano",g:120}],et:{mo:["desayuno","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"medio",fw:false,pre:true,nota:"Excelente pre-entreno 2h. Fibra media — no usar si menos de 1.5h antes. No fight week por la fibra de la avena."}},
+{id:"desayuno_006",nombre:"Avena con agua y miel",categoria:"Desayuno básico",ingredientes:[{a:"Avena en copos",g:80},{a:"Miel",g:10}],et:{mo:["desayuno","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"medio",fw:false,pre:true,nota:"Más digestivo que con leche. Pre-entreno 2h. No fight week."}},
+{id:"desayuno_007",nombre:"Huevos revueltos solos",categoria:"Desayuno básico",ingredientes:[{a:"Huevo entero",g:180},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["desayuno","cena"],td:["todos"],cn:"bajo",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Alta proteína, bajos carbos. Ideal en día amarillo o cena. No pre-entreno."}},
+{id:"desayuno_008",nombre:"Huevos revueltos con jamón",categoria:"Desayuno básico",ingredientes:[{a:"Huevo entero",g:180},{a:"Jamón york",g:60},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["desayuno","cena"],td:["todos"],cn:"bajo",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Proteína alta. No fight week por el sodio del jamón. No pre-entreno."}},
+{id:"desayuno_009",nombre:"Tortilla francesa",categoria:"Desayuno básico",ingredientes:[{a:"Huevo entero",g:180},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["desayuno","cena"],td:["todos"],cn:"bajo",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Simple y proteica. Apto fight week. No pre-entreno."}},
+{id:"desayuno_010",nombre:"Tostadas con mantequilla de cacahuete",categoria:"Desayuno básico",ingredientes:[{a:"Pan integral de molde",g:60},{a:"Mantequilla de cacahuete",g:30}],et:{mo:["desayuno","snack"],td:["amarillo","verde"],cn:"medio",gn:"alto",fn:"medio",fw:false,pre:false,nota:"Grasa alta — solo en días sin entreno intenso. No pre-entreno. No fight week."}},
+{id:"desayuno_011",nombre:"Yogur con fruta",categoria:"Desayuno básico",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Plátano",g:120},{a:"Frutos rojos mix",g:80}],et:{mo:["desayuno","snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Proteína moderada y digestivo. No fight week por los frutos rojos. No pre-entreno."}},
+{id:"desayuno_012",nombre:"Batido de plátano y leche",categoria:"Desayuno básico",ingredientes:[{a:"Plátano",g:240},{a:"Leche semidesnatada",g:300}],et:{mo:["desayuno","pre1h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Carbos rápidos. Perfecto pre-entreno 1h. Apto fight week."}},
+{id:"desayuno_013",nombre:"Batido proteico básico",categoria:"Desayuno básico",ingredientes:[{a:"Proteína whey vainilla",g:30},{a:"Leche semidesnatada",g:300},{a:"Plátano",g:120}],et:{mo:["desayuno","post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Ideal post-entreno. Rápido y digestivo. No usar como pre-entreno."}},
+{id:"desayuno_014",nombre:"Pan con huevo frito",categoria:"Desayuno básico",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Huevo entero",g:120},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["desayuno"],td:["todos"],cn:"medio",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Clásico. Grasa media — no pre-entreno cercano."}},
+{id:"desayuno_015",nombre:"Tortitas de avena con plátano y miel",categoria:"Desayuno elaborado",ingredientes:[{a:"Avena en copos",g:80},{a:"Huevo entero",g:120},{a:"Plátano",g:120},{a:"Miel",g:7}],et:{mo:["desayuno","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"medio",fw:false,pre:true,nota:"Pre-entreno excelente si hay 2h o más. Fibra media — no si menos de 1.5h."}},
+{id:"desayuno_016",nombre:"Avena caliente con whey y frutos rojos",categoria:"Desayuno elaborado",ingredientes:[{a:"Avena en copos",g:80},{a:"Proteína whey vainilla",g:30},{a:"Leche semidesnatada",g:200},{a:"Frutos rojos mix",g:80}],et:{mo:["desayuno"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Desayuno completo. No pre-entreno por fibra. No fight week."}},
+{id:"bocadillo_001",nombre:"Bocadillo de atún",categoria:"Bocadillo básico",ingredientes:[{a:"Baguette",g:150},{a:"Atún en lata al natural",g:160},{a:"Tomate",g:80}],et:{mo:["comida","cena"],td:["todos"],cn:"alto",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Proteína alta y carbos altos. No fight week (pan grande). No pre-entreno."}},
+{id:"bocadillo_002",nombre:"Bocadillo de jamón york y queso",categoria:"Bocadillo básico",ingredientes:[{a:"Baguette",g:150},{a:"Jamón york",g:100},{a:"Queso en lonchas light",g:40}],et:{mo:["comida","cena"],td:["todos"],cn:"alto",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Sodio alto por el jamón y queso. No fight week. No pre-entreno."}},
+{id:"bocadillo_003",nombre:"Bocadillo de pavo",categoria:"Bocadillo básico",ingredientes:[{a:"Baguette",g:150},{a:"Pechuga de pavo loncheada",g:100},{a:"Lechuga",g:30}],et:{mo:["comida","cena"],td:["todos"],cn:"alto",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Ligero y proteico. No fight week (pan grande). No pre-entreno."}},
+{id:"bocadillo_004",nombre:"Bocadillo de tortilla",categoria:"Bocadillo básico",ingredientes:[{a:"Baguette",g:150},{a:"Huevo entero",g:120},{a:"Patata cocida",g:80},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Carbos muy altos. Solo días de alta demanda. No pre-entreno cercano."}},
+{id:"comida_001",nombre:"Arroz con pollo",categoria:"Comida básica",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Pechuga de pollo cocinada",g:200},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","pre2h","post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"El plato base del peleador. Versátil. Apto fight week. Pre-entreno 2h y post-entreno."}},
+{id:"comida_002",nombre:"Arroz con atún",categoria:"Comida básica",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Atún en lata al natural",g:160},{a:"Tomate",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Rápido y digestivo. Apto fight week. Buen pre-entreno 2h."}},
+{id:"comida_003",nombre:"Pasta con atún",categoria:"Comida básica",ingredientes:[{a:"Pasta seca",g:100},{a:"Atún en lata al natural",g:160},{a:"Tomate frito",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:false,pre:true,nota:"Carbos altos. Pre-entreno 2h. No fight week (pasta puede generar hinchazón)."}},
+{id:"comida_004",nombre:"Pasta con pollo",categoria:"Comida básica",ingredientes:[{a:"Pasta seca",g:100},{a:"Pechuga de pollo cocinada",g:150},{a:"Tomate frito",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:false,pre:true,nota:"Clásico. Pre-entreno 2h. No fight week."}},
+{id:"comida_005",nombre:"Arroz con huevo frito",categoria:"Comida básica",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Huevo entero",g:120},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Rápido y económico. Grasa media — no pre-entreno cercano. Apto fight week."}},
+{id:"comida_006",nombre:"Patatas con huevo frito",categoria:"Comida básica",ingredientes:[{a:"Patata cocida",g:200},{a:"Huevo entero",g:120},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Digestivo. Apto fight week. Grasa media — no pre-entreno cercano."}},
+{id:"comida_007",nombre:"Pollo a la plancha con arroz",categoria:"Comida básica",ingredientes:[{a:"Pechuga de pollo cruda",g:200},{a:"Arroz blanco cocido",g:150},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","pre2h","post"],td:["todos"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"El plato más versátil. Apto para todo. Pre-entreno 2h, post-entreno y fight week."}},
+{id:"comida_008",nombre:"Ternera a la plancha con patatas",categoria:"Comida básica",ingredientes:[{a:"Ternera filete",g:200},{a:"Patata cocida",g:200},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Proteína alta y carbos altos. Grasa media — no pre-entreno. Apto fight week."}},
+{id:"comida_009",nombre:"Merluza a la plancha con patatas",categoria:"Comida básica",ingredientes:[{a:"Merluza",g:200},{a:"Patata cocida",g:200},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","cena"],td:["todos"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy digestivo. Apto fight week. No pre-entreno (proteína sólida)."}},
+{id:"comida_010",nombre:"Salmón con arroz",categoria:"Comida básica",ingredientes:[{a:"Salmón fresco",g:200},{a:"Arroz blanco cocido",g:150},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Omega-3 + carbos. Grasa media del salmón — no pre-entreno cercano. Apto fight week."}},
+{id:"comida_011",nombre:"Lentejas básicas",categoria:"Comida básica",ingredientes:[{a:"Lentejas cocidas",g:200},{a:"Zanahoria",g:80},{a:"Puerro",g:60},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["amarillo","verde"],cn:"medio",gn:"bajo",fn:"alto",fw:false,pre:false,nota:"Fibra muy alta. Solo días sin entreno intenso. NUNCA pre-entreno. No fight week."}},
+{id:"comida_012",nombre:"Garbanzos con espinacas",categoria:"Comida básica",ingredientes:[{a:"Garbanzos cocidos",g:200},{a:"Espinacas",g:100},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["amarillo"],cn:"medio",gn:"bajo",fn:"alto",fw:false,pre:false,nota:"Fibra muy alta. Solo días de descanso. NUNCA pre-entreno. No fight week."}},
+{id:"comida_013",nombre:"Tortilla española con ensalada",categoria:"Comida básica",ingredientes:[{a:"Huevo entero",g:180},{a:"Patata cruda",g:150},{a:"Cebolla",g:50},{a:"Aceite de oliva virgen extra",g:10},{a:"Lechuga",g:100},{a:"Tomate",g:80}],et:{mo:["comida","cena"],td:["todos"],cn:"medio",gn:"medio",fn:"medio",fw:true,pre:false,nota:"Clásico español. Versátil. Grasa media — no pre-entreno. Apto fight week."}},
+{id:"comida_014",nombre:"Pollo al horno con patatas",categoria:"Comida básica",ingredientes:[{a:"Muslo de pollo sin hueso",g:200},{a:"Patata cruda",g:200},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Comida de semana. Grasa media — no pre-entreno. Apto fight week."}},
+{id:"comida_015",nombre:"Hamburguesa casera de ternera",categoria:"Comida elaborada",ingredientes:[{a:"Carne picada ternera 5%",g:200},{a:"Pan blanco de molde",g:80},{a:"Lechuga",g:30},{a:"Tomate",g:80},{a:"Mostaza",g:10},{a:"Queso en lonchas light",g:30}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Alta proteína. No fight week (queso). No pre-entreno. Solo días de alta demanda."}},
+{id:"comida_016",nombre:"Hamburguesa de pollo casera",categoria:"Comida elaborada",ingredientes:[{a:"Pechuga de pollo cruda",g:200},{a:"Pan blanco de molde",g:80},{a:"Lechuga",g:30},{a:"Tomate",g:80},{a:"Mostaza",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Más ligera que la de ternera. Apto fight week. No pre-entreno."}},
+{id:"comida_017",nombre:"Pasta boloñesa casera",categoria:"Comida elaborada",ingredientes:[{a:"Pasta seca",g:100},{a:"Carne picada ternera 5%",g:150},{a:"Tomate frito",g:80},{a:"Aceite de oliva virgen extra",g:5},{a:"Queso parmesano",g:20}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Alta en todo. No fight week. No pre-entreno. Días de máxima demanda."}},
+{id:"comida_018",nombre:"Lentejas con chorizo",categoria:"Comida elaborada",ingredientes:[{a:"Lentejas cocidas",g:200},{a:"Chorizo",g:50},{a:"Zanahoria",g:80},{a:"Puerro",g:60},{a:"Patata cocida",g:100}],et:{mo:["comida"],td:["amarillo"],cn:"medio",gn:"alto",fn:"alto",fw:false,pre:false,nota:"Fibra muy alta, grasa alta. Solo días de descanso. NUNCA pre-entreno. No fight week."}},
+{id:"comida_019",nombre:"Pollo con boniato y espinacas",categoria:"Comida elaborada",ingredientes:[{a:"Pechuga de pollo cruda",g:200},{a:"Boniato cocido",g:200},{a:"Espinacas",g:100},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Muy nutritivo. Fibra media — no pre-entreno. No fight week."}},
+{id:"comida_020",nombre:"Atún con quinoa y verduras",categoria:"Comida elaborada",ingredientes:[{a:"Atún en lata al natural",g:160},{a:"Quinoa cocida",g:150},{a:"Pimiento rojo",g:80},{a:"Pepino",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["verde","amarillo"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Fibra media. No pre-entreno. No fight week. Días de menor intensidad."}},
+{id:"comida_021",nombre:"Bacalao con garbanzos",categoria:"Comida elaborada",ingredientes:[{a:"Bacalao fresco",g:200},{a:"Garbanzos cocidos",g:200},{a:"Espinacas",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["amarillo"],cn:"medio",gn:"bajo",fn:"alto",fw:false,pre:false,nota:"Fibra muy alta. Solo días de descanso. No fight week. No pre-entreno nunca."}},
+{id:"cena_001",nombre:"Pollo a la plancha con ensalada",categoria:"Cena básica",ingredientes:[{a:"Pechuga de pollo cocinada",g:200},{a:"Lechuga",g:100},{a:"Tomate",g:80},{a:"Pepino",g:60},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["amarillo","verde"],cn:"bajo",gn:"bajo",fn:"medio",fw:true,pre:false,nota:"Cena ideal en días de poco esfuerzo. Apto fight week. Carbos bajos."}},
+{id:"cena_002",nombre:"Ensalada de atún",categoria:"Cena básica",ingredientes:[{a:"Atún en lata al natural",g:160},{a:"Lechuga",g:100},{a:"Tomate",g:80},{a:"Pepino",g:60},{a:"Maíz dulce",g:50},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena","comida"],td:["amarillo","verde"],cn:"bajo",gn:"bajo",fn:"medio",fw:true,pre:false,nota:"Ligera y proteica. Apto fight week. No pre-entreno."}},
+{id:"cena_003",nombre:"Tortilla de claras con champiñones",categoria:"Cena básica",ingredientes:[{a:"Clara de huevo",g:200},{a:"Champiñones",g:100},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["cena"],td:["todos"],cn:"bajo",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy baja en grasa y carbos. Ideal cuando hay que reducir. Apto fight week."}},
+{id:"cena_004",nombre:"Merluza con verduras al vapor",categoria:"Cena básica",ingredientes:[{a:"Merluza",g:200},{a:"Brócoli",g:150},{a:"Zanahoria",g:100},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["todos"],cn:"bajo",gn:"bajo",fn:"medio",fw:true,pre:false,nota:"Muy digestiva. Apto fight week. Cena perfecta en cualquier fase."}},
+{id:"cena_005",nombre:"Sopa de pollo con fideos",categoria:"Cena básica",ingredientes:[{a:"Pechuga de pollo cocinada",g:150},{a:"Pasta seca",g:60},{a:"Caldo de pollo",g:500},{a:"Zanahoria",g:80},{a:"Apio",g:40}],et:{mo:["cena"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Ideal recuperación post-entreno nocturno. Digestiva. Apto fight week."}},
+{id:"cena_006",nombre:"Revuelto de huevos con setas y jamón",categoria:"Cena básica",ingredientes:[{a:"Huevo entero",g:180},{a:"Setas",g:100},{a:"Jamón serrano",g:50},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["todos"],cn:"bajo",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Sodio del jamón — no fight week. Rápido y proteico."}},
+{id:"cena_007",nombre:"Merluza al horno con verduras",categoria:"Cena básica",ingredientes:[{a:"Merluza",g:200},{a:"Calabacín",g:100},{a:"Tomate",g:80},{a:"Cebolla",g:60},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["todos"],cn:"bajo",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy digestiva. Apto fight week. Cena perfecta en camp."}},
+{id:"cena_008",nombre:"Salmón al horno con espárragos",categoria:"Cena elaborada",ingredientes:[{a:"Salmón fresco",g:200},{a:"Espárragos",g:150},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["rojo","verde"],cn:"bajo",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Omega-3 para recuperación. Apto fight week. Grasa media — no pre-entreno."}},
+{id:"cena_009",nombre:"Gambas salteadas con ajo y verduras",categoria:"Cena elaborada",ingredientes:[{a:"Gambas",g:200},{a:"Calabacín",g:100},{a:"Pimiento rojo",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["todos"],cn:"bajo",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy proteico y bajo en grasa. Apto fight week. Ideal en reducción."}},
+{id:"cena_010",nombre:"Ensalada completa de pollo",categoria:"Cena elaborada",ingredientes:[{a:"Pechuga de pollo cocinada",g:150},{a:"Lechuga",g:80},{a:"Tomate",g:80},{a:"Pepino",g:60},{a:"Maíz dulce",g:50},{a:"Huevo entero",g:60},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena","comida"],td:["todos"],cn:"bajo",gn:"bajo",fn:"medio",fw:true,pre:false,nota:"Completa y digestiva. Apto fight week. No pre-entreno."}},
+{id:"pre1h_001",nombre:"Plátano solo",categoria:"Pre-entreno 1h",ingredientes:[{a:"Plátano",g:150}],et:{mo:["pre1h"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"El pre-entreno más simple. Siempre disponible. Apto fight week."}},
+{id:"pre1h_002",nombre:"Tortita de arroz con miel",categoria:"Pre-entreno 1h",ingredientes:[{a:"Tortita de arroz",g:20},{a:"Miel",g:10}],et:{mo:["pre1h"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Carbos rápidos puros. Digestión inmediata. Apto fight week."}},
+{id:"pre1h_003",nombre:"Plátano con dátiles",categoria:"Pre-entreno 1h",ingredientes:[{a:"Plátano",g:120},{a:"Dátiles",g:30}],et:{mo:["pre1h"],td:["rojo"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Máxima energía rápida. Solo días de alta demanda. Apto fight week."}},
+{id:"pre1h_004",nombre:"Dátiles solos",categoria:"Pre-entreno 1h",ingredientes:[{a:"Dátiles",g:50}],et:{mo:["pre1h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Glucosa pura. Los usan en el UFC PI. Apto fight week."}},
+{id:"pre2h_001",nombre:"Arroz con pollo pre-entreno",categoria:"Pre-entreno 2-3h",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Pechuga de pollo cocinada",g:180},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"El pre-entreno más eficaz. Mínimo 2h antes. Apto fight week."}},
+{id:"pre2h_002",nombre:"Pasta con atún pre-entreno",categoria:"Pre-entreno 2-3h",ingredientes:[{a:"Pasta seca",g:100},{a:"Atún en lata al natural",g:160},{a:"Tomate frito",g:60}],et:{mo:["pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:false,pre:true,nota:"Mínimo 2.5h antes. No fight week (pasta puede generar hinchazón)."}},
+{id:"pre2h_003",nombre:"Pan con pavo y plátano",categoria:"Pre-entreno 2-3h",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Pechuga de pavo loncheada",g:100},{a:"Plátano",g:120}],et:{mo:["pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Práctico y digestivo. Mínimo 2h antes. Apto fight week."}},
+{id:"post_001",nombre:"Batido de recuperación básico",categoria:"Post-entreno",ingredientes:[{a:"Proteína whey vainilla",g:30},{a:"Leche semidesnatada",g:300},{a:"Plátano",g:120}],et:{mo:["post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Post-entreno inmediato. Máximo 30 min después. Apto fight week."}},
+{id:"post_002",nombre:"Arroz con pollo post-entreno",categoria:"Post-entreno",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Pechuga de pollo cocinada",g:200},{a:"Tomate",g:80}],et:{mo:["post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Post-entreno sólido. En los primeros 30-60 min. Apto fight week."}},
+{id:"post_003",nombre:"Yogur con plátano y miel",categoria:"Post-entreno",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Plátano",g:120},{a:"Miel",g:10}],et:{mo:["post","snack"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Post-entreno ligero. Apto fight week. Rápido y digestivo."}},
+{id:"post_004",nombre:"Batido de chocolate post-entreno",categoria:"Post-entreno",ingredientes:[{a:"Proteína whey chocolate",g:30},{a:"Leche semidesnatada",g:300},{a:"Plátano",g:120}],et:{mo:["post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Post-entreno inmediato. Sabor que engancha. Apto fight week."}},
+{id:"snack_001",nombre:"Plátano con mantequilla de cacahuete",categoria:"Snack",ingredientes:[{a:"Plátano",g:150},{a:"Mantequilla de cacahuete",g:30}],et:{mo:["snack"],td:["verde","amarillo"],cn:"alto",gn:"alto",fn:"bajo",fw:false,pre:false,nota:"Grasa alta — solo lejos del entreno. No fight week. No pre-entreno cercano."}},
+{id:"snack_002",nombre:"Yogur griego con miel",categoria:"Snack",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Miel",g:10}],et:{mo:["snack"],td:["todos"],cn:"bajo",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Proteico y digestivo. Apto fight week. No suficientes carbos para pre-entreno."}},
+{id:"snack_003",nombre:"Queso fresco con nueces",categoria:"Snack",ingredientes:[{a:"Queso fresco batido 0%",g:150},{a:"Nueces",g:20},{a:"Miel",g:7}],et:{mo:["snack"],td:["amarillo","verde"],cn:"bajo",gn:"alto",fn:"bajo",fw:false,pre:false,nota:"Grasa alta por las nueces. Solo días sin entreno intenso. No fight week."}},
+{id:"snack_004",nombre:"Mix de frutos secos",categoria:"Snack",ingredientes:[{a:"Almendras",g:30},{a:"Anacardos",g:20},{a:"Nueces",g:20}],et:{mo:["snack"],td:["amarillo"],cn:"bajo",gn:"alto",fn:"medio",fw:false,pre:false,nota:"Grasa muy alta. Solo días de descanso y lejos del entreno. No fight week nunca."}},
+{id:"snack_005",nombre:"Yogur con cacao y plátano",categoria:"Snack",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Cacao puro en polvo",g:5},{a:"Plátano",g:60},{a:"Miel",g:7}],et:{mo:["snack","post"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Sabroso y proteico. No fight week (cacao puede molestar). Buen post-entreno ligero."}},
+];
+
+// Filtra PLATOS_DB según el contexto del día
+// contexto: {momento, tipo_dia, esFightWeek}
+// Reglas: fight week→solo fw:true | pre-entreno→solo pre:true + sin fn:alto + sin gn:alto
+function filtrarPlatosDB(contexto){
+  var mo=contexto.momento||'comida';
+  var td=contexto.tipo_dia||'rojo';
+  var fw=contexto.esFightWeek||false;
+  var esPreEnt=mo==='pre1h'||mo==='pre2h';
+  return PLATOS_DB.filter(function(p){
+    var e=p.et;
+    if(e.mo.indexOf(mo)<0) return false;
+    if(e.td.indexOf('todos')<0&&e.td.indexOf(td)<0) return false;
+    if(fw&&!e.fw) return false;
+    if(esPreEnt){
+      if(!e.pre) return false;
+      if(e.fn==='alto') return false;
+      if(e.gn==='alto') return false;
+    }
+    return true;
+  });
+}
+
+// Devuelve un plato aleatorio de un array filtrado, o null
+function _pickPlato(arr){ return arr.length?arr[Math.floor(Math.random()*arr.length)]:null; }
+
+// Convierte ingredientes [{a,g}] a texto legible
+function _ingTexto(ingredientes){
+  return ingredientes.map(function(i){return i.g+'g '+i.a;}).join(' · ');
+}
+
 // ═══════════════════════════════════════════
 // PLATOS SRC — Estructura: prot/carb/gras/libre/desc
 // prot → fuente principal de proteína (p/c/g por 100g)
@@ -11257,100 +11363,96 @@ async function toggleNutriOpcion(key){
 // Generador automático de sugerencia de opciones basado en preferencias del atleta
 function generarSugerenciaOpciones(c){
   var qd=c.cuestionario_datos||{};
-  var peso=c.peso||75;
-  var tieneBascula=qd.nut_bascula!=='no';
-  var proteinas=qd.proteinas_favoritas&&qd.proteinas_favoritas.length?qd.proteinas_favoritas:['pollo','huevos','ternera'];
-  var carbos=qd.carbos_favoritos&&qd.carbos_favoritos.length?qd.carbos_favoritos:['arroz','pasta','patata'];
-  var horaEntreno=qd.nut_hora_entreno||'19:00';
   var evitar=(qd.alimentos_evitar||'').toLowerCase();
-  var m=calcMacrosCombate(c);
-  var dm=m.sparring||m.tecnica;
 
-  // Bancos de ingredientes por categoría
-  var PROTS={
-    pollo:    {n:'pechuga de pollo',unit:'g',p:31,c:0,g:3.6,kp100:165},
-    pavo:     {n:'pechuga de pavo',unit:'g',p:29,c:0,g:1,kp100:135},
-    ternera:  {n:'carne de ternera',unit:'g',p:26,c:0,g:5,kp100:158},
-    pescado:  {n:'merluza',unit:'g',p:18,c:0,g:1.2,kp100:86},
-    salmon:   {n:'salmón',unit:'g',p:20,c:0,g:13,kp100:206},
-    atun:     {n:'atún en conserva',unit:'g',p:25,c:0,g:1,kp100:108},
-    huevos:   {n:'huevos',unit:'uds',p:13,c:1,g:11,kp100:155},
-    legumbres:{n:'garbanzos cocidos',unit:'g',p:9,c:27,g:3,kp100:164},
-    tofu:     {n:'tofu firme',unit:'g',p:17,c:2,g:9,kp100:144}
-  };
-  var CARBS={
-    arroz:    {n:'arroz blanco cocido',unit:'g',p:2.7,c:28,g:0.3,kp100:130},
-    pasta:    {n:'pasta cocida',unit:'g',p:5,c:31,g:0.9,kp100:158},
-    patata:   {n:'patata cocida',unit:'g',p:2,c:20,g:0.1,kp100:87},
-    pan:      {n:'pan blanco',unit:'g',p:8,c:50,g:3,kp100:265},
-    avena:    {n:'avena en copos',unit:'g',p:13,c:66,g:7,kp100:389},
-    fruta:    {n:'plátano',unit:'g',p:1.1,c:23,g:0.3,kp100:89},
-    tortitas: {n:'tortitas de arroz',unit:'g',p:7,c:79,g:3,kp100:387}
-  };
-
-  function pickPref(arr,bank,evitarStr){
-    var filtered=arr.filter(function(k){return bank[k]&&evitarStr.indexOf(k)<0;});
-    return filtered.length?filtered:Object.keys(bank).slice(0,3);
-  }
-  var selProts=pickPref(proteinas,PROTS,evitar);
-  var selCarbos=pickPref(carbos,CARBS,evitar);
-
-  function calcOp(protKey,carbKey,grasas){
-    var pr=PROTS[protKey]||PROTS.pollo;
-    var ca=CARBS[carbKey]||CARBS.arroz;
-    // Calcular cantidades para target ~35g prot, ~70g carb
-    var gProt=tieneBascula?Math.round(35/pr.p*100):Math.round(35/pr.p*100/5)*5;
-    var gCarb=tieneBascula?Math.round(70/ca.c*100):Math.round(70/ca.c*100/25)*25;
-    var totalP=Math.round(gProt*pr.p/100);
-    var totalC=Math.round(gCarb*ca.c/100);
-    var totalG=Math.round(gProt*pr.g/100+(grasas?10:0));
-    var totalK=Math.round(totalP*4+totalC*4+totalG*9);
-    var ingText=gProt+(tieneBascula?'g ':' g ')+pr.n+' · '+gCarb+'g '+ca.n+'· 150g verdura mixta'+(grasas?' · 10g AOVE':'');
-    return {nombre:pr.n.split(' ')[1]||pr.n+' + '+ca.n,ingredientes:ingText,macros:{p:totalP,c:totalC,g:totalG,k:totalK}};
+  // Detectar fight week
+  var esFightWeek=false;
+  if(c.fecha_pelea){
+    var _diasPelea=Math.ceil((new Date(c.fecha_pelea+'T12:00:00')-new Date())/(24*3600*1000));
+    esFightWeek=_diasPelea>=0&&_diasPelea<=7;
   }
 
+  // Tipo de día predominante según fase
+  var _fase=c.fase_combate||'base';
+  var _tipoDia=(_fase==='peaking'||_fase==='fight_week')?'rojo':
+               (_fase==='post_pesaje'||_fase==='post_pelea')?'verde':'rojo';
+
+  // Función de filtro con exclusión de alimentos a evitar
+  function filtrar(momento, tipoDia){
+    var lista=filtrarPlatosDB({momento:momento,tipo_dia:tipoDia||_tipoDia,esFightWeek:esFightWeek});
+    if(evitar){
+      lista=lista.filter(function(p){
+        return !p.ingredientes.some(function(ing){
+          return evitar.split(/[,\s]+/).some(function(ev){return ev.length>2&&ing.a.toLowerCase().indexOf(ev)>=0;});
+        });
+      });
+    }
+    return lista;
+  }
+
+  function _platoPick(momento, tipoDia){
+    var lista=filtrar(momento, tipoDia);
+    if(!lista.length) lista=filtrarPlatosDB({momento:momento,tipo_dia:'todos',esFightWeek:esFightWeek});
+    return _pickPlato(lista);
+  }
+
+  function _platoCopy(p, label, nota){
+    if(!p) return {nombre:label||'Plato',ingredientes:'—',macros:{p:0,c:0,g:0,k:0},nota:nota||''};
+    var m=calcMacrosCampComida(p.ingredientes);
+    return {
+      nombre:p.nombre,
+      ingredientes:_ingTexto(p.ingredientes),
+      macros:m,
+      nota:(nota||p.et.nota||''),
+      plato_id:p.id
+    };
+  }
+
+  // ── 3 opciones de comida principal (variando tipo de día para diversidad) ──
+  var _tiposDia=['rojo','verde','amarillo'];
+  var _usados=[];
   var ops=[];
   for(var i=0;i<3;i++){
-    var pKey=selProts[i%selProts.length];
-    var cKey=selCarbos[i%selCarbos.length];
-    var op=calcOp(pKey,cKey,i===2); // 3ª opción con grasa
-    op.id=i+1;
-    op.nombre='Opción '+(i+1)+' — '+((PROTS[pKey]||{}).n||pKey)+' + '+((CARBS[cKey]||{}).n||cKey);
-    ops.push(op);
+    var _td2=i===0?_tipoDia:(i===1?(_tipoDia==='rojo'?'verde':'rojo'):'amarillo');
+    var _lista2=filtrar('comida',_td2).filter(function(p){return _usados.indexOf(p.id)<0;});
+    if(!_lista2.length) _lista2=filtrar('comida',_tipoDia).filter(function(p){return _usados.indexOf(p.id)<0;});
+    if(!_lista2.length) _lista2=PLATOS_DB.filter(function(p){return p.et.mo.indexOf('comida')>=0&&_usados.indexOf(p.id)<0;});
+    var _p=_pickPlato(_lista2);
+    if(_p) _usados.push(_p.id);
+    var _op=_platoCopy(_p,'Opción '+(i+1));
+    _op.id=i+1;
+    _op.nombre='Opción '+(i+1)+' — '+(_p?_p.nombre:'comida principal');
+    ops.push(_op);
   }
 
-  // Pre-entreno: carbos+proteína ligera (2-3h)
-  var carbPreKey=selCarbos[0];
-  var ca2=CARBS[carbPreKey]||CARBS.arroz;
-  var pr2=PROTS[selProts[0]]||PROTS.pollo;
-  var preComp={
-    nombre:'Pre-entreno completo (2-3h antes)',
-    ingredientes:Math.round(60/ca2.c*100)+'g '+ca2.n+' · '+Math.round(30/pr2.p*100)+'g '+pr2.n+' · sin grasa',
-    nota:'Grasa baja o nula — no retrasa la digestión',
-    macros:{p:30,c:60,g:3,k:387}
-  };
-  var preRap={
-    nombre:'Pre-entreno rápido (1h antes)',
-    ingredientes:'1 plátano maduro · 2 dátiles · 200ml agua',
-    nota:'Solo carbos rápidos — sin proteína ni grasa a esta distancia',
-    macros:{p:2,c:40,g:1,k:177}
-  };
-  var postEn={
-    nombre:'Post-entreno (primeros 30 min)',
-    ingredientes:(qd.nut_suplementos&&qd.nut_suplementos.indexOf('proteina')>=0?
-      '40g whey · 1 plátano · 300ml leche semidesnatada':
-      '200g yogur griego · 1 plátano · 30g copos avena'),
-    nota:'Proteína + carbos simples — grasa baja. Sin esperar.',
-    macros:{p:40,c:50,g:5,k:405}
-  };
+  // ── Pre-entreno completo (2-3h) ──
+  var _pPre2=_platoPick('pre2h',_tipoDia);
+  var preComp=_platoCopy(_pPre2,'Pre-entreno completo (2-3h antes)',
+    'Mínimo 2h antes del entreno. Grasa baja para no retrasar la digestión.');
+
+  // ── Pre-entreno rápido (1h) ──
+  var _pPre1=_platoPick('pre1h',_tipoDia);
+  var preRap=_platoCopy(_pPre1,'Pre-entreno rápido (1h antes)',
+    'Solo carbos rápidos — sin proteína ni grasa a esta distancia.');
+
+  // ── Post-entreno ──
+  var _pPost=_platoPick('post',_tipoDia);
+  var postEn=_platoCopy(_pPost,'Post-entreno (primeros 30 min)',
+    'Proteína + carbos simples. Sin esperar, máximo 30 min después.');
+
+  // Añadir badge fight week si aplica
+  var _fwNote=esFightWeek?'⚠️ FIGHT WEEK: todos los platos seleccionados son aptos para la semana de la pelea. ':'';;
 
   return {
     aprobado:false,
     generado_en:new Date().toISOString().split('T')[0],
+    fight_week:esFightWeek,
+    fase:_fase,
     opciones:ops,
     pre_completo:preComp,
     pre_rapido:preRap,
-    post_entreno:postEn
+    post_entreno:postEn,
+    nota_ia:_fwNote+'Platos seleccionados de PLATOS_DB (67 platos etiquetados). Puedes editar o cambiar cualquier opción.'
   };
 }
 
