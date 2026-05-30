@@ -10012,66 +10012,150 @@ async function guardarPasos(){
 }
 
 // ── TATAMI INICIO WIDGET ─────────────────────────────────────────────────────
+// Devuelve el tipo de tatami esperado según el plan_semanal del día actual
+function _tatamiTipoDesdeplan(){
+  var c=S.user; if(!c) return null;
+  var dow=new Date().getDay(); // 0=Dom..6=Sáb
+  try{
+    var ps=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
+    if(!ps) return null;
+    var dp=parseDiaPlan(ps[String(dow)]);
+    var sessions=dp.sessions||[];
+    // Mapeo plan → tatami
+    if(sessions.indexOf('sparring')>=0) return 'sparring_controlado';
+    if(sessions.indexOf('tecnica')>=0)  return 'tecnica_suave';
+    if(sessions.indexOf('fuerza')>=0)   return 'fuerza'; // gym, sin tatami previsto
+    if(sessions.indexOf('descanso')>=0) return 'descanso';
+  }catch(e){}
+  return null;
+}
+
 function renderTatamiInicioWidget(reHoy){
   var el=document.getElementById('tatami-inicio-widget');
   if(!el) return;
   var c=S.user;
   if(!c||c.tipo_cliente!=='combate'){el.style.display='none';return;}
   el.style.display='';
+
   var _ts=reHoy&&reHoy.tatami_sesion||null;
-  var _tsSel=_ts?(_ts.tipo||null):null;
-  var tipos=[
-    {id:'tecnica_suave',       label:'Técnica',        ic:'🥋', color:'77,159,255'},
-    {id:'tecnica_resistencia', label:'T. Resistencia',  ic:'⚡', color:'255,179,0'},
-    {id:'sparring_controlado', label:'Sparring',        ic:'🥊', color:'0,200,83'},
-    {id:'sparring_duro',       label:'Duro',            ic:'🔥', color:'255,107,53'},
-    {id:'competicion',         label:'Competición',     ic:'🏆', color:'255,23,68'},
-    {id:'no_hoy',              label:'No hoy',          ic:'🛌', color:'74,85,104'},
+  var _tsSel=_ts?(_ts.tipo||null):null; // ya guardado hoy
+  var _tipoSegunPlan=_tatamiTipoDesdeplan();
+
+  var TIPOS=[
+    {id:'tecnica_suave',       label:'Técnica suave',         ic:'🥋', color:'77,159,255'},
+    {id:'tecnica_resistencia', label:'Técnica c/ resistencia',ic:'⚡', color:'255,179,0'},
+    {id:'sparring_controlado', label:'Sparring controlado',   ic:'🥊', color:'0,200,83'},
+    {id:'sparring_duro',       label:'Sparring duro',         ic:'🔥', color:'255,107,53'},
+    {id:'competicion',         label:'Competición',           ic:'🏆', color:'255,23,68'},
   ];
-  var labelGuardado={
-    tecnica_suave:'Técnica suave', tecnica_resistencia:'Técnica c/ resistencia',
-    sparring_controlado:'Sparring controlado', sparring_duro:'Sparring duro',
-    competicion:'Competición', no_hoy:'Sin tatami hoy'
+  var COLORES={
+    tecnica_suave:'77,159,255',tecnica_resistencia:'255,179,0',
+    sparring_controlado:'0,200,83',sparring_duro:'255,107,53',
+    competicion:'255,23,68',no_hoy:'74,85,104',
+    fuerza:'0,200,83',descanso:'74,85,104'
   };
-  var btnHtml=tipos.map(function(t){
-    var sel=_tsSel===t.id;
-    return '<button onclick="tatamiInicioClick(\''+t.id+'\')" data-ti-btn="'+t.id+'" '+
-      'style="padding:6px 10px;border-radius:8px;border:1.5px solid rgba('+t.color+','+
-      (sel?'.8':'.2')+');background:rgba('+t.color+','+(sel?'.15':'.04')+');'+
-      'color:rgba('+t.color+','+(sel?'1':'.6')+');font-size:11px;font-weight:700;cursor:pointer;'+
-      'display:flex;align-items:center;gap:4px;white-space:nowrap">'+
-      t.ic+' '+t.label+'</button>';
-  }).join('');
-  el.innerHTML=
-    '<div class="card">'+
-      '<div class="ch">🥊 Tatami hoy'+
-        (_tsSel&&_tsSel!=='no_hoy'?'<span style="margin-left:auto;font-size:11px;font-weight:700;color:#00C853">✅ '+labelGuardado[_tsSel]+'</span>':
-         _tsSel==='no_hoy'?'<span style="margin-left:auto;font-size:11px;color:#4A5568">Sin sesión</span>':
-         '<span style="margin-left:auto;font-size:11px;color:#4A5568">Sin registrar</span>')+
+  var LABELS={
+    tecnica_suave:'Técnica suave',tecnica_resistencia:'Técnica c/ resistencia',
+    sparring_controlado:'Sparring controlado',sparring_duro:'Sparring duro',
+    competicion:'Competición',no_hoy:'Sin tatami hoy',
+    fuerza:'Día de gym',descanso:'Día de descanso'
+  };
+
+  var html='<div class="card"><div class="ch">🥊 Tatami hoy';
+
+  if(_tsSel){
+    // ── YA CONFIRMADO ──
+    var _col=COLORES[_tsSel]||'77,159,255';
+    var _lab=LABELS[_tsSel]||_tsSel;
+    html+=(_tsSel!=='no_hoy'
+      ?'<span style="margin-left:auto;font-size:11px;font-weight:700;color:#00C853">✅ '+_lab+'</span>'
+      :'<span style="margin-left:auto;font-size:11px;color:#4A5568">🛌 Sin sesión</span>');
+    html+='</div><div class="cb">';
+    // Pill del tipo confirmado
+    if(_tsSel!=='no_hoy'){
+      html+='<div style="display:inline-flex;align-items:center;gap:8px;background:rgba('+_col+',.1);border:1.5px solid rgba('+_col+',.35);border-radius:10px;padding:8px 14px;margin-bottom:10px">'+
+        '<span style="font-size:20px">'+((TIPOS.find(function(t){return t.id===_tsSel;})||{}).ic||'🥋')+'</span>'+
+        '<span style="font-size:13px;font-weight:800;color:rgba('+_col+',1)">'+_lab+'</span>'+
+      '</div>';
+    }
+    // Botón cambiar discreto
+    html+='<div id="ti-selector" style="display:none;margin-top:8px">'+
+      '<div style="font-size:11px;color:#4A5568;margin-bottom:8px">Selecciona el tipo real:</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:6px">'+
+      TIPOS.map(function(t){
+        return '<button onclick="tatamiInicioClick(\''+t.id+'\')" style="padding:6px 10px;border-radius:8px;border:1.5px solid rgba('+t.color+',.25);background:rgba('+t.color+',.06);color:rgba('+t.color+',1);font-size:11px;font-weight:700;cursor:pointer">'+t.ic+' '+t.label+'</button>';
+      }).join('')+
+      '<button onclick="tatamiInicioClick(\'no_hoy\')" style="padding:6px 10px;border-radius:8px;border:1.5px solid rgba(74,85,104,.25);background:rgba(74,85,104,.06);color:#6E8090;font-size:11px;font-weight:700;cursor:pointer">🛌 No hoy</button>'+
+      '</div></div>'+
+      '<button onclick="document.getElementById(\'ti-selector\').style.display=document.getElementById(\'ti-selector\').style.display===\'none\'?\'\':\'none\'" '+
+        'style="font-size:11px;color:#4A5568;background:none;border:none;cursor:pointer;padding:0;margin-top:4px">✏️ Cambiar tipo</button>';
+
+  } else {
+    // ── PENDIENTE DE CONFIRMAR ──
+    html+='<span style="margin-left:auto;font-size:11px;color:#4A5568">Sin confirmar</span>';
+    html+='</div><div class="cb">';
+
+    if(_tipoSegunPlan==='fuerza'){
+      // Día de gym según plan — tatami no previsto
+      html+='<div style="font-size:12px;color:#6E8090;margin-bottom:10px">Hoy es día de <b style="color:#00C853">gym</b> según tu plan. ¿Hiciste también tatami?</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:6px">'+
+        TIPOS.map(function(t){
+          return '<button onclick="tatamiInicioClick(\''+t.id+'\')" style="padding:7px 12px;border-radius:8px;border:1.5px solid rgba('+t.color+',.25);background:rgba('+t.color+',.06);color:rgba('+t.color+',1);font-size:11px;font-weight:700;cursor:pointer">'+t.ic+' '+t.label+'</button>';
+        }).join('')+
+        '<button onclick="tatamiInicioClick(\'no_hoy\')" style="padding:7px 12px;border-radius:8px;border:1.5px solid rgba(74,85,104,.25);background:rgba(74,85,104,.06);color:#6E8090;font-size:11px;font-weight:700;cursor:pointer">🛌 Solo gym</button>'+
+        '</div>';
+
+    } else if(_tipoSegunPlan==='descanso'||!_tipoSegunPlan){
+      // Día sin plan definido o descanso
+      html+='<div style="font-size:12px;color:#6E8090;margin-bottom:10px">'+
+        (_tipoSegunPlan==='descanso'?'Hoy es día de descanso según tu plan. ¿Entrenaste igualmente?':'¿Qué tipo de sesión hiciste hoy?')+
       '</div>'+
-      '<div class="cb">'+
-        '<div style="display:flex;flex-wrap:wrap;gap:6px">'+btnHtml+'</div>'+
-      '</div>'+
-    '</div>';
+        '<div style="display:flex;flex-wrap:wrap;gap:6px">'+
+        TIPOS.map(function(t){
+          return '<button onclick="tatamiInicioClick(\''+t.id+'\')" style="padding:7px 12px;border-radius:8px;border:1.5px solid rgba('+t.color+',.25);background:rgba('+t.color+',.06);color:rgba('+t.color+',1);font-size:11px;font-weight:700;cursor:pointer">'+t.ic+' '+t.label+'</button>';
+        }).join('')+
+        '<button onclick="tatamiInicioClick(\'no_hoy\')" style="padding:7px 12px;border-radius:8px;border:1.5px solid rgba(74,85,104,.25);background:rgba(74,85,104,.06);color:#6E8090;font-size:11px;font-weight:700;cursor:pointer">🛌 No hoy</button>'+
+        '</div>';
+
+    } else {
+      // Día de tatami según plan — confirmar o cambiar
+      var _tipoPred=TIPOS.find(function(t){return t.id===_tipoSegunPlan;})||TIPOS[0];
+      var _predCol=COLORES[_tipoSegunPlan]||'77,159,255';
+      html+=
+        '<div style="display:flex;align-items:center;gap:10px;background:rgba('+_predCol+',.07);border:1px solid rgba('+_predCol+',.2);border-radius:10px;padding:10px 14px;margin-bottom:12px">'+
+          '<span style="font-size:22px">'+_tipoPred.ic+'</span>'+
+          '<div>'+
+            '<div style="font-size:10px;color:#4A5568;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Según tu plan de hoy</div>'+
+            '<div style="font-size:14px;font-weight:900;color:rgba('+_predCol+',1)">'+_tipoPred.label+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;margin-bottom:10px">'+
+          '<button onclick="tatamiInicioClick(\''+_tipoSegunPlan+'\')" '+
+            'style="flex:1;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,rgba('+_predCol+',.8),rgba('+_predCol+',.5));color:#fff;font-size:13px;font-weight:900;cursor:pointer">'+
+            '✅ Confirmar sesión</button>'+
+          '<button onclick="tatamiInicioClick(\'no_hoy\')" '+
+            'style="padding:11px 14px;border-radius:10px;border:1.5px solid rgba(74,85,104,.3);background:rgba(74,85,104,.06);color:#6E8090;font-size:13px;font-weight:700;cursor:pointer">'+
+            '🛌 No hoy</button>'+
+        '</div>'+
+        // Cambiar tipo — colapsado
+        '<div id="ti-selector" style="display:none">'+
+          '<div style="font-size:11px;color:#4A5568;margin-bottom:8px">Cambiar a otro tipo:</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:6px">'+
+          TIPOS.filter(function(t){return t.id!==_tipoSegunPlan;}).map(function(t){
+            return '<button onclick="tatamiInicioClick(\''+t.id+'\')" style="padding:6px 10px;border-radius:8px;border:1.5px solid rgba('+t.color+',.25);background:rgba('+t.color+',.06);color:rgba('+t.color+',1);font-size:11px;font-weight:700;cursor:pointer">'+t.ic+' '+t.label+'</button>';
+          }).join('')+
+          '</div></div>'+
+        '<button onclick="document.getElementById(\'ti-selector\').style.display=document.getElementById(\'ti-selector\').style.display===\'none\'?\'\':\'none\'" '+
+          'style="font-size:11px;color:#4A5568;background:none;border:none;cursor:pointer;padding:0">↩ Fue diferente a lo habitual</button>';
+    }
+  }
+
+  html+='</div></div>';
+  el.innerHTML=html;
 }
 
 function tatamiInicioClick(tipo){
   var c=S.user; if(!c) return;
-  // Actualizar estado visual
-  document.querySelectorAll('[data-ti-btn]').forEach(function(btn){
-    var t=btn.dataset.tiBtn;
-    var tipos={
-      tecnica_suave:'77,159,255',tecnica_resistencia:'255,179,0',
-      sparring_controlado:'0,200,83',sparring_duro:'255,107,53',
-      competicion:'255,23,68',no_hoy:'74,85,104'
-    };
-    var col=tipos[t]||'77,159,255';
-    var sel=t===tipo;
-    btn.style.borderColor='rgba('+col+','+(sel?'.8':'.2')+')';
-    btn.style.background='rgba('+col+','+(sel?'.15':'.04')+')';
-    btn.style.color='rgba('+col+','+(sel?'1':'.6')+')';
-  });
-  // Guardar inmediatamente
   var ts={tipo:tipo,guardado_desde:'inicio'};
   var fHoy=hoy();
   if(!S.reCombate) S.reCombate={fecha:fHoy,ejercicios:{}};
@@ -10080,8 +10164,7 @@ function tatamiInicioClick(tipo){
     var labels={tecnica_suave:'Técnica suave',tecnica_resistencia:'Técnica c/ resistencia',
       sparring_controlado:'Sparring controlado',sparring_duro:'Sparring duro',
       competicion:'Competición',no_hoy:'Sin tatami'};
-    toast('🥊 '+labels[tipo]+ ' guardado','ok');
-    // Re-render para mostrar estado "guardado"
+    toast('🥊 '+(labels[tipo]||tipo)+' guardado','ok');
     renderTatamiInicioWidget(S.reCombate);
   }).catch(function(e){toast('Error: '+e.message,'err');});
 }
