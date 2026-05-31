@@ -128,7 +128,11 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
   .sec{padding:.75rem}
   .card{border-radius:12px}
   .ch{font-size:13px}
+  /* Cuestionario: opciones ATR en columna única en móvil */
+  .q-atr-opts{display:flex!important;flex-direction:column!important;gap:6px!important}
 }
+/* ── CUESTIONARIO ──────────────────── */
+.q-atr-opts{display:grid;grid-template-columns:1fr;gap:6px;margin-top:6px}
 /* ── ANIMACIONES ────────────────────── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
@@ -564,7 +568,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
               <option value="avanzado">Sí, más de 3 años</option>
             </select>
           </div>
-          <div class="field"><label>¿Cuánto llevas sin entrenar?</label>
+          <div class="field" id="q-field-descanso"><label>¿Cuánto llevas sin entrenar?</label>
             <select id="q-descanso">
               <option value="">Seleccionar...</option>
               <option value="activo">Estoy entrenando ahora</option>
@@ -573,7 +577,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
               <option value="mas1a">Más de 1 año</option>
             </select>
           </div>
-          <div class="field"><label>¿Cuántos días puedes entrenar?</label>
+          <div class="field" id="q-field-dias"><label>¿Cuántos días puedes entrenar?</label>
             <select id="q-dias">
               <option value="">Seleccionar...</option>
               <option value="2">2 días</option>
@@ -638,15 +642,15 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           </div>
           <div class="field" style="grid-column:1/-1"><label>⭐ ¿Qué proteínas prefieres? (marca las que más te gustan)</label>
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px" id="q-prot-fav-wrap">
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-pollo" value="pollo" style="accent-color:#4D9FFF">🍗 Pollo</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-pavo" value="pavo" style="accent-color:#4D9FFF">🦃 Pavo</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-ternera" value="ternera" style="accent-color:#4D9FFF">🥩 Ternera</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-pescado" value="pescado" style="accent-color:#4D9FFF">🐟 Pescado blanco</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-atun" value="atun" style="accent-color:#4D9FFF">🐟 Atún</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-salmon" value="salmon" style="accent-color:#4D9FFF">🍣 Salmón</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-huevos" value="huevos" style="accent-color:#4D9FFF">🥚 Huevos</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-legumbres" value="legumbres" style="accent-color:#4D9FFF">🫘 Legumbres</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-pf-tofu" value="tofu" style="accent-color:#4D9FFF">🌱 Tofu/Soja</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-pollo" value="pollo" style="accent-color:#4D9FFF">🍗 Pollo</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-pavo" value="pavo" style="accent-color:#4D9FFF">🦃 Pavo</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-ternera" value="ternera" style="accent-color:#4D9FFF">🥩 Ternera</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-pescado" value="pescado" style="accent-color:#4D9FFF">🐟 Pescado blanco</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-atun" value="atun" style="accent-color:#4D9FFF">🐟 Atún</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-salmon" value="salmon" style="accent-color:#4D9FFF">🍣 Salmón</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-huevos" value="huevos" style="accent-color:#4D9FFF">🥚 Huevos</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-legumbres" value="legumbres" style="accent-color:#4D9FFF">🫘 Legumbres</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-tofu" value="tofu" style="accent-color:#4D9FFF">🌱 Tofu/Soja</label>
             </div>
           </div>
           <div class="field" style="grid-column:1/-1"><label>🚫 Alimentos que NO quieres ver en tu plan</label>
@@ -654,13 +658,13 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           </div>
           <div class="field" style="grid-column:1/-1"><label>🌾 ¿Qué carbohidratos comes habitualmente?</label>
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-arroz" value="arroz" style="accent-color:#FFB300">🍚 Arroz</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-pasta" value="pasta" style="accent-color:#FFB300">🍝 Pasta</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-patata" value="patata" style="accent-color:#FFB300">🥔 Patata</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-pan" value="pan" style="accent-color:#FFB300">🍞 Pan</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-avena" value="avena" style="accent-color:#FFB300">🌾 Avena</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-fruta" value="fruta" style="accent-color:#FFB300">🍌 Fruta</label>
-              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="q-cf-tortitas" value="tortitas" style="accent-color:#FFB300">🥞 Tortitas de arroz</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-cf-arroz" value="arroz" style="accent-color:#FFB300">🍚 Arroz</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-cf-pasta" value="pasta" style="accent-color:#FFB300">🍝 Pasta</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-cf-patata" value="patata" style="accent-color:#FFB300">🥔 Patata</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-cf-pan" value="pan" style="accent-color:#FFB300">🍞 Pan</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-cf-avena" value="avena" style="accent-color:#FFB300">🌾 Avena</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-cf-fruta" value="fruta" style="accent-color:#FFB300">🍌 Fruta</label>
+              <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-cf-tortitas" value="tortitas" style="accent-color:#FFB300">🥞 Tortitas de arroz</label>
             </div>
           </div>
           <div class="field"><label>⏰ ¿A qué hora entrenas habitualmente?</label>
@@ -725,7 +729,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
       </div>
     </div>
 
-    <div class="card" style="margin-bottom:1.25rem">
+    <div class="card" id="q-card-motivacion" style="margin-bottom:1.25rem">
       <div class="ch">💬 Motivación</div>
       <div class="cb">
         <div class="field"><label>¿Por qué ahora? ¿Qué te ha hecho dar el paso?</label>
@@ -789,6 +793,41 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <div class="field"><label>¿Tienes pelea próxima? (fecha)</label>
             <input type="date" id="q-c-pelea">
           </div>
+          <div class="field"><label>Walking weight (kg)<span style="font-size:10px;color:#4A5568;font-weight:400"> — tu peso habitual fuera de camp</span></label>
+            <input type="number" id="q-c-walking-weight" step="0.5" placeholder="Ej: 78" min="30" max="200">
+          </div>
+          <div class="field"><label>¿Has fallado algún pesaje?</label>
+            <select id="q-c-fallo-pesaje">
+              <option value="">Seleccionar...</option>
+              <option value="nunca">Nunca</option>
+              <option value="una_vez">Una vez</option>
+              <option value="varias">Varias veces</option>
+            </select>
+          </div>
+          <div class="field"><label>¿Cuántas peleas has tenido?</label>
+            <select id="q-c-num-peleas">
+              <option value="">Seleccionar...</option>
+              <option value="debutante">Soy debutante</option>
+              <option value="1-5">1-5 peleas</option>
+              <option value="6-20">6-20 peleas</option>
+              <option value="mas20">Más de 20 peleas</option>
+            </select>
+          </div>
+          <div class="field"><label>¿Con qué frecuencia compites?</label>
+            <select id="q-c-frecuencia-comp">
+              <option value="">Seleccionar...</option>
+              <option value="no_compite">No compito todavía</option>
+              <option value="3-4meses">Cada 3-4 meses</option>
+              <option value="1-2meses">Cada 1-2 meses</option>
+              <option value="mas_frecuente">Más de una al mes</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:1/-1"><label>¿Tienes báscula de peso corporal en casa?</label>
+            <select id="q-c-bascula-casa">
+              <option value="si">Sí, me peso en casa</option>
+              <option value="no">No — me peso fuera (gym, farmacia...)</option>
+            </select>
+          </div>
         </div>
         <!-- Horario semanal en texto libre -->
         <div class="field" style="margin-top:.75rem">
@@ -810,38 +849,38 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <!-- Q1 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">1. ¿Cómo describirías tu golpeo?</label>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px;overflow:hidden" id="q-p1">
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp1" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 💪 Muy potente pero no muy rápido</label>
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp1" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> ⚡ Muy rápido pero le falta pegada</label>
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden;grid-column:1/-1"><input type="radio" name="qp1" value="eq" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> ⚖️ Equilibrado</label>
+            <div class="q-atr-opts" id="q-p1">
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp1" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 💪 Muy potente pero no muy rápido</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp1" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> ⚡ Muy rápido pero le falta pegada</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp1" value="eq" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> ⚖️ Equilibrado</label>
             </div>
           </div>
           <!-- Q2 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">2. ¿Qué te pasa más en combate?</label>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px;overflow:hidden">
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp2" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🥵 Me canso rápido en intercambios cortos</label>
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp2" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🎯 Buen cardio pero no termino acciones</label>
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden;grid-column:1/-1"><input type="radio" name="qp2" value="halcon" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🦅 Aguanto bien pero me falta explosividad</label>
+            <div class="q-atr-opts">
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp2" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🥵 Me canso rápido en intercambios cortos</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp2" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🎯 Buen cardio pero no termino acciones</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp2" value="halcon" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🦅 Aguanto bien pero me falta explosividad</label>
             </div>
           </div>
           <!-- Q3 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">3. ¿Cuánto tiempo llevas entrenando combate?</label>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px;overflow:hidden">
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp3" value="menos2" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> Menos de 2 años</label>
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp3" value="2a5" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 2 – 5 años</label>
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden;grid-column:1/-1"><input type="radio" name="qp3" value="mas5" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> Más de 5 años</label>
+            <div class="q-atr-opts">
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp3" value="menos2" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> Menos de 2 años</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp3" value="2a5" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 2 – 5 años</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp3" value="mas5" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> Más de 5 años</label>
             </div>
           </div>
           <!-- Q4 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">4. ¿Cuál es tu mayor debilidad física?</label>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px;overflow:hidden">
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp4" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🐢 La velocidad de mis acciones</label>
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp4" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🪶 La fuerza detrás de mis técnicas</label>
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp4" value="halcon" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🫁 La resistencia en los rounds tardíos</label>
-              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;overflow:hidden"><input type="radio" name="qp4" value="superman" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> ❓ No identifico una debilidad clara</label>
+            <div class="q-atr-opts">
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp4" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🐢 La velocidad de mis acciones</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp4" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🪶 La fuerza detrás de mis técnicas</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp4" value="halcon" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🫁 La resistencia en los rounds tardíos</label>
+              <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp4" value="superman" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> ❓ No identifico una debilidad clara</label>
             </div>
           </div>
           <!-- Resultado -->
@@ -6388,6 +6427,14 @@ async function loadCuestionario(){
 
   // ── PRE-RELLENAR FORMULARIO (lógica original) ──────────────────
   var combCard=document.getElementById('q-combate-card');
+  // ── Ocultar/mostrar campos según tipo de cliente ──────────────
+  // Campos que no tienen sentido para peleadores activos
+  var _combatHide=['q-field-objetivo-kg','q-field-tiempo','q-field-descanso','q-field-dias','q-card-motivacion'];
+  _combatHide.forEach(function(fid){
+    var el=document.getElementById(fid);
+    if(el) el.style.display=esCombate?'none':'';
+  });
+
   if(esCombate&&combCard){
     combCard.style.display='';
     var qd=c.cuestionario_datos||{};
@@ -6397,7 +6444,12 @@ async function loadCuestionario(){
       'q-c-dias-fuerza':c.dias_prep_fisica||qd.dias_fuerza||'',
       'q-c-material':c.material_disponible||qd.material||'',
       'q-c-peso-cat':c.peso_categoria||qd.peso_categoria||'',
-      'q-c-pelea':c.fecha_pelea||qd.fecha_pelea||''
+      'q-c-pelea':c.fecha_pelea||qd.fecha_pelea||'',
+      'q-c-walking-weight':qd.walking_weight||'',
+      'q-c-fallo-pesaje':qd.fallo_pesaje||'',
+      'q-c-num-peleas':qd.num_peleas||'',
+      'q-c-frecuencia-comp':qd.frecuencia_comp||'',
+      'q-c-bascula-casa':qd.bascula_casa||'si'
     };
     Object.keys(fill).forEach(function(fid){
       var el=document.getElementById(fid);
@@ -6886,6 +6938,29 @@ function renderAdminGrid(){
               '<div style="font-size:13px;font-weight:800;color:#7986CB">'+(c.kcal_objetivo||'—')+'</div>'+
             '</div>'+
           '</div>'+
+          // Badges de alerta / notificación
+          (function(){
+            var _qdCard=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+            var _rlCard=_qdCard.registro_libre||null;
+            var _rlEnvCard=_rlCard&&_rlCard.enviado;
+            var _optsCard=_qdCard.opciones_nutri||null;
+            var _aprobCard=_optsCard&&_optsCard.aprobado;
+            var _falloPesaje=_qdCard.fallo_pesaje||'';
+            var html='';
+            if(_rlEnvCard&&!_aprobCard){
+              html+='<div style="background:rgba(0,200,83,.07);border:1px solid rgba(0,200,83,.25);border-radius:6px;padding:5px 10px;margin-bottom:4px;display:flex;align-items:center;gap:6px">'+
+                '<span style="font-size:14px">📬</span>'+
+                '<span style="font-size:11px;font-weight:800;color:#00C853">Registro enviado — listo para generar plan</span>'+
+              '</div>';
+            }
+            if(_falloPesaje==='varias'){
+              html+='<div style="background:rgba(255,107,53,.07);border:1px solid rgba(255,107,53,.35);border-radius:6px;padding:5px 10px;margin-bottom:4px;display:flex;align-items:center;gap:6px">'+
+                '<span style="font-size:14px">⚠️</span>'+
+                '<span style="font-size:11px;font-weight:800;color:#FF6B35">Riesgo pesaje — ha fallado varias veces</span>'+
+              '</div>';
+            }
+            return html;
+          })()+
           // Wellness últimos 7 días
           (wd.length?
           '<div style="border-top:1px solid #1A2A40;padding-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
@@ -7319,9 +7394,10 @@ function adminRenderOpcionesEditor(opts, c){
   if(opts.opciones&&opts.opciones.length){
     opts.opciones.forEach(function(op,i){
       var mac=op.macros||{};
+      var _adminSlotLabel=(op.slot_emoji||'')+(op.slot_label?(' '+op.slot_label):(' OPCIÓN '+(i+1)));
       html+='<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:10px;padding:10px 12px;margin-bottom:8px">'+
         '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
-          '<span style="font-size:11px;font-weight:900;color:'+(_colors[i]||'#4D9FFF')+'">OPCIÓN '+(i+1)+'</span>'+
+          '<span style="font-size:11px;font-weight:900;color:'+(_colors[i]||'#4D9FFF')+'">'+_adminSlotLabel+'</span>'+
           '<span style="font-size:11px;color:#F0F4FF;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">'+op.nombre+'</span>'+
           '<button onclick="adminEditarOpcion('+i+',\'opcion\')" style="font-size:10px;padding:3px 10px;border-radius:6px;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.3);color:#4D9FFF;cursor:pointer;flex-shrink:0">✏️ Editar</button>'+
         '</div>'+
@@ -8047,43 +8123,45 @@ async function adminTab(tab,btn){
       var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
       var _opts=_qdc.opciones_nutri||null;
       var _peso=c.peso||75;
-      // ── Semana de registro libre (admin view) ────────────────────
-      var _diasEnAppAdmin=999;
-      if(c.fecha_inicio){
-        var _fiA=new Date(c.fecha_inicio+'T12:00:00');
-        var _hdA=new Date(hoy()+'T12:00:00');
-        _diasEnAppAdmin=Math.max(1,Math.ceil((_hdA-_fiA)/(24*3600*1000))+1);
-      }
+      // ── Registro libre (admin view — desde cuestionario_datos) ────
+      var _qdAdminRL=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+      var _rlAdmin=_qdAdminRL.registro_libre||null;
+      var _rlEnviadoAdmin=_rlAdmin&&_rlAdmin.enviado;
       var _registroLibreHtml='';
-      if(c.tipo_cliente==='combate'&&!(_opts&&_opts.aprobado)&&_diasEnAppAdmin<=2){
-        var _rlRecs=await db.get('registros_nutricion','cliente_id=eq.'+c.id+'&order=fecha.asc&limit=2');
-        var _diasRegistrados=(_rlRecs||[]).filter(function(r){
-          if(!r.registro_libre) return false;
-          var _ro=typeof r.registro_libre==='string'?JSON.parse(r.registro_libre):r.registro_libre;
-          return (_ro&&_ro.texto&&_ro.texto.trim().length>0)||false;
-        }).length;
-        _registroLibreHtml='<div class="card" style="margin-bottom:.75rem;border-color:rgba(255,179,0,.3)"><div class="ch" style="color:#FFB300">📋 Registro libre — Día '+_diasEnAppAdmin+' de 2'+
-          '<div style="margin-left:auto;font-size:10px;color:#4A5568">'+_diasRegistrados+'/2 días con datos</div>'+
-          '</div><div class="cb">';
-        _registroLibreHtml+='<div style="background:#1A2A40;border-radius:4px;height:6px;margin-bottom:12px"><div style="background:#FFB300;border-radius:4px;height:6px;width:'+Math.round(_diasEnAppAdmin/2*100)+'%"></div></div>';
-        var DIAS_ES_ADMIN=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-        for(var _di=1;_di<=Math.min(_diasEnAppAdmin,2);_di++){
-          var _dFecha=new Date(c.fecha_inicio+'T12:00:00');
-          _dFecha.setDate(_dFecha.getDate()+_di-1);
-          var _dStr=_dFecha.toISOString().split('T')[0];
-          var _dRec=(_rlRecs||[]).find(function(r){return r.fecha===_dStr;});
-          var _dRlRaw=_dRec&&_dRec.registro_libre?_dRec.registro_libre:null;
-          var _dRlObj=_dRlRaw?(typeof _dRlRaw==='string'?JSON.parse(_dRlRaw):_dRlRaw):null;
-          var _dTexto=_dRlObj&&_dRlObj.texto?_dRlObj.texto:'';
-          _registroLibreHtml+='<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #1A2A40">'+
-            '<div style="font-size:11px;font-weight:800;color:'+(_dTexto?'#F0F4FF':'#2A3A50')+';margin-bottom:6px">'+
-              'DÍA '+_di+' — '+DIAS_ES_ADMIN[_dFecha.getDay()]+' '+_dStr.slice(5)+
-              (_dTexto?'<span style="margin-left:8px;font-size:10px;color:#00C853">✓ Registrado</span>':'<span style="color:#2A3A50;font-size:10px;margin-left:6px">Sin registrar</span>')+
+      if(c.tipo_cliente==='combate'&&!(_opts&&_opts.aprobado)&&_rlAdmin){
+        var _rlD1=_rlAdmin.dia1||'';
+        var _rlD2=_rlAdmin.dia2||'';
+        var _rlG1=_rlD1.trim().length>0;
+        var _rlG2=_rlD2.trim().length>0;
+        var _rlAmbos=_rlG1&&_rlG2;
+        var _rlFechaEnv=_rlAdmin.fecha_envio?'Enviado el '+_rlAdmin.fecha_envio.slice(5).replace('-','/'):'';
+        _registroLibreHtml='<div class="card" style="margin-bottom:.75rem;border-color:'+(_rlEnviadoAdmin?'rgba(0,200,83,.5)':'rgba(255,179,0,.3)')+'">'+
+          '<div class="ch" style="color:'+(_rlEnviadoAdmin?'#00C853':'#FFB300')+'">'+
+            (_rlEnviadoAdmin?'📬':'📋')+' Registro de alimentación'+
+            '<div style="margin-left:auto;font-size:10px;color:'+(_rlEnviadoAdmin?'#00C853':'#4A5568')+'">'+
+              (_rlEnviadoAdmin?'✅ Listo para generar plan':'⏳ Pendiente de envío')+
             '</div>'+
-            (_dTexto?'<div style="font-size:12px;color:#8A9BB0;line-height:1.55;background:#060E1A;border-radius:8px;padding:10px;white-space:pre-wrap">'+_dTexto.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>':'')+
+          '</div>'+
+          '<div class="cb">';
+        if(_rlEnviadoAdmin){
+          _registroLibreHtml+='<div style="background:rgba(0,200,83,.07);border:1px solid rgba(0,200,83,.2);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:#00C853;display:flex;align-items:center;gap:8px">'+
+            '<span style="font-size:16px">🔔</span>'+
+            '<span><strong>El atleta ha enviado su registro</strong>'+ (_rlFechaEnv?' — '+_rlFechaEnv:'')+'. Genera su plan nutricional ahora.</span>'+
           '</div>';
         }
-        _registroLibreHtml+='<button onclick="adminGenerarOpcionesNutri()" class="btn bp bbl">⚡ Generar plan nutricional</button>';
+        var _rlDias=[{n:1,texto:_rlD1,ok:_rlG1},{n:2,texto:_rlD2,ok:_rlG2}];
+        _rlDias.forEach(function(d){
+          _registroLibreHtml+='<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #1A2A40">'+
+            '<div style="font-size:11px;font-weight:800;color:'+(d.ok?'#F0F4FF':'#2A3A50')+';margin-bottom:6px">'+
+              'DÍA '+d.n+
+              (d.ok?'<span style="margin-left:8px;font-size:10px;color:#00C853">✓ Registrado</span>':'<span style="color:#2A3A50;font-size:10px;margin-left:6px">Sin registrar</span>')+
+            '</div>'+
+            (d.ok?'<div style="font-size:12px;color:#8A9BB0;line-height:1.55;background:#060E1A;border-radius:8px;padding:10px;white-space:pre-wrap">'+d.texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>':'')+
+          '</div>';
+        });
+        _registroLibreHtml+='<button onclick="adminGenerarOpcionesNutri()" class="btn bp bbl" '+((!_rlAmbos&&!_rlEnviadoAdmin)?'disabled style="opacity:.45"':'')+'>';
+        _registroLibreHtml+=(_rlEnviadoAdmin?'⚡ Generar plan nutricional':'⚡ Generar plan');
+        _registroLibreHtml+='</button>';
         _registroLibreHtml+='</div></div>';
       }
 
@@ -8646,6 +8724,33 @@ async function adminTab(tab,btn){
           }).join('')+
           '</div>';
       }())+
+      (cl.tipo_cliente==='combate'?(function(){
+        var _qdCfg=cl.cuestionario_datos?(typeof cl.cuestionario_datos==='string'?JSON.parse(cl.cuestionario_datos):cl.cuestionario_datos):{};
+        var _ww=_qdCfg.walking_weight||null;
+        var _fp=_qdCfg.fallo_pesaje||'';
+        var _np=_qdCfg.num_peleas||'';
+        var _fc=_qdCfg.frecuencia_comp||'';
+        var _bc=_qdCfg.bascula_casa||'';
+        var _catPeso=cl.peso_categoria||null;
+        var _corte=(_ww&&_catPeso)?(_ww-_catPeso).toFixed(1):null;
+        var _fpLabels={nunca:'Nunca',una_vez:'Una vez',varias:'⚠️ Varias veces'};
+        var _npLabels={debutante:'Debutante',
+          '1-5':'1-5 peleas','6-20':'6-20 peleas','mas20':'Más de 20 peleas'};
+        var _fcLabels={no_compite:'No compite todavía',
+          '3-4meses':'Cada 3-4 meses','1-2meses':'Cada 1-2 meses','mas_frecuente':'Más de una al mes'};
+        if(!_ww&&!_fp&&!_np&&!_fc&&!_bc) return '';
+        return '<div class="field" style="grid-column:1/-1">'+
+          '<label style="color:#FF6B35">⚖️ Perfil de competición</label>'+
+          '<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:10px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:12px">'+
+            (_ww?'<div><span style="color:#4A5568;font-size:10px;font-weight:700;text-transform:uppercase">Walking weight</span><br><span style="color:#F0F4FF;font-weight:800">'+_ww+' kg'+(_corte&&_corte>0?' <span style="color:#FF6B35;font-size:11px">(corte real: +'+_corte+'kg)</span>':_corte&&_corte<=0?' <span style="color:#00C853;font-size:11px">(en categoría)</span>':'')+'</span></div>':'')+
+            (_fp?'<div><span style="color:#4A5568;font-size:10px;font-weight:700;text-transform:uppercase">Fallos pesaje</span><br><span style="color:'+(_fp==='varias'?'#FF6B35':'#F0F4FF')+';font-weight:800">'+(_fpLabels[_fp]||_fp)+'</span></div>':'')+
+            (_np?'<div><span style="color:#4A5568;font-size:10px;font-weight:700;text-transform:uppercase">Peleas disputadas</span><br><span style="color:#F0F4FF;font-weight:800">'+(_npLabels[_np]||_np)+'</span></div>':'')+
+            (_fc?'<div><span style="color:#4A5568;font-size:10px;font-weight:700;text-transform:uppercase">Frecuencia competición</span><br><span style="color:#F0F4FF;font-weight:800">'+(_fcLabels[_fc]||_fc)+'</span></div>':'')+
+            (_bc?'<div><span style="color:#4A5568;font-size:10px;font-weight:700;text-transform:uppercase">Báscula en casa</span><br><span style="color:'+(_bc==='no'?'#FFB300':'#F0F4FF')+';font-weight:800">'+(_bc==='si'?'✅ Sí':'⚠️ No — se pesa fuera')+'</span></div>':'')+
+          '</div>'+
+          (_fp==='varias'?'<div style="margin-top:6px;background:rgba(255,107,53,.07);border:1px solid rgba(255,107,53,.25);border-radius:6px;padding:8px 10px;font-size:11px;color:#FF6B35">⚠️ <strong>Riesgo de pesaje:</strong> este atleta ha fallado el pesaje varias veces. Revisa el corte y ajusta el protocolo con más antelación.</div>':'')+
+        '</div>';
+      }()):'')+
       '<div class="field"><label>Notas</label><textarea id="e-not">'+(cl.notas_entrenador||'')+'</textarea></div>'+
       '<div style="display:flex;gap:8px;margin-top:.75rem">'+
         '<button class="btn bp" onclick="guardarCfg()">💾 Guardar</button>'+
@@ -9259,6 +9364,11 @@ async function enviarCuestionario(){
     datos.material=document.getElementById('q-c-material').value||'basico';
     datos.peso_categoria=parseFloat(document.getElementById('q-c-peso-cat').value)||null;
     datos.fecha_pelea=document.getElementById('q-c-pelea').value||null;
+    datos.walking_weight=parseFloat(document.getElementById('q-c-walking-weight').value)||null;
+    datos.fallo_pesaje=(document.getElementById('q-c-fallo-pesaje')||{}).value||'';
+    datos.num_peleas=(document.getElementById('q-c-num-peleas')||{}).value||'';
+    datos.frecuencia_comp=(document.getElementById('q-c-frecuencia-comp')||{}).value||'';
+    datos.bascula_casa=(document.getElementById('q-c-bascula-casa')||{}).value||'si';
     // Perfil de atleta calculado en el test
     if(window._perfilAtletaCalculado) datos.perfil_atleta=window._perfilAtletaCalculado;
     // Leer horario libre y parsear
@@ -11117,9 +11227,11 @@ function renderNutricionPendiente(c, diasEnApp){
   var stickyEl=document.getElementById('n-sticky');
   if(stickyEl) stickyEl.style.display='none';
   if(!cont) return;
-  diasEnApp=diasEnApp||999;
-  if(diasEnApp<=2){
-    renderRegistroTextoLibre(c, diasEnApp);
+  // Comprobar si ya envió el registro libre
+  var _qdNP=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+  var _rlEnviado=_qdNP.registro_libre&&_qdNP.registro_libre.enviado;
+  if(!_rlEnviado){
+    renderRegistroTextoLibre(c);
   } else {
     var fase=c.fase_combate||'base';
     var faseLabel={base:'Base',camp_cronico:'Camp',peaking:'Peaking',fight_week:'Fight Week',post_pelea:'Post-pelea'}[fase]||'Base';
@@ -11136,50 +11248,88 @@ function renderNutricionPendiente(c, diasEnApp){
   }
 }
 
-// ── Registro libre (2 días) ─────────────────────────────────────────────────
+// ── Registro libre (2 días simultáneos) ────────────────────────────────────
 var _diasEnAppActual=1;
 
-function renderRegistroTextoLibre(c, diaNum){
+function renderRegistroTextoLibre(c){
   var cont=document.getElementById('n-comidas');
   var stickyEl=document.getElementById('n-sticky');
   var nStatsEl=document.querySelector('#sec-nutri .g4');
   if(stickyEl) stickyEl.style.display='none';
   if(nStatsEl) nStatsEl.style.display='none';
   if(!cont) return;
-  // Recuperar texto guardado hoy si existe
-  var _rlRaw=S.rn&&S.rn.registro_libre?S.rn.registro_libre:null;
-  var _textoGuardado='';
-  if(_rlRaw){
-    var _rlObj=typeof _rlRaw==='string'?JSON.parse(_rlRaw):_rlRaw;
-    if(_rlObj&&_rlObj.texto) _textoGuardado=_rlObj.texto;
-  }
-  var _guardado=_textoGuardado.length>0;
+  // Recuperar textos guardados de cuestionario_datos
+  var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+  var _rl=_qdc.registro_libre||{};
+  var _d1=_rl.dia1||'';
+  var _d2=_rl.dia2||'';
+  var _g1=_d1.trim().length>0;
+  var _g2=_d2.trim().length>0;
+  var _ambos=_g1&&_g2;
   cont.innerHTML=
     '<div style="background:rgba(77,159,255,.06);border:1.5px solid rgba(77,159,255,.2);border-radius:14px;padding:16px;margin-bottom:.75rem">'+
-      '<div style="font-size:10px;font-weight:700;color:rgba(77,159,255,.8);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📋 REGISTRO LIBRE — DÍA '+diaNum+' DE 2</div>'+
-      '<div style="font-size:12px;color:#6E8090;line-height:1.55">Estos 2 días come como siempre. Escribe aquí lo que has comido hoy — sin complicarte. Tu entrenador lo usará para diseñar tu plan.</div>'+
+      '<div style="font-size:10px;font-weight:700;color:rgba(77,159,255,.8);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📋 REGISTRO DE ALIMENTACIÓN — 2 DÍAS</div>'+
+      '<div style="font-size:12px;color:#6E8090;line-height:1.55">Cuéntame cómo comes habitualmente. Rellena los dos días — puedes hacerlo ahora, pensando en lo que sueles comer un día normal. Tu entrenador lo usará para diseñar tu plan nutricional.</div>'+
     '</div>'+
-    '<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:12px;padding:14px;margin-bottom:.75rem">'+
-      '<div style="font-size:11px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🍽️ ¿Qué has comido hoy?</div>'+
-      '<textarea id="rl-texto" rows="7" placeholder="Ej: Desayuno — tortitas de avena con plátano.&#10;Comida — pollo con arroz y ensalada.&#10;Merienda — yogur con nueces.&#10;Cena — salmón con patata al horno."'+
-        ' style="width:100%;padding:12px;background:#060E1A;border:1.5px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:13px;line-height:1.6;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit">'+(_guardado?_textoGuardado.replace(/</g,'&lt;').replace(/>/g,'&gt;'):'')+'</textarea>'+
+    // ─ Día 1 ─
+    '<div style="background:#0D1528;border:1px solid '+(_g1?'rgba(0,200,83,.3)':'#1A2A40')+';border-radius:12px;padding:14px;margin-bottom:.75rem">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+        '<span style="font-size:11px;font-weight:800;color:'+(_g1?'#00C853':'#4A5568')+';text-transform:uppercase;letter-spacing:.5px">🍽️ Día 1</span>'+
+        (_g1?'<span style="font-size:10px;color:#00C853;margin-left:auto">✓ Guardado</span>':'')+
+      '</div>'+
+      '<textarea id="rl-texto-1" rows="6" placeholder="Ej: Desayuno — tortitas de avena con plátano.&#10;Comida — pollo con arroz y ensalada.&#10;Merienda — yogur con nueces.&#10;Cena — salmón con patata al horno."'+
+        ' style="width:100%;padding:12px;background:#060E1A;border:1.5px solid '+(_g1?'rgba(0,200,83,.25)':'#1A2A40')+';border-radius:8px;color:#F0F4FF;font-size:13px;line-height:1.6;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit">'+(_g1?_d1.replace(/</g,'&lt;').replace(/>/g,'&gt;'):'')+'</textarea>'+
+      '<button onclick="guardarTextoLibre(1)" class="btn bp bsm" style="margin-top:10px">💾 Guardar día 1</button>'+
     '</div>'+
-    '<button onclick="guardarTextoLibre()" class="btn bp bbl">✅ Guardar día</button>'+
-    (_guardado?'<div style="margin-top:8px;font-size:11px;color:#00C853;text-align:center">✓ Guardado hoy</div>':'');
+    // ─ Día 2 ─
+    '<div style="background:#0D1528;border:1px solid '+(_g2?'rgba(0,200,83,.3)':'#1A2A40')+';border-radius:12px;padding:14px;margin-bottom:.75rem">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+        '<span style="font-size:11px;font-weight:800;color:'+(_g2?'#00C853':'#4A5568')+';text-transform:uppercase;letter-spacing:.5px">🍽️ Día 2</span>'+
+        (_g2?'<span style="font-size:10px;color:#00C853;margin-left:auto">✓ Guardado</span>':'')+
+      '</div>'+
+      '<textarea id="rl-texto-2" rows="6" placeholder="Ej: Desayuno — huevos revueltos con tostadas.&#10;Comida — lentejas con verduras.&#10;Merienda — fruta y frutos secos.&#10;Cena — merluza al horno con brócoli."'+
+        ' style="width:100%;padding:12px;background:#060E1A;border:1.5px solid '+(_g2?'rgba(0,200,83,.25)':'#1A2A40')+';border-radius:8px;color:#F0F4FF;font-size:13px;line-height:1.6;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit">'+(_g2?_d2.replace(/</g,'&lt;').replace(/>/g,'&gt;'):'')+'</textarea>'+
+      '<button onclick="guardarTextoLibre(2)" class="btn bp bsm" style="margin-top:10px">💾 Guardar día 2</button>'+
+    '</div>'+
+    // ─ Botón enviar (solo si ambos guardados) ─
+    (_ambos?
+      '<div style="background:rgba(0,200,83,.06);border:1.5px solid rgba(0,200,83,.3);border-radius:12px;padding:14px;text-align:center">'+
+        '<div style="font-size:13px;font-weight:800;color:#00C853;margin-bottom:6px">✅ Los dos días están listos</div>'+
+        '<div style="font-size:11px;color:#6E8090;margin-bottom:12px">Cuando envíes el registro, tu entrenador recibirá una notificación y empezará a preparar tu plan.</div>'+
+        '<button onclick="enviarRegistroLibre()" class="btn bp bbl" style="background:rgba(0,200,83,.15);border-color:rgba(0,200,83,.5);color:#00C853">📬 Enviar al entrenador</button>'+
+      '</div>':
+      '<div style="text-align:center;font-size:11px;color:#2A3A50;padding:8px">Guarda los dos días para poder enviar el registro</div>'
+    );
 }
 
-async function guardarTextoLibre(){
-  var ta=document.getElementById('rl-texto');
+async function guardarTextoLibre(diaNum){
+  var ta=document.getElementById('rl-texto-'+diaNum);
   if(!ta) return;
   var texto=(ta.value||'').trim();
   if(!texto){toast('Escribe algo antes de guardar','err');return;}
   try{
-    var payload={texto:texto};
-    await saveNutri({registro_libre:payload});
-    if(S.rn) S.rn.registro_libre=payload;
-    else S.rn={registro_libre:payload};
-    toast('✅ Día guardado','ok');
-    renderRegistroTextoLibre(S.user, _diasEnAppActual||1);
+    var _qdc=S.user.cuestionario_datos?(typeof S.user.cuestionario_datos==='string'?JSON.parse(S.user.cuestionario_datos):JSON.parse(JSON.stringify(S.user.cuestionario_datos))):{};
+    if(!_qdc.registro_libre) _qdc.registro_libre={};
+    _qdc.registro_libre['dia'+diaNum]=texto;
+    await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:S.user.id,p_datos:{cuestionario_datos:_qdc}})});
+    S.user.cuestionario_datos=_qdc;
+    toast('✅ Día '+diaNum+' guardado','ok');
+    renderRegistroTextoLibre(S.user);
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+async function enviarRegistroLibre(){
+  try{
+    var _qdc=S.user.cuestionario_datos?(typeof S.user.cuestionario_datos==='string'?JSON.parse(S.user.cuestionario_datos):JSON.parse(JSON.stringify(S.user.cuestionario_datos))):{};
+    var _rl=_qdc.registro_libre||{};
+    if(!_rl.dia1||!_rl.dia2){toast('Guarda los dos días primero','err');return;}
+    _rl.enviado=true;
+    _rl.fecha_envio=hoy();
+    _qdc.registro_libre=_rl;
+    await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:S.user.id,p_datos:{cuestionario_datos:_qdc}})});
+    S.user.cuestionario_datos=_qdc;
+    toast('📬 Registro enviado a tu entrenador','ok');
+    renderNutricionPendiente(S.user, 999);
   }catch(e){toast('Error: '+e.message,'err');}
 }
 
@@ -11309,13 +11459,15 @@ function renderNutricionOpciones(c, rn, optsNutri){
     html+=opCard('pre_rapido','🍌','Carga rápida — 1h antes',preR,true);
   }
 
-  // ─── 3 Opciones del día ─────────────────────────────────────────
-  html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px">🍽️ Elige tu opción × '+(opciones.length||3)+' comidas del día</div>';
+  // ─── Plan del día (n comidas) ────────────────────────────────────
+  html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px">🍽️ Plan del día — '+(opciones.length||0)+' comidas</div>';
   if(!opciones.length){
-    html+='<div style="background:#0D1528;border-radius:10px;padding:16px;text-align:center;color:#4A5568;font-size:12px">Opciones no configuradas — pide a tu entrenador que las defina</div>';
+    html+='<div style="background:#0D1528;border-radius:10px;padding:16px;text-align:center;color:#4A5568;font-size:12px">Plan no configurado — pide a tu entrenador que lo defina</div>';
   }
   opciones.forEach(function(op,i){
-    html+=opCard('op'+op.id,'🍽️','Opción '+(i+1),op,false);
+    var _sEmoji=op.slot_emoji||'🍽️';
+    var _sLabel=op.slot_label||(op.nombre?op.nombre.split('—')[0].trim():('Comida '+(i+1)));
+    html+=opCard('op'+op.id,_sEmoji,_sLabel,op,false);
   });
 
   // ─── Post-entreno ────────────────────────────────────────────────
@@ -11362,97 +11514,137 @@ async function toggleNutriOpcion(key){
 
 // Generador automático de sugerencia de opciones basado en preferencias del atleta
 function generarSugerenciaOpciones(c){
-  var qd=c.cuestionario_datos||{};
+  var qd=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
   var evitar=(qd.alimentos_evitar||'').toLowerCase();
 
-  // Detectar fight week
+  // ── Nº de comidas del cliente ─────────────────────────────────────
+  var nComidas=parseInt(c.n_comidas||qd.n_comidas||4);
+  if(nComidas<3) nComidas=3;
+  if(nComidas>5) nComidas=5;
+
+  // ── Registro libre como referencia de hábitos ─────────────────────
+  var _rl=qd.registro_libre||{};
+  var _textoRef=((_rl.dia1||'')+' '+(_rl.dia2||'')).toLowerCase();
+
+  // ── Fight week ────────────────────────────────────────────────────
   var esFightWeek=false;
   if(c.fecha_pelea){
     var _diasPelea=Math.ceil((new Date(c.fecha_pelea+'T12:00:00')-new Date())/(24*3600*1000));
     esFightWeek=_diasPelea>=0&&_diasPelea<=7;
   }
 
-  // Tipo de día predominante según fase
+  // ── Tipo de día según fase ────────────────────────────────────────
   var _fase=c.fase_combate||'base';
   var _tipoDia=(_fase==='peaking'||_fase==='fight_week')?'rojo':
                (_fase==='post_pesaje'||_fase==='post_pelea')?'verde':'rojo';
 
-  // Función de filtro con exclusión de alimentos a evitar
-  function filtrar(momento, tipoDia){
-    var lista=filtrarPlatosDB({momento:momento,tipo_dia:tipoDia||_tipoDia,esFightWeek:esFightWeek});
+  // ── Score por similitud con registro libre ────────────────────────
+  function _score(p){
+    if(!_textoRef) return 0;
+    var s=0;
+    p.ingredientes.forEach(function(ing){
+      ing.a.toLowerCase().split(/\s+/).forEach(function(w){
+        if(w.length>3&&_textoRef.indexOf(w)>=0) s++;
+      });
+    });
+    p.nombre.toLowerCase().split(/\s+/).forEach(function(w){
+      if(w.length>3&&_textoRef.indexOf(w)>=0) s+=2;
+    });
+    return s;
+  }
+
+  // ── Filtro con exclusión de alimentos a evitar ────────────────────
+  function _filtrar(momento, td){
+    var lista=filtrarPlatosDB({momento:momento,tipo_dia:td||_tipoDia,esFightWeek:esFightWeek});
     if(evitar){
       lista=lista.filter(function(p){
         return !p.ingredientes.some(function(ing){
-          return evitar.split(/[,\s]+/).some(function(ev){return ev.length>2&&ing.a.toLowerCase().indexOf(ev)>=0;});
+          return evitar.split(/[,;\s]+/).some(function(ev){return ev.length>2&&ing.a.toLowerCase().indexOf(ev)>=0;});
         });
       });
     }
     return lista;
   }
 
-  function _platoPick(momento, tipoDia){
-    var lista=filtrar(momento, tipoDia);
-    if(!lista.length) lista=filtrarPlatosDB({momento:momento,tipo_dia:'todos',esFightWeek:esFightWeek});
-    return _pickPlato(lista);
+  // ── Selección con bias hacia registro libre ───────────────────────
+  function _pick(momento, td, usados){
+    var lista=_filtrar(momento,td||_tipoDia).filter(function(p){return !usados||(usados.indexOf(p.id)<0);});
+    if(!lista.length) lista=filtrarPlatosDB({momento:momento,tipo_dia:'todos',esFightWeek:esFightWeek})
+                             .filter(function(p){return !usados||(usados.indexOf(p.id)<0);});
+    if(!lista.length) return null;
+    if(!_textoRef) return _pickPlato(lista);
+    var scored=lista.map(function(p){return {p:p,s:_score(p)};}).sort(function(a,b){return b.s-a.s;});
+    var top=scored[0].s;
+    var topLst=scored.filter(function(x){return x.s===top;}).map(function(x){return x.p;});
+    return _pickPlato(topLst);
   }
 
-  function _platoCopy(p, label, nota){
-    if(!p) return {nombre:label||'Plato',ingredientes:'—',macros:{p:0,c:0,g:0,k:0},nota:nota||''};
+  function _copy(p, fallback, nota){
+    if(!p) return {nombre:fallback||'Sin plato',ingredientes:'—',macros:{p:0,c:0,g:0,k:0},nota:nota||''};
     var m=calcMacrosCampComida(p.ingredientes);
-    return {
-      nombre:p.nombre,
-      ingredientes:_ingTexto(p.ingredientes),
-      macros:m,
-      nota:(nota||p.et.nota||''),
-      plato_id:p.id
-    };
+    return {nombre:p.nombre,ingredientes:_ingTexto(p.ingredientes),macros:m,nota:(nota||p.et.nota||''),plato_id:p.id};
   }
 
-  // ── 3 opciones de comida principal (variando tipo de día para diversidad) ──
-  var _tiposDia=['rojo','verde','amarillo'];
-  var _usados=[];
-  var ops=[];
-  for(var i=0;i<3;i++){
-    var _td2=i===0?_tipoDia:(i===1?(_tipoDia==='rojo'?'verde':'rojo'):'amarillo');
-    var _lista2=filtrar('comida',_td2).filter(function(p){return _usados.indexOf(p.id)<0;});
-    if(!_lista2.length) _lista2=filtrar('comida',_tipoDia).filter(function(p){return _usados.indexOf(p.id)<0;});
-    if(!_lista2.length) _lista2=PLATOS_DB.filter(function(p){return p.et.mo.indexOf('comida')>=0&&_usados.indexOf(p.id)<0;});
-    var _p=_pickPlato(_lista2);
-    if(_p) _usados.push(_p.id);
-    var _op=_platoCopy(_p,'Opción '+(i+1));
-    _op.id=i+1;
-    _op.nombre='Opción '+(i+1)+' — '+(_p?_p.nombre:'comida principal');
-    ops.push(_op);
-  }
+  // ── Esquemas de slots según n_comidas ─────────────────────────────
+  //  3: desayuno · comida · cena
+  //  4: desayuno · pre-entreno · comida · cena
+  //  5: desayuno · pre-entreno · comida · post-entreno · cena
+  var ESQUEMAS={
+    3:[
+      {label:'Desayuno',    emoji:'🌅',momento:'desayuno',nota:''},
+      {label:'Comida',      emoji:'🍽️',momento:'comida',  nota:''},
+      {label:'Cena',        emoji:'🌙',momento:'cena',    nota:''}
+    ],
+    4:[
+      {label:'Desayuno',    emoji:'🌅',momento:'desayuno',nota:''},
+      {label:'Pre-entreno', emoji:'⚡',momento:'pre2h',  nota:'2-3h antes del entreno. Proteína + carbos complejos.'},
+      {label:'Comida',      emoji:'🍽️',momento:'comida',  nota:''},
+      {label:'Cena',        emoji:'🌙',momento:'cena',    nota:''}
+    ],
+    5:[
+      {label:'Desayuno',    emoji:'🌅',momento:'desayuno',nota:''},
+      {label:'Pre-entreno', emoji:'⚡',momento:'pre2h',  nota:'2-3h antes del entreno. Proteína + carbos complejos.'},
+      {label:'Comida',      emoji:'🍽️',momento:'comida',  nota:''},
+      {label:'Post-entreno',emoji:'💪',momento:'post',   nota:'Proteína + carbos simples. Máximo 30 min después del entreno.'},
+      {label:'Cena',        emoji:'🌙',momento:'cena',    nota:''}
+    ]
+  };
 
-  // ── Pre-entreno completo (2-3h) ──
-  var _pPre2=_platoPick('pre2h',_tipoDia);
-  var preComp=_platoCopy(_pPre2,'Pre-entreno completo (2-3h antes)',
+  var slots=ESQUEMAS[nComidas];
+  var usados=[];
+  var ops=slots.map(function(slot,i){
+    var p=_pick(slot.momento,_tipoDia,usados);
+    if(p) usados.push(p.id);
+    var op=_copy(p,slot.label,slot.nota||null);
+    op.id=i+1;
+    op.slot_label=slot.label;
+    op.slot_emoji=slot.emoji;
+    op.nombre=slot.label+' — '+(p?p.nombre:slot.label);
+    return op;
+  });
+
+  // ── Pre/Post como referencia de timing (siempre generados) ────────
+  var preComp=_copy(_pick('pre2h',_tipoDia,[]),'Pre-entreno completo',
     'Mínimo 2h antes del entreno. Grasa baja para no retrasar la digestión.');
-
-  // ── Pre-entreno rápido (1h) ──
-  var _pPre1=_platoPick('pre1h',_tipoDia);
-  var preRap=_platoCopy(_pPre1,'Pre-entreno rápido (1h antes)',
+  var preRap=_copy(_pick('pre1h',_tipoDia,[]),'Pre rápido (1h antes)',
     'Solo carbos rápidos — sin proteína ni grasa a esta distancia.');
-
-  // ── Post-entreno ──
-  var _pPost=_platoPick('post',_tipoDia);
-  var postEn=_platoCopy(_pPost,'Post-entreno (primeros 30 min)',
+  var postEn=_copy(_pick('post',_tipoDia,[]),'Post-entreno (primeros 30 min)',
     'Proteína + carbos simples. Sin esperar, máximo 30 min después.');
 
-  // Añadir badge fight week si aplica
-  var _fwNote=esFightWeek?'⚠️ FIGHT WEEK: todos los platos seleccionados son aptos para la semana de la pelea. ':'';;
+  var _fwNote=esFightWeek?'⚠️ FIGHT WEEK: platos aptos para semana de pelea. ':'';
+  var _rlNote=_textoRef?'📋 Plan basado en el registro de alimentación del atleta. ':'';
 
   return {
     aprobado:false,
     generado_en:new Date().toISOString().split('T')[0],
     fight_week:esFightWeek,
     fase:_fase,
+    n_comidas:nComidas,
     opciones:ops,
     pre_completo:preComp,
     pre_rapido:preRap,
     post_entreno:postEn,
-    nota_ia:_fwNote+'Platos seleccionados de PLATOS_DB (67 platos etiquetados). Puedes editar o cambiar cualquier opción.'
+    nota_ia:_rlNote+_fwNote+'Plan de '+nComidas+' comidas generado desde PLATOS_DB. Puedes editar cualquier opción.'
   };
 }
 
@@ -15403,6 +15595,18 @@ async function loadProgCombate(){
       (nivel?'<div style="font-size:9px;color:#4A5568;text-transform:capitalize;margin-top:1px">'+nivel+'</div>':'')+
     '</div>';
     html+='</div>';
+
+    // ── AVISO SIN BÁSCULA ──────────────────────────────────────
+    var _qdProg=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+    if(_qdProg.bascula_casa==='no'&&!pesos.length){
+      html+='<div style="background:rgba(255,179,0,.07);border:1.5px solid rgba(255,179,0,.3);border-radius:12px;padding:14px;margin-bottom:.75rem;display:flex;gap:12px;align-items:flex-start">'+
+        '<div style="font-size:24px;flex-shrink:0">⚖️</div>'+
+        '<div>'+
+          '<div style="font-size:13px;font-weight:800;color:#FFB300;margin-bottom:4px">Recuerda registrar tu peso</div>'+
+          '<div style="font-size:12px;color:#6E8090;line-height:1.55">Como no tienes báscula en casa, aprovecha cuando vayas al gym o a la farmacia para anotarlo aquí. Tu entrenador necesita este dato para ajustar el plan de corte.</div>'+
+        '</div>'+
+      '</div>';
+    }
 
     // ── 3. GRÁFICA PESO CORPORAL ───────────────────────────────
     if(pesos.length>=2){
