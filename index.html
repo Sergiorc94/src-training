@@ -641,7 +641,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
             </select>
           </div>
           <div class="field" style="grid-column:1/-1"><label>⭐ ¿Qué proteínas prefieres? (marca las que más te gustan)</label>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px" id="q-prot-fav-wrap">
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px" id="q-prot-fav-wrap">
               <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-pollo" value="pollo" style="accent-color:#4D9FFF">🍗 Pollo</label>
               <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-pavo" value="pavo" style="accent-color:#4D9FFF">🦃 Pavo</label>
               <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-pf-ternera" value="ternera" style="accent-color:#4D9FFF">🥩 Ternera</label>
@@ -657,7 +657,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
             <textarea id="q-evitar" placeholder="Ej: cebolla, pimiento, coliflor, queso... separa con comas" style="height:50px;resize:none"></textarea>
           </div>
           <div class="field" style="grid-column:1/-1"><label>🌾 ¿Qué carbohidratos comes habitualmente?</label>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
               <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-cf-arroz" value="arroz" style="accent-color:#FFB300">🍚 Arroz</label>
               <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-cf-pasta" value="pasta" style="accent-color:#FFB300">🍝 Pasta</label>
               <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0"><input type="checkbox" id="q-cf-patata" value="patata" style="accent-color:#FFB300">🥔 Patata</label>
@@ -849,7 +849,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <!-- Q1 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">1. ¿Cómo describirías tu golpeo?</label>
-            <div class="q-atr-opts" id="q-p1">
+            <div class="q-atr-opts" id="q-p1" style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp1" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 💪 Muy potente pero no muy rápido</label>
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp1" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> ⚡ Muy rápido pero le falta pegada</label>
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp1" value="eq" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> ⚖️ Equilibrado</label>
@@ -858,7 +858,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <!-- Q2 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">2. ¿Qué te pasa más en combate?</label>
-            <div class="q-atr-opts">
+            <div class="q-atr-opts" style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp2" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🥵 Me canso rápido en intercambios cortos</label>
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp2" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🎯 Buen cardio pero no termino acciones</label>
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp2" value="halcon" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🦅 Aguanto bien pero me falta explosividad</label>
@@ -867,7 +867,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <!-- Q3 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">3. ¿Cuánto tiempo llevas entrenando combate?</label>
-            <div class="q-atr-opts">
+            <div class="q-atr-opts" style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp3" value="menos2" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> Menos de 2 años</label>
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp3" value="2a5" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 2 – 5 años</label>
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp3" value="mas5" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> Más de 5 años</label>
@@ -876,7 +876,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
           <!-- Q4 -->
           <div class="field" style="margin-bottom:.75rem">
             <label style="font-size:12px">4. ¿Cuál es tu mayor debilidad física?</label>
-            <div class="q-atr-opts">
+            <div class="q-atr-opts" style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp4" value="hulk" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🐢 La velocidad de mis acciones</label>
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp4" value="flash" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🪶 La fuerza detrás de mis técnicas</label>
               <label style="display:flex;align-items:center;gap:6px;padding:8px 8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;cursor:pointer;font-size:11px;word-break:break-word;white-space:normal"><input type="radio" name="qp4" value="halcon" style="accent-color:#9C6FFF;flex-shrink:0" onchange="mostrarResultadoPerfil()"> 🫁 La resistencia en los rounds tardíos</label>
