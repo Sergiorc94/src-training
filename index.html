@@ -9323,33 +9323,168 @@ function parsearHorarioCombate(texto){
   var t=texto.toLowerCase()
     .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i').replace(/ó/g,'o').replace(/ú/g,'u')
     .replace(/ñ/g,'n');
-  // Partir en cláusulas por coma, punto, punto y coma
-  var chunks=t.split(/[,;.]+/);
-  chunks.forEach(function(chunk){
-    chunk=chunk.trim();
-    var tipo='';
-    if(/sparring/.test(chunk)) tipo='sparring';
-    else if(/tecnica|técnica/.test(chunk)) tipo='tecnica';
-    else if(/gym|fuerza|fisico|fisica|pesas/.test(chunk)) tipo='fuerza';
-    else if(/descanso|libre|rest/.test(chunk)) tipo='descanso';
-    if(!tipo) return;
-    Object.keys(diasIdx).forEach(function(d){
-      if(chunk.indexOf(d)>=0){
-        var dow=diasIdx[d];
-        if(!plan[dow]) plan[dow]={s:[tipo]};
-        else if(plan[dow].s.indexOf(tipo)<0) plan[dow].s.push(tipo);
+
+  function getTipo(s){
+    if(/sparring/.test(s)) return 'sparring';
+    if(/tecnica/.test(s)) return 'tecnica';
+    if(/gym|fuerza|fisico|fisica|pesas/.test(s)) return 'fuerza';
+    if(/descanso|libre|rest/.test(s)) return 'descanso';
+    return '';
+  }
+  function asignar(dow,tipo){
+    if(!plan[dow]) plan[dow]={s:[tipo]};
+    else if(plan[dow].s.indexOf(tipo)<0) plan[dow].s.push(tipo);
+  }
+
+  // Estrategia: dividir por punto/punto y coma en cláusulas mayores.
+  // Dentro de cada cláusula, dividir por coma acumulando días sin actividad
+  // hasta encontrar la actividad (ej: "lunes, miércoles y sábado técnica").
+  var clauses=t.split(/[;.]+/);
+  clauses.forEach(function(clause){
+    clause=clause.trim();
+    if(!clause) return;
+    var parts=clause.split(',');
+    var pendingDays=[];
+    parts.forEach(function(part){
+      part=part.trim();
+      var tipo=getTipo(part);
+      var daysHere=[];
+      Object.keys(diasIdx).forEach(function(d){
+        if(part.indexOf(d)>=0) daysHere.push(diasIdx[d]);
+      });
+      if(tipo){
+        // Asignar tipo a los días pendientes + los de esta parte
+        pendingDays.concat(daysHere).forEach(function(dow){ asignar(dow,tipo); });
+        pendingDays=[];
+      } else {
+        // Acumular días para la siguiente parte con actividad
+        pendingDays=pendingDays.concat(daysHere);
       }
     });
+    // Días pendientes sin actividad al final de la cláusula: ignorar
   });
   return plan;
 }
 
-// Asigna días de gym en los huecos libres y devuelve plan completo
+// ── Algoritmo de distribución semanal SRC ────────────────────────────────────
+// Implementa las 7 reglas de asignación automática del documento
+// distribucion_semanal_src.md
+// Prioridades:
+//   1. Sparring → siempre ROJO, nunca gym ese día ni el siguiente
+//   2. Día post-sparring → descanso obligatorio (sin gym)
+//   3. Fusionar gym con técnica (los días más alejados del sparring primero)
+//   4. Gym sobrante → día libre que no sea antes/después del sparring
+//   5. Máximo 2 rojos seguidos → si hay 3, el 3º pasa a amarillo
+//   6. Mínimo 1 descanso completo, preferiblemente domingo
+//   7. Huecos restantes → descanso
 function completarPlanConGym(planBase, diasFuerza){
-  var plan=Object.assign({},planBase);
   var ORDER=[1,2,3,4,5,6,0]; // Lun→Dom
-  var libres=ORDER.filter(function(d){return !plan[d]||plan[d].s.every(function(s){return s==='descanso';});});
-  libres.slice(0,diasFuerza).forEach(function(d){plan[d]={s:['fuerza']};});
+  var plan={};
+
+  // Deep copy planBase
+  ORDER.forEach(function(d){
+    if(planBase[d]) plan[d]={s:planBase[d].s.slice()};
+  });
+
+  // Helpers
+  function hasTipo(d,tipo){ return plan[d]&&plan[d].s.indexOf(tipo)>=0; }
+  function setDia(d,tipos){ plan[d]={s:Array.isArray(tipos)?tipos:[tipos]}; }
+  function nextDow(d){ return ORDER[(ORDER.indexOf(d)+1)%7]; }
+  function prevDow(d){ return ORDER[(ORDER.indexOf(d)-1+7)%7]; }
+  function isRojo(d){
+    if(!plan[d]) return false;
+    var s=plan[d].s;
+    return s.indexOf('sparring')>=0||s.indexOf('tecnica')>=0||s.indexOf('fuerza')>=0;
+  }
+
+  var sparringDays=ORDER.filter(function(d){ return hasTipo(d,'sparring'); });
+  var tecnicaDays=ORDER.filter(function(d){ return hasTipo(d,'tecnica'); });
+  var afterSpar=sparringDays.map(function(d){ return nextDow(d); });
+  var beforeSpar=sparringDays.map(function(d){ return prevDow(d); });
+
+  // PASO 2 — Día post-sparring: si está libre, marcar descanso
+  afterSpar.forEach(function(d){
+    if(!plan[d]) setDia(d,['descanso']);
+    // Si es técnica, se mantiene pero sin gym (se filtra en paso 3)
+  });
+
+  // PASO 3 — Fusionar gym con técnica (selección espaciada para evitar rojos consecutivos)
+  // Solo restricción: no fusionar el DÍA DESPUÉS del sparring.
+  // El día ANTES del sparring sí permite fusión (ESC4 del doc: Lun=Téc+Gym, Mar=Sparring).
+  var gymLeft=diasFuerza;
+  var eligible=tecnicaDays.filter(function(d){ return afterSpar.indexOf(d)<0; });
+  eligible.sort(function(a,b){ return ORDER.indexOf(a)-ORDER.indexOf(b); });
+  // Selección espaciada: si hay más días elegibles que gym disponible,
+  // distribuir uniformemente para evitar dobles sesiones consecutivas (ESC5).
+  var toFuse=[];
+  if(eligible.length>0&&gymLeft>0){
+    var take=Math.min(gymLeft,eligible.length);
+    if(take>=eligible.length){
+      toFuse=eligible.slice();
+    } else if(take===1){
+      toFuse=[eligible[0]];
+    } else {
+      var step=(eligible.length-1)/(take-1);
+      for(var si=0;si<take;si++){
+        toFuse.push(eligible[Math.round(si*step)]);
+      }
+    }
+  }
+  toFuse.forEach(function(td){
+    if(!hasTipo(td,'fuerza')){ plan[td].s.push('fuerza'); gymLeft--; }
+  });
+
+  // PASO 4 — Gym sobrante: días libres que no sean antes/después del sparring
+  if(gymLeft>0){
+    var libres=ORDER.filter(function(d){
+      return !plan[d]||(plan[d].s.length===1&&plan[d].s[0]==='descanso');
+    });
+    var gymCands=libres.filter(function(d){
+      return beforeSpar.indexOf(d)<0&&afterSpar.indexOf(d)<0;
+    });
+    for(var gi=0;gi<gymCands.length&&gymLeft>0;gi++){
+      setDia(gymCands[gi],['fuerza']);
+      gymLeft--;
+    }
+  }
+
+  // PASO 5 — Máximo 2 rojos consecutivos (comprobar en circular)
+  // Excepción ESC3: si el DÍA CENTRAL de 3 rojos seguidos es gym solo (no técnica+gym),
+  // la secuencia está permitida (Lun🔴 + Mar💪solo + Mié🔴 = ok, el martes es moderado).
+  for(var ci=0;ci<7;ci++){
+    var da=ORDER[ci%7],db=ORDER[(ci+1)%7],dc=ORDER[(ci+2)%7];
+    if(isRojo(da)&&isRojo(db)&&isRojo(dc)){
+      var midIsGymOnly=plan[db]&&plan[db].s.length===1&&plan[db].s[0]==='fuerza';
+      if(!hasTipo(dc,'sparring')&&!midIsGymOnly){
+        setDia(dc,['acondicionamiento']);
+      }
+    }
+  }
+
+  // PASO 6 — Mínimo 1 descanso completo, preferir domingo
+  var hasDescanso=ORDER.some(function(d){
+    var s=plan[d]?plan[d].s:[];
+    return !s.length||(s.length===1&&s[0]==='descanso');
+  });
+  if(!hasDescanso){
+    var dom=0;
+    if(!hasTipo(dom,'sparring')&&!hasTipo(dom,'tecnica')){
+      setDia(dom,['descanso']);
+    } else {
+      // Buscar el primer día que no sea sparring ni técnica
+      for(var di2=0;di2<ORDER.length;di2++){
+        var dd=ORDER[di2];
+        if(!hasTipo(dd,'sparring')&&!hasTipo(dd,'tecnica')){
+          setDia(dd,['descanso']);
+          break;
+        }
+      }
+    }
+  }
+
+  // PASO 7 — Rellenar huecos con descanso
+  ORDER.forEach(function(d){ if(!plan[d]) setDia(d,['descanso']); });
+
   return plan;
 }
 
@@ -9364,19 +9499,33 @@ function previewHorarioCombate(){
   var gridEl=document.getElementById('q-c-plan-grid');
   if(!previewEl||!gridEl) return;
   var DIAS_NAMES=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  var TIPO_COLOR={tecnica:'rgba(77,159,255,.15)',sparring:'rgba(255,107,53,.15)',fuerza:'rgba(0,200,83,.15)',descanso:'rgba(255,255,255,.04)'};
-  var TIPO_ICON={tecnica:'🥋',sparring:'🥊',fuerza:'💪',descanso:'😴'};
-  var TIPO_TEXT={tecnica:'Téc.',sparring:'Spar.',fuerza:'Gym',descanso:'—'};
   var ORDER=[1,2,3,4,5,6,0];
   gridEl.innerHTML=ORDER.map(function(d){
     var entry=plan[d];
-    var tipo=entry?entry.s[0]:'descanso';
-    var col=TIPO_COLOR[tipo]||TIPO_COLOR.descanso;
-    var icon=TIPO_ICON[tipo]||'';
-    var lbl=TIPO_TEXT[tipo]||'';
-    return '<div style="background:'+col+';border-radius:6px;padding:5px 2px;font-size:10px;font-weight:700;color:#F0F4FF;line-height:1.4">'+
-      '<div style="font-size:9px;color:#4A5568">'+DIAS_NAMES[d]+'</div>'+
-      icon+'<br><span style="font-size:9px">'+lbl+'</span></div>';
+    var s=entry?entry.s:['descanso'];
+    var tipo=s[0]||'descanso';
+    var hasGym=s.indexOf('fuerza')>=0;
+    var isDouble=(tipo==='tecnica'||tipo==='sparring')&&hasGym;
+    var bg,icon,lbl,badge='';
+    if(tipo==='sparring'){
+      bg='rgba(255,107,53,.25)';icon='🥊';lbl='Sparring';
+    } else if(tipo==='tecnica'){
+      bg='rgba(255,179,0,.22)';icon='🥋';lbl='Téc.';
+    } else if(tipo==='fuerza'){
+      bg='rgba(77,159,255,.22)';icon='💪';lbl='Gym';
+    } else if(tipo==='acondicionamiento'){
+      bg='rgba(255,224,102,.15)';icon='🟡';lbl='Suave';
+    } else {
+      bg='rgba(255,255,255,.04)';icon='😴';lbl='—';
+    }
+    if(isDouble){
+      badge='<div style="font-size:7px;background:rgba(77,159,255,.3);border-radius:3px;padding:0 2px;color:#4D9FFF;margin-top:1px;display:inline-block">+💪 Gym</div>';
+    }
+    return '<div style="background:'+bg+';border-radius:6px;padding:5px 2px;font-size:10px;font-weight:700;color:#F0F4FF;line-height:1.4;text-align:center">'+
+      '<div style="font-size:9px;color:#90A0B0">'+DIAS_NAMES[d]+'</div>'+
+      icon+'<br><span style="font-size:9px">'+lbl+'</span>'+
+      (badge?'<br>'+badge:'')+
+      '</div>';
   }).join('');
   previewEl.style.display='';
 }
