@@ -7392,24 +7392,41 @@ function adminRenderOpcionesEditor(opts, c){
   // ── Opciones del día (Opción 1, 2, 3...)
   html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🍽️ Opciones del día</div>';
   if(opts.opciones&&opts.opciones.length){
+    // Agrupar por slot_id para vista admin
+    var _asgMap={};var _asgOrder=[];
     opts.opciones.forEach(function(op,i){
-      var mac=op.macros||{};
-      var _adminSlotLabel=(op.slot_emoji||'')+(op.slot_label?(' '+op.slot_label):(' OPCIÓN '+(i+1)));
-      html+='<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:10px;padding:10px 12px;margin-bottom:8px">'+
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
-          '<span style="font-size:11px;font-weight:900;color:'+(_colors[i]||'#4D9FFF')+'">'+_adminSlotLabel+'</span>'+
-          '<span style="font-size:11px;color:#F0F4FF;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">'+op.nombre+'</span>'+
-          '<button onclick="adminEditarOpcion('+i+',\'opcion\')" style="font-size:10px;padding:3px 10px;border-radius:6px;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.3);color:#4D9FFF;cursor:pointer;flex-shrink:0">✏️ Editar</button>'+
-        '</div>'+
-        '<div style="font-size:10px;color:#4A5568;margin-bottom:4px;line-height:1.4">'+op.ingredientes+'</div>'+
-        '<div style="font-size:10px;font-weight:700;display:flex;gap:8px;flex-wrap:wrap">'+
-          '<span style="color:#7986CB">'+mac.k+' kcal</span>'+
-          '<span style="color:#00E5FF">P:'+mac.p+'g</span>'+
-          '<span style="color:#FFB300">C:'+mac.c+'g</span>'+
-          '<span style="color:#F48FB1">G:'+mac.g+'g</span>'+
-        '</div>'+
-        (op.nota?'<div style="font-size:10px;color:rgba(77,159,255,.7);margin-top:3px;font-style:italic">ℹ️ '+op.nota+'</div>':'')+
-      '</div>';
+      var sid=op.slot_id!=null?String(op.slot_id):String(i);
+      if(!_asgMap[sid]){
+        _asgMap[sid]={emoji:op.slot_emoji||'',label:op.slot_label||('Opción '+(i+1)),ops:[],indices:[]};
+        _asgOrder.push(sid);
+      }
+      _asgMap[sid].ops.push(op);
+      _asgMap[sid].indices.push(i);
+    });
+    _asgOrder.forEach(function(sid){
+      var sg=_asgMap[sid];
+      if(sg.ops.length>1||sg.label!==('Opción 1')){
+        html+='<div style="font-size:10px;font-weight:800;color:#A0B0C0;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px">'+sg.emoji+' '+sg.label+'</div>';
+      }
+      sg.ops.forEach(function(op,vi){
+        var i=sg.indices[vi];
+        var mac=op.macros||{};
+        html+='<div style="background:#0D1528;border:1px solid #1A2A40;border-radius:10px;padding:10px 12px;margin-bottom:6px">'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
+            '<span style="font-size:11px;font-weight:900;color:'+(_colors[vi]||'#4D9FFF')+'">Opción '+(vi+1)+'</span>'+
+            '<span style="font-size:11px;color:#F0F4FF;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">'+op.nombre+'</span>'+
+            '<button onclick="adminEditarOpcion('+i+',\'opcion\')" style="font-size:10px;padding:3px 10px;border-radius:6px;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.3);color:#4D9FFF;cursor:pointer;flex-shrink:0">✏️</button>'+
+          '</div>'+
+          '<div style="font-size:10px;color:#4A5568;margin-bottom:4px;line-height:1.4">'+op.ingredientes+'</div>'+
+          '<div style="font-size:10px;font-weight:700;display:flex;gap:8px;flex-wrap:wrap">'+
+            '<span style="color:#7986CB">'+mac.k+' kcal</span>'+
+            '<span style="color:#00E5FF">P:'+mac.p+'g</span>'+
+            '<span style="color:#FFB300">C:'+mac.c+'g</span>'+
+            '<span style="color:#F48FB1">G:'+mac.g+'g</span>'+
+          '</div>'+
+          (op.nota?'<div style="font-size:10px;color:rgba(77,159,255,.7);margin-top:3px;font-style:italic">ℹ️ '+op.nota+'</div>':'')+
+        '</div>';
+      });
     });
   } else {
     html+='<div style="font-size:11px;color:#4A5568;background:#0D1528;border-radius:8px;padding:10px;margin-bottom:8px">Sin opciones todavía — pulsa "+ Añadir" para crear la primera.</div>';
@@ -11460,15 +11477,29 @@ function renderNutricionOpciones(c, rn, optsNutri){
   }
 
   // ─── Plan del día (n comidas) ────────────────────────────────────
-  html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px">🍽️ Plan del día — '+(opciones.length||0)+' comidas</div>';
+  var _nSlots=optsNutri.n_comidas||nComidas||opciones.length;
+  html+='<div style="font-size:10px;font-weight:800;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px">🍽️ Plan del día — '+_nSlots+' comidas</div>';
   if(!opciones.length){
     html+='<div style="background:#0D1528;border-radius:10px;padding:16px;text-align:center;color:#4A5568;font-size:12px">Plan no configurado — pide a tu entrenador que lo defina</div>';
+  } else {
+    // Agrupar por slot_id para mostrar sección por momento + variantes dentro
+    var _sgMap={};var _sgOrder=[];
+    opciones.forEach(function(op){
+      var sid=op.slot_id!=null?String(op.slot_id):String(op.id);
+      if(!_sgMap[sid]){
+        _sgMap[sid]={emoji:op.slot_emoji||'🍽️',label:op.slot_label||('Comida '+sid),ops:[]};
+        _sgOrder.push(sid);
+      }
+      _sgMap[sid].ops.push(op);
+    });
+    _sgOrder.forEach(function(sid){
+      var sg=_sgMap[sid];
+      html+='<div style="font-size:11px;font-weight:800;color:#A0B0C0;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 4px">'+sg.emoji+' '+sg.label+'</div>';
+      sg.ops.forEach(function(op,vi){
+        html+=opCard('op'+op.id,sg.emoji,'Opción '+(vi+1),op,false);
+      });
+    });
   }
-  opciones.forEach(function(op,i){
-    var _sEmoji=op.slot_emoji||'🍽️';
-    var _sLabel=op.slot_label||(op.nombre?op.nombre.split('—')[0].trim():('Comida '+(i+1)));
-    html+=opCard('op'+op.id,_sEmoji,_sLabel,op,false);
-  });
 
   // ─── Post-entreno ────────────────────────────────────────────────
   if(post&&diaColorKey&&diaColorKey!=='yellow'){
@@ -11612,15 +11643,28 @@ function generarSugerenciaOpciones(c){
 
   var slots=ESQUEMAS[nComidas];
   var usados=[];
-  var ops=slots.map(function(slot,i){
-    var p=_pick(slot.momento,_tipoDia,usados);
-    if(p) usados.push(p.id);
-    var op=_copy(p,slot.label,slot.nota||null);
-    op.id=i+1;
-    op.slot_label=slot.label;
-    op.slot_emoji=slot.emoji;
-    op.nombre=slot.label+' — '+(p?p.nombre:slot.label);
-    return op;
+  var ops=[];
+  slots.forEach(function(slot,si){
+    var slotId=si+1;
+    for(var vi=0;vi<3;vi++){
+      var p=_pick(slot.momento,_tipoDia,usados);
+      if(!p){
+        // fallback: cualquier plato del momento sin filtrar tipo_dia
+        var _fb=filtrarPlatosDB({momento:slot.momento,tipo_dia:'todos',esFightWeek:esFightWeek})
+                  .filter(function(x){return usados.indexOf(x.id)<0;});
+        p=_pickPlato(_fb);
+      }
+      if(!p) break; // sin más platos disponibles para este slot
+      usados.push(p.id);
+      var op=_copy(p,slot.label,slot.nota||null);
+      op.id='s'+slotId+'o'+(vi+1);
+      op.slot_id=slotId;
+      op.slot_label=slot.label;
+      op.slot_emoji=slot.emoji;
+      op.variante=vi+1;
+      op.nombre=p.nombre; // solo nombre del plato, sin prefijo de slot
+      ops.push(op);
+    }
   });
 
   // ── Pre/Post como referencia de timing (siempre generados) ────────
