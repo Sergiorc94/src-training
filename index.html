@@ -1654,8 +1654,9 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         <select id="plan-tipo" onchange="renderPlanForm()"><option value="nutricion">Nutrición</option><option value="entreno">Entrenamiento</option></select>
       </div>
       <div id="plan-form"></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap">
         <button class="btn bg" onclick="hideM('m-plan')">Cancelar</button>
+        <button class="btn" style="background:rgba(124,77,255,.1);border:1px solid rgba(124,77,255,.3);color:#9C6FFF;font-size:12px" onclick="guardarComoPlanPlantilla()">📌 Guardar como plantilla</button>
         <button class="btn bp" id="btn-guardar-plan">Guardar plan</button>
       </div>
     </div>
@@ -2043,166 +2044,6 @@ const COMIDAS_CAMP = {
   ]
 };
 
-// ── PLATOS_DB ─────────────────────────────────────────────────────────────────
-// 122 platos etiquetados para filtrado inteligente en sugerencias de IA.
-// et.mo: momentos (desayuno/pre1h/pre2h/post/comida/cena/snack)
-// et.td: tipo de día (rojo/verde/amarillo/todos)
-// et.cn/gn/fn: nivel carbos/grasa/fibra (alto/medio/bajo)
-// et.fw: apto fight week | et.pre: apto pre-entreno
-const PLATOS_DB=[
-{id:"desayuno_001",nombre:"Tostadas con aceite y jamón",categoria:"Desayuno básico",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Aceite de oliva virgen extra",g:10},{a:"Jamón serrano",g:60}],et:{mo:["desayuno","comida","cena"],td:["todos"],cn:"medio",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Clásico y digestivo. No usar como pre-entreno por la grasa del aceite."}},
-{id:"desayuno_002",nombre:"Tostadas con tomate y aceite",categoria:"Desayuno básico",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Tomate",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["desayuno","snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy digestivo. Apto fight week. No suficiente proteína para post-entreno."}},
-{id:"desayuno_003",nombre:"Cereales con leche",categoria:"Desayuno básico",ingredientes:[{a:"Copos de maíz",g:60},{a:"Leche semidesnatada",g:250}],et:{mo:["desayuno","pre1h"],td:["todos"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Carbos de absorción rápida. Apto como pre-entreno de 1h. Fight week sí."}},
-{id:"desayuno_004",nombre:"Cereales con leche y proteína",categoria:"Desayuno básico",ingredientes:[{a:"Copos de maíz",g:60},{a:"Leche semidesnatada",g:250},{a:"Proteína whey vainilla",g:25}],et:{mo:["desayuno","post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Buen post-entreno rápido. No como pre-entreno porque la proteína ralentiza."}},
-{id:"desayuno_005",nombre:"Avena con leche y plátano",categoria:"Desayuno básico",ingredientes:[{a:"Avena en copos",g:80},{a:"Leche semidesnatada",g:250},{a:"Plátano",g:120}],et:{mo:["desayuno","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"medio",fw:false,pre:true,nota:"Excelente pre-entreno 2h. Fibra media — no usar si menos de 1.5h antes. No fight week por la fibra de la avena."}},
-{id:"desayuno_006",nombre:"Avena con agua y miel",categoria:"Desayuno básico",ingredientes:[{a:"Avena en copos",g:80},{a:"Miel",g:10}],et:{mo:["desayuno","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"medio",fw:false,pre:true,nota:"Más digestivo que con leche. Pre-entreno 2h. No fight week."}},
-{id:"desayuno_007",nombre:"Huevos revueltos solos",categoria:"Desayuno básico",ingredientes:[{a:"Huevo entero",g:180},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["desayuno","cena"],td:["todos"],cn:"bajo",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Alta proteína, bajos carbos. Ideal en día amarillo o cena. No pre-entreno."}},
-{id:"desayuno_008",nombre:"Huevos revueltos con jamón",categoria:"Desayuno básico",ingredientes:[{a:"Huevo entero",g:180},{a:"Jamón york",g:60},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["desayuno","cena"],td:["todos"],cn:"bajo",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Proteína alta. No fight week por el sodio del jamón. No pre-entreno."}},
-{id:"desayuno_009",nombre:"Tortilla francesa",categoria:"Desayuno básico",ingredientes:[{a:"Huevo entero",g:180},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["desayuno","cena"],td:["todos"],cn:"bajo",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Simple y proteica. Apto fight week. No pre-entreno."}},
-{id:"desayuno_010",nombre:"Tostadas con mantequilla de cacahuete",categoria:"Desayuno básico",ingredientes:[{a:"Pan integral de molde",g:60},{a:"Mantequilla de cacahuete",g:30}],et:{mo:["desayuno","snack"],td:["amarillo","verde"],cn:"medio",gn:"alto",fn:"medio",fw:false,pre:false,nota:"Grasa alta — solo en días sin entreno intenso. No pre-entreno. No fight week."}},
-{id:"desayuno_011",nombre:"Yogur con fruta",categoria:"Desayuno básico",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Plátano",g:120},{a:"Frutos rojos mix",g:80}],et:{mo:["desayuno","snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Proteína moderada y digestivo. No fight week por los frutos rojos. No pre-entreno."}},
-{id:"desayuno_012",nombre:"Batido de plátano y leche",categoria:"Desayuno básico",ingredientes:[{a:"Plátano",g:240},{a:"Leche semidesnatada",g:300}],et:{mo:["desayuno","pre1h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Carbos rápidos. Perfecto pre-entreno 1h. Apto fight week."}},
-{id:"desayuno_013",nombre:"Batido proteico básico",categoria:"Desayuno básico",ingredientes:[{a:"Proteína whey vainilla",g:30},{a:"Leche semidesnatada",g:300},{a:"Plátano",g:120}],et:{mo:["desayuno","post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Ideal post-entreno. Rápido y digestivo. No usar como pre-entreno."}},
-{id:"desayuno_014",nombre:"Pan con huevo frito",categoria:"Desayuno básico",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Huevo entero",g:120},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["desayuno"],td:["todos"],cn:"medio",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Clásico. Grasa media — no pre-entreno cercano."}},
-{id:"desayuno_015",nombre:"Tortitas de avena con plátano y miel",categoria:"Desayuno elaborado",ingredientes:[{a:"Avena en copos",g:80},{a:"Huevo entero",g:120},{a:"Plátano",g:120},{a:"Miel",g:7}],et:{mo:["desayuno","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"medio",fw:false,pre:true,nota:"Pre-entreno excelente si hay 2h o más. Fibra media — no si menos de 1.5h."}},
-{id:"desayuno_016",nombre:"Avena caliente con whey y frutos rojos",categoria:"Desayuno elaborado",ingredientes:[{a:"Avena en copos",g:80},{a:"Proteína whey vainilla",g:30},{a:"Leche semidesnatada",g:200},{a:"Frutos rojos mix",g:80}],et:{mo:["desayuno"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Desayuno completo. No pre-entreno por fibra. No fight week."}},
-{id:"bocadillo_001",nombre:"Bocadillo de atún",categoria:"Bocadillo básico",ingredientes:[{a:"Baguette",g:150},{a:"Atún en lata al natural",g:160},{a:"Tomate",g:80}],et:{mo:["comida","cena"],td:["todos"],cn:"alto",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Proteína alta y carbos altos. No fight week (pan grande). No pre-entreno."}},
-{id:"bocadillo_002",nombre:"Bocadillo de jamón york y queso",categoria:"Bocadillo básico",ingredientes:[{a:"Baguette",g:150},{a:"Jamón york",g:100},{a:"Queso en lonchas light",g:40}],et:{mo:["comida","cena"],td:["todos"],cn:"alto",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Sodio alto por el jamón y queso. No fight week. No pre-entreno."}},
-{id:"bocadillo_003",nombre:"Bocadillo de pavo",categoria:"Bocadillo básico",ingredientes:[{a:"Baguette",g:150},{a:"Pechuga de pavo loncheada",g:100},{a:"Lechuga",g:30}],et:{mo:["comida","cena"],td:["todos"],cn:"alto",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Ligero y proteico. No fight week (pan grande). No pre-entreno."}},
-{id:"bocadillo_004",nombre:"Bocadillo de tortilla",categoria:"Bocadillo básico",ingredientes:[{a:"Baguette",g:150},{a:"Huevo entero",g:120},{a:"Patata cocida",g:80},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Carbos muy altos. Solo días de alta demanda. No pre-entreno cercano."}},
-{id:"comida_001",nombre:"Arroz con pollo",categoria:"Comida básica",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Pechuga de pollo cocinada",g:200},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","pre2h","post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"El plato base del peleador. Versátil. Apto fight week. Pre-entreno 2h y post-entreno."}},
-{id:"comida_002",nombre:"Arroz con atún",categoria:"Comida básica",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Atún en lata al natural",g:160},{a:"Tomate",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Rápido y digestivo. Apto fight week. Buen pre-entreno 2h."}},
-{id:"comida_003",nombre:"Pasta con atún",categoria:"Comida básica",ingredientes:[{a:"Pasta seca",g:100},{a:"Atún en lata al natural",g:160},{a:"Tomate frito",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:false,pre:true,nota:"Carbos altos. Pre-entreno 2h. No fight week (pasta puede generar hinchazón)."}},
-{id:"comida_004",nombre:"Pasta con pollo",categoria:"Comida básica",ingredientes:[{a:"Pasta seca",g:100},{a:"Pechuga de pollo cocinada",g:150},{a:"Tomate frito",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:false,pre:true,nota:"Clásico. Pre-entreno 2h. No fight week."}},
-{id:"comida_005",nombre:"Arroz con huevo frito",categoria:"Comida básica",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Huevo entero",g:120},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Rápido y económico. Grasa media — no pre-entreno cercano. Apto fight week."}},
-{id:"comida_006",nombre:"Patatas con huevo frito",categoria:"Comida básica",ingredientes:[{a:"Patata cocida",g:200},{a:"Huevo entero",g:120},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Digestivo. Apto fight week. Grasa media — no pre-entreno cercano."}},
-{id:"comida_007",nombre:"Pollo a la plancha con arroz",categoria:"Comida básica",ingredientes:[{a:"Pechuga de pollo cruda",g:200},{a:"Arroz blanco cocido",g:150},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","pre2h","post"],td:["todos"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"El plato más versátil. Apto para todo. Pre-entreno 2h, post-entreno y fight week."}},
-{id:"comida_008",nombre:"Ternera a la plancha con patatas",categoria:"Comida básica",ingredientes:[{a:"Ternera filete",g:200},{a:"Patata cocida",g:200},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Proteína alta y carbos altos. Grasa media — no pre-entreno. Apto fight week."}},
-{id:"comida_009",nombre:"Merluza a la plancha con patatas",categoria:"Comida básica",ingredientes:[{a:"Merluza",g:200},{a:"Patata cocida",g:200},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","cena"],td:["todos"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy digestivo. Apto fight week. No pre-entreno (proteína sólida)."}},
-{id:"comida_010",nombre:"Salmón con arroz",categoria:"Comida básica",ingredientes:[{a:"Salmón fresco",g:200},{a:"Arroz blanco cocido",g:150},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Omega-3 + carbos. Grasa media del salmón — no pre-entreno cercano. Apto fight week."}},
-{id:"comida_011",nombre:"Lentejas básicas",categoria:"Comida básica",ingredientes:[{a:"Lentejas cocidas",g:200},{a:"Zanahoria",g:80},{a:"Puerro",g:60},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["amarillo","verde"],cn:"medio",gn:"bajo",fn:"alto",fw:false,pre:false,nota:"Fibra muy alta. Solo días sin entreno intenso. NUNCA pre-entreno. No fight week."}},
-{id:"comida_012",nombre:"Garbanzos con espinacas",categoria:"Comida básica",ingredientes:[{a:"Garbanzos cocidos",g:200},{a:"Espinacas",g:100},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["amarillo"],cn:"medio",gn:"bajo",fn:"alto",fw:false,pre:false,nota:"Fibra muy alta. Solo días de descanso. NUNCA pre-entreno. No fight week."}},
-{id:"comida_013",nombre:"Tortilla española con ensalada",categoria:"Comida básica",ingredientes:[{a:"Huevo entero",g:180},{a:"Patata cruda",g:150},{a:"Cebolla",g:50},{a:"Aceite de oliva virgen extra",g:10},{a:"Lechuga",g:100},{a:"Tomate",g:80}],et:{mo:["comida","cena"],td:["todos"],cn:"medio",gn:"medio",fn:"medio",fw:true,pre:false,nota:"Clásico español. Versátil. Grasa media — no pre-entreno. Apto fight week."}},
-{id:"comida_014",nombre:"Pollo al horno con patatas",categoria:"Comida básica",ingredientes:[{a:"Muslo de pollo sin hueso",g:200},{a:"Patata cruda",g:200},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Comida de semana. Grasa media — no pre-entreno. Apto fight week."}},
-{id:"comida_015",nombre:"Hamburguesa casera de ternera",categoria:"Comida elaborada",ingredientes:[{a:"Carne picada ternera 5%",g:200},{a:"Pan blanco de molde",g:80},{a:"Lechuga",g:30},{a:"Tomate",g:80},{a:"Mostaza",g:10},{a:"Queso en lonchas light",g:30}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Alta proteína. No fight week (queso). No pre-entreno. Solo días de alta demanda."}},
-{id:"comida_016",nombre:"Hamburguesa de pollo casera",categoria:"Comida elaborada",ingredientes:[{a:"Pechuga de pollo cruda",g:200},{a:"Pan blanco de molde",g:80},{a:"Lechuga",g:30},{a:"Tomate",g:80},{a:"Mostaza",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Más ligera que la de ternera. Apto fight week. No pre-entreno."}},
-{id:"comida_017",nombre:"Pasta boloñesa casera",categoria:"Comida elaborada",ingredientes:[{a:"Pasta seca",g:100},{a:"Carne picada ternera 5%",g:150},{a:"Tomate frito",g:80},{a:"Aceite de oliva virgen extra",g:5},{a:"Queso parmesano",g:20}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Alta en todo. No fight week. No pre-entreno. Días de máxima demanda."}},
-{id:"comida_018",nombre:"Lentejas con chorizo",categoria:"Comida elaborada",ingredientes:[{a:"Lentejas cocidas",g:200},{a:"Chorizo",g:50},{a:"Zanahoria",g:80},{a:"Puerro",g:60},{a:"Patata cocida",g:100}],et:{mo:["comida"],td:["amarillo"],cn:"medio",gn:"alto",fn:"alto",fw:false,pre:false,nota:"Fibra muy alta, grasa alta. Solo días de descanso. NUNCA pre-entreno. No fight week."}},
-{id:"comida_019",nombre:"Pollo con boniato y espinacas",categoria:"Comida elaborada",ingredientes:[{a:"Pechuga de pollo cruda",g:200},{a:"Boniato cocido",g:200},{a:"Espinacas",g:100},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Muy nutritivo. Fibra media — no pre-entreno. No fight week."}},
-{id:"comida_020",nombre:"Atún con quinoa y verduras",categoria:"Comida elaborada",ingredientes:[{a:"Atún en lata al natural",g:160},{a:"Quinoa cocida",g:150},{a:"Pimiento rojo",g:80},{a:"Pepino",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["verde","amarillo"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Fibra media. No pre-entreno. No fight week. Días de menor intensidad."}},
-{id:"comida_021",nombre:"Bacalao con garbanzos",categoria:"Comida elaborada",ingredientes:[{a:"Bacalao fresco",g:200},{a:"Garbanzos cocidos",g:200},{a:"Espinacas",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["amarillo"],cn:"medio",gn:"bajo",fn:"alto",fw:false,pre:false,nota:"Fibra muy alta. Solo días de descanso. No fight week. No pre-entreno nunca."}},
-{id:"cena_001",nombre:"Pollo a la plancha con ensalada",categoria:"Cena básica",ingredientes:[{a:"Pechuga de pollo cocinada",g:200},{a:"Lechuga",g:100},{a:"Tomate",g:80},{a:"Pepino",g:60},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["amarillo","verde"],cn:"bajo",gn:"bajo",fn:"medio",fw:true,pre:false,nota:"Cena ideal en días de poco esfuerzo. Apto fight week. Carbos bajos."}},
-{id:"cena_002",nombre:"Ensalada de atún",categoria:"Cena básica",ingredientes:[{a:"Atún en lata al natural",g:160},{a:"Lechuga",g:100},{a:"Tomate",g:80},{a:"Pepino",g:60},{a:"Maíz dulce",g:50},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena","comida"],td:["amarillo","verde"],cn:"bajo",gn:"bajo",fn:"medio",fw:true,pre:false,nota:"Ligera y proteica. Apto fight week. No pre-entreno."}},
-{id:"cena_003",nombre:"Tortilla de claras con champiñones",categoria:"Cena básica",ingredientes:[{a:"Clara de huevo",g:200},{a:"Champiñones",g:100},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["cena"],td:["todos"],cn:"bajo",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy baja en grasa y carbos. Ideal cuando hay que reducir. Apto fight week."}},
-{id:"cena_004",nombre:"Merluza con verduras al vapor",categoria:"Cena básica",ingredientes:[{a:"Merluza",g:200},{a:"Brócoli",g:150},{a:"Zanahoria",g:100},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["todos"],cn:"bajo",gn:"bajo",fn:"medio",fw:true,pre:false,nota:"Muy digestiva. Apto fight week. Cena perfecta en cualquier fase."}},
-{id:"cena_005",nombre:"Sopa de pollo con fideos",categoria:"Cena básica",ingredientes:[{a:"Pechuga de pollo cocinada",g:150},{a:"Pasta seca",g:60},{a:"Caldo de pollo",g:500},{a:"Zanahoria",g:80},{a:"Apio",g:40}],et:{mo:["cena"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Ideal recuperación post-entreno nocturno. Digestiva. Apto fight week."}},
-{id:"cena_006",nombre:"Revuelto de huevos con setas y jamón",categoria:"Cena básica",ingredientes:[{a:"Huevo entero",g:180},{a:"Setas",g:100},{a:"Jamón serrano",g:50},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["todos"],cn:"bajo",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Sodio del jamón — no fight week. Rápido y proteico."}},
-{id:"cena_007",nombre:"Merluza al horno con verduras",categoria:"Cena básica",ingredientes:[{a:"Merluza",g:200},{a:"Calabacín",g:100},{a:"Tomate",g:80},{a:"Cebolla",g:60},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["todos"],cn:"bajo",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy digestiva. Apto fight week. Cena perfecta en camp."}},
-{id:"cena_008",nombre:"Salmón al horno con espárragos",categoria:"Cena elaborada",ingredientes:[{a:"Salmón fresco",g:200},{a:"Espárragos",g:150},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["rojo","verde"],cn:"bajo",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Omega-3 para recuperación. Apto fight week. Grasa media — no pre-entreno."}},
-{id:"cena_009",nombre:"Gambas salteadas con ajo y verduras",categoria:"Cena elaborada",ingredientes:[{a:"Gambas",g:200},{a:"Calabacín",g:100},{a:"Pimiento rojo",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["todos"],cn:"bajo",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy proteico y bajo en grasa. Apto fight week. Ideal en reducción."}},
-{id:"cena_010",nombre:"Ensalada completa de pollo",categoria:"Cena elaborada",ingredientes:[{a:"Pechuga de pollo cocinada",g:150},{a:"Lechuga",g:80},{a:"Tomate",g:80},{a:"Pepino",g:60},{a:"Maíz dulce",g:50},{a:"Huevo entero",g:60},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena","comida"],td:["todos"],cn:"bajo",gn:"bajo",fn:"medio",fw:true,pre:false,nota:"Completa y digestiva. Apto fight week. No pre-entreno."}},
-{id:"pre1h_001",nombre:"Plátano solo",categoria:"Pre-entreno 1h",ingredientes:[{a:"Plátano",g:150}],et:{mo:["pre1h"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"El pre-entreno más simple. Siempre disponible. Apto fight week."}},
-{id:"pre1h_002",nombre:"Tortita de arroz con miel",categoria:"Pre-entreno 1h",ingredientes:[{a:"Tortita de arroz",g:20},{a:"Miel",g:10}],et:{mo:["pre1h"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Carbos rápidos puros. Digestión inmediata. Apto fight week."}},
-{id:"pre1h_003",nombre:"Plátano con dátiles",categoria:"Pre-entreno 1h",ingredientes:[{a:"Plátano",g:120},{a:"Dátiles",g:30}],et:{mo:["pre1h"],td:["rojo"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Máxima energía rápida. Solo días de alta demanda. Apto fight week."}},
-{id:"pre1h_004",nombre:"Dátiles solos",categoria:"Pre-entreno 1h",ingredientes:[{a:"Dátiles",g:50}],et:{mo:["pre1h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Glucosa pura. Los usan en el UFC PI. Apto fight week."}},
-{id:"pre2h_001",nombre:"Arroz con pollo pre-entreno",categoria:"Pre-entreno 2-3h",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Pechuga de pollo cocinada",g:180},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"El pre-entreno más eficaz. Mínimo 2h antes. Apto fight week."}},
-{id:"pre2h_002",nombre:"Pasta con atún pre-entreno",categoria:"Pre-entreno 2-3h",ingredientes:[{a:"Pasta seca",g:100},{a:"Atún en lata al natural",g:160},{a:"Tomate frito",g:60}],et:{mo:["pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:false,pre:true,nota:"Mínimo 2.5h antes. No fight week (pasta puede generar hinchazón)."}},
-{id:"pre2h_003",nombre:"Pan con pavo y plátano",categoria:"Pre-entreno 2-3h",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Pechuga de pavo loncheada",g:100},{a:"Plátano",g:120}],et:{mo:["pre2h"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Práctico y digestivo. Mínimo 2h antes. Apto fight week."}},
-{id:"post_001",nombre:"Batido de recuperación básico",categoria:"Post-entreno",ingredientes:[{a:"Proteína whey vainilla",g:30},{a:"Leche semidesnatada",g:300},{a:"Plátano",g:120}],et:{mo:["post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Post-entreno inmediato. Máximo 30 min después. Apto fight week."}},
-{id:"post_002",nombre:"Arroz con pollo post-entreno",categoria:"Post-entreno",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Pechuga de pollo cocinada",g:200},{a:"Tomate",g:80}],et:{mo:["post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Post-entreno sólido. En los primeros 30-60 min. Apto fight week."}},
-{id:"post_003",nombre:"Yogur con plátano y miel",categoria:"Post-entreno",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Plátano",g:120},{a:"Miel",g:10}],et:{mo:["post","snack"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Post-entreno ligero. Apto fight week. Rápido y digestivo."}},
-{id:"post_004",nombre:"Batido de chocolate post-entreno",categoria:"Post-entreno",ingredientes:[{a:"Proteína whey chocolate",g:30},{a:"Leche semidesnatada",g:300},{a:"Plátano",g:120}],et:{mo:["post"],td:["rojo","verde"],cn:"alto",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Post-entreno inmediato. Sabor que engancha. Apto fight week."}},
-{id:"snack_001",nombre:"Plátano con mantequilla de cacahuete",categoria:"Snack",ingredientes:[{a:"Plátano",g:150},{a:"Mantequilla de cacahuete",g:30}],et:{mo:["snack"],td:["verde","amarillo"],cn:"alto",gn:"alto",fn:"bajo",fw:false,pre:false,nota:"Grasa alta — solo lejos del entreno. No fight week. No pre-entreno cercano."}},
-{id:"snack_002",nombre:"Yogur griego con miel",categoria:"Snack",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Miel",g:10}],et:{mo:["snack"],td:["todos"],cn:"bajo",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Proteico y digestivo. Apto fight week. No suficientes carbos para pre-entreno."}},
-{id:"snack_003",nombre:"Queso fresco con nueces",categoria:"Snack",ingredientes:[{a:"Queso fresco batido 0%",g:150},{a:"Nueces",g:20},{a:"Miel",g:7}],et:{mo:["snack"],td:["amarillo","verde"],cn:"bajo",gn:"alto",fn:"bajo",fw:false,pre:false,nota:"Grasa alta por las nueces. Solo días sin entreno intenso. No fight week."}},
-{id:"snack_004",nombre:"Mix de frutos secos",categoria:"Snack",ingredientes:[{a:"Almendras",g:30},{a:"Anacardos",g:20},{a:"Nueces",g:20}],et:{mo:["snack"],td:["amarillo"],cn:"bajo",gn:"alto",fn:"medio",fw:false,pre:false,nota:"Grasa muy alta. Solo días de descanso y lejos del entreno. No fight week nunca."}},
-{id:"snack_005",nombre:"Yogur con cacao y plátano",categoria:"Snack",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Cacao puro en polvo",g:5},{a:"Plátano",g:60},{a:"Miel",g:7}],et:{mo:["snack","post"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Sabroso y proteico. No fight week (cacao puede molestar). Buen post-entreno ligero."}},
-{id:"des_rapido_001",nombre:"Tostadas con huevo revuelto y tomate",categoria:"Desayuno rápido",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Huevo entero",g:120},{a:"Tomate",g:80},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["desayuno"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Rápido. 10 minutos. Completo para un desayuno de diario."}},
-{id:"des_rapido_002",nombre:"Pan con pavo y plátano",categoria:"Desayuno rápido",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Pechuga de pavo loncheada",g:80},{a:"Plátano",g:120}],et:{mo:["desayuno","pre2h"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"Sin cocinar. Proteína + carbos. Apto pre-entreno 2h."}},
-{id:"des_rapido_003",nombre:"Yogur con plátano y avena",categoria:"Desayuno rápido",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Plátano",g:120},{a:"Avena en copos",g:30}],et:{mo:["desayuno"],td:["todos"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Sin cocinar. Rápido y completo. No fight week por la avena."}},
-{id:"des_rapido_004",nombre:"Leche con cereales y plátano",categoria:"Desayuno rápido",ingredientes:[{a:"Leche semidesnatada",g:300},{a:"Copos de maíz",g:60},{a:"Plátano",g:120}],et:{mo:["desayuno"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"El desayuno más rápido posible. Apto fight week."}},
-{id:"des_rapido_005",nombre:"Batido rápido de proteína y plátano",categoria:"Desayuno rápido",ingredientes:[{a:"Proteína whey vainilla",g:30},{a:"Leche semidesnatada",g:300},{a:"Plátano",g:150}],et:{mo:["desayuno","post"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"30 segundos en batidora. Alto en proteína. Apto fight week y post-entreno."}},
-{id:"des_rapido_006",nombre:"Tostadas con atún y tomate",categoria:"Desayuno rápido",ingredientes:[{a:"Pan blanco de molde",g:60},{a:"Atún en lata al natural",g:120},{a:"Tomate",g:80},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["desayuno","comida"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Alta proteína desde primera hora. Apto fight week."}},
-{id:"des_rapido_007",nombre:"Huevo cocido con tostada y fruta",categoria:"Desayuno rápido",ingredientes:[{a:"Huevo entero",g:120},{a:"Pan integral de molde",g:60},{a:"Naranja",g:150}],et:{mo:["desayuno"],td:["todos"],cn:"medio",gn:"medio",fn:"medio",fw:false,pre:false,nota:"Prepara el huevo la noche anterior. Desayuno completo sin cocinar por la mañana."}},
-{id:"des_completo_001",nombre:"Tortilla de claras con tostadas y fruta",categoria:"Desayuno completo",ingredientes:[{a:"Clara de huevo",g:240},{a:"Pan integral de molde",g:60},{a:"Aceite de oliva virgen extra",g:5},{a:"Plátano",g:120}],et:{mo:["desayuno"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Alta proteína, bajas calorías. Ideal en fase de reducción."}},
-{id:"des_completo_002",nombre:"Avena con huevo y miel",categoria:"Desayuno completo",ingredientes:[{a:"Avena en copos",g:80},{a:"Huevo entero",g:60},{a:"Leche semidesnatada",g:200},{a:"Miel",g:10}],et:{mo:["desayuno"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Bate el huevo en la avena mientras cuece. Proteína extra sin sabor extraño."}},
-{id:"des_completo_003",nombre:"Bowl de skyr con granola y frutos rojos",categoria:"Desayuno completo",ingredientes:[{a:"Skyr",g:200},{a:"Granola",g:40},{a:"Frutos rojos mix",g:80},{a:"Miel",g:7}],et:{mo:["desayuno"],td:["verde","amarillo"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Skyr tiene más proteína que el yogur griego. No fight week por los frutos rojos."}},
-{id:"merienda_001",nombre:"Plátano con tortita de arroz",categoria:"Merienda rápida",ingredientes:[{a:"Plátano",g:120},{a:"Tortita de arroz",g:20}],et:{mo:["snack","pre1h"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"La merienda más simple. Carbos rápidos. Apto pre-entreno 1h y fight week."}},
-{id:"merienda_002",nombre:"Yogur con miel y nueces",categoria:"Merienda rápida",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Miel",g:10},{a:"Nueces",g:15}],et:{mo:["snack"],td:["amarillo","verde"],cn:"medio",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Saciante y proteica. No fight week por las nueces. Lejos del entreno."}},
-{id:"merienda_003",nombre:"Requesón con miel",categoria:"Merienda rápida",ingredientes:[{a:"Requeson",g:200},{a:"Miel",g:10}],et:{mo:["snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Alta proteína, muy digestivo. Apto fight week. Rápido y sin cocinar."}},
-{id:"merienda_004",nombre:"Tostada con pavo y tomate",categoria:"Merienda rápida",ingredientes:[{a:"Pan blanco de molde",g:40},{a:"Pechuga de pavo loncheada",g:60},{a:"Tomate",g:60}],et:{mo:["snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Mini bocadillo proteico. Apto fight week. Sin cocinar."}},
-{id:"merienda_005",nombre:"Fruta con queso fresco",categoria:"Merienda rápida",ingredientes:[{a:"Manzana",g:150},{a:"Queso fresco batido 0%",g:150}],et:{mo:["snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Dulce natural + proteína. Saciante y digestivo."}},
-{id:"merienda_006",nombre:"Dátiles con almendras",categoria:"Merienda rápida",ingredientes:[{a:"Dátiles",g:40},{a:"Almendras",g:20}],et:{mo:["snack","pre1h"],td:["rojo"],cn:"medio",gn:"medio",fn:"bajo",fw:true,pre:true,nota:"Energía rápida + grasas saludables. Pre-entreno corto o snack de alta demanda."}},
-{id:"merienda_007",nombre:"Batido de plátano con leche",categoria:"Merienda rápida",ingredientes:[{a:"Plátano",g:150},{a:"Leche semidesnatada",g:250}],et:{mo:["snack","pre1h"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:true,nota:"30 segundos. Carbos rápidos. Pre-entreno 1h o merienda."}},
-{id:"merienda_008",nombre:"Tortita de arroz con pavo",categoria:"Merienda rápida",ingredientes:[{a:"Tortita de arroz",g:30},{a:"Pechuga de pavo loncheada",g:60}],et:{mo:["snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Sin cocinar. Apto fight week. Rápido y digestivo."}},
-{id:"merienda_009",nombre:"Atún con crackers",categoria:"Merienda rápida",ingredientes:[{a:"Atún en lata al natural",g:120},{a:"Tortita de arroz",g:30}],et:{mo:["snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Alta proteína. Apto fight week. Sin cocinar."}},
-{id:"merienda_010",nombre:"Skyr con plátano",categoria:"Merienda rápida",ingredientes:[{a:"Skyr",g:200},{a:"Plátano",g:120}],et:{mo:["snack","post"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy alta proteína. Apto fight week y post-entreno ligero."}},
-{id:"comida_completa_001",nombre:"Arroz con pollo y verduras salteadas",categoria:"Comida completa",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Pechuga de pollo cruda",g:200},{a:"Calabacín",g:100},{a:"Pimiento rojo",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Completo con verduras. Lejos del entreno por la fibra de las verduras."}},
-{id:"comida_completa_002",nombre:"Pasta con atún, tomate y espinacas",categoria:"Comida completa",ingredientes:[{a:"Pasta seca",g:100},{a:"Atún en lata al natural",g:160},{a:"Tomate frito",g:80},{a:"Espinacas",g:80},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["comida"],td:["verde","amarillo"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Completo con verduras de hoja. No fight week ni pre-entreno por la fibra."}},
-{id:"comida_completa_003",nombre:"Pollo con boniato y espinacas salteadas",categoria:"Comida completa",ingredientes:[{a:"Pechuga de pollo cruda",g:200},{a:"Boniato cocido",g:200},{a:"Espinacas",g:100},{a:"Ajo",g:5},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Muy completo. Boniato + proteína + verdura. No fight week por la fibra."}},
-{id:"comida_completa_004",nombre:"Ternera con patatas y judías verdes",categoria:"Comida completa",ingredientes:[{a:"Ternera filete",g:200},{a:"Patata cocida",g:180},{a:"Judías verdes",g:100},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"medio",fn:"medio",fw:false,pre:false,nota:"Comida de semana completa. Fibra media — no pre-entreno. No fight week."}},
-{id:"comida_completa_005",nombre:"Salmón con arroz y brócoli",categoria:"Comida completa",ingredientes:[{a:"Salmón fresco",g:200},{a:"Arroz blanco cocido",g:150},{a:"Brócoli",g:150},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"medio",fn:"medio",fw:false,pre:false,nota:"Omega-3 + carbos + verdura. La mejor comida post-sparring lejos del entreno."}},
-{id:"comida_completa_006",nombre:"Merluza con patatas y zanahoria",categoria:"Comida completa",ingredientes:[{a:"Merluza",g:200},{a:"Patata cocida",g:180},{a:"Zanahoria",g:100},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","cena"],td:["todos"],cn:"medio",gn:"bajo",fn:"medio",fw:true,pre:false,nota:"Digestiva y completa. Apto fight week. Fibra media — bien tolerada."}},
-{id:"comida_completa_007",nombre:"Pollo al horno con verduras de temporada",categoria:"Comida completa",ingredientes:[{a:"Muslo de pollo sin hueso",g:200},{a:"Patata cruda",g:150},{a:"Calabacín",g:100},{a:"Pimiento rojo",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"medio",fn:"medio",fw:false,pre:false,nota:"Todo al horno junto. Sin complicaciones. Fibra media — no pre-entreno."}},
-{id:"comida_completa_008",nombre:"Lentejas con verduras y huevo",categoria:"Comida completa",ingredientes:[{a:"Lentejas cocidas",g:200},{a:"Zanahoria",g:80},{a:"Puerro",g:60},{a:"Huevo entero",g:60},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["amarillo"],cn:"medio",gn:"bajo",fn:"alto",fw:false,pre:false,nota:"Fibra muy alta. Solo días de descanso. Nunca pre-entreno. No fight week."}},
-{id:"comida_completa_009",nombre:"Arroz tres delicias con pollo",categoria:"Comida completa",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Pechuga de pollo cocinada",g:150},{a:"Huevo entero",g:60},{a:"Guisantes",g:50},{a:"Zanahoria",g:60},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["verde","amarillo"],cn:"medio",gn:"bajo",fn:"medio",fw:false,pre:false,nota:"Versión casera y completa. Fibra media por los guisantes. No pre-entreno."}},
-{id:"comida_completa_010",nombre:"Garbanzos con bacalao y espinacas",categoria:"Comida completa",ingredientes:[{a:"Garbanzos cocidos",g:150},{a:"Bacalao fresco",g:150},{a:"Espinacas",g:100},{a:"Ajo",g:5},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["amarillo"],cn:"medio",gn:"bajo",fn:"alto",fw:false,pre:false,nota:"Muy nutritivo y completo. Fibra alta — solo días de descanso."}},
-{id:"comida_sabrosa_001",nombre:"Hamburguesa de ternera con huevo frito",categoria:"Comida sabrosa",ingredientes:[{a:"Carne picada ternera 5%",g:200},{a:"Huevo entero",g:60},{a:"Pan blanco de molde",g:60},{a:"Tomate",g:80},{a:"Lechuga",g:30},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["comida"],td:["rojo"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Sabrosísima y muy proteica. Para días de máxima demanda."}},
-{id:"comida_sabrosa_002",nombre:"Wrap mexicano de pollo",categoria:"Comida sabrosa",ingredientes:[{a:"Tortilla de trigo",g:60},{a:"Pechuga de pollo cocinada",g:150},{a:"Arroz blanco cocido",g:80},{a:"Maíz dulce",g:50},{a:"Tomate",g:60},{a:"Queso en lonchas light",g:20}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Diferente y sabroso. Carbos + proteína. No pre-entreno ni fight week."}},
-{id:"comida_sabrosa_003",nombre:"Pollo teriyaki con arroz",categoria:"Comida sabrosa",ingredientes:[{a:"Pechuga de pollo cruda",g:200},{a:"Arroz blanco cocido",g:150},{a:"Salsa de soja",g:15},{a:"Miel",g:10},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Sabor asiático fácil. Sodio de la soja — no fight week."}},
-{id:"comida_sabrosa_004",nombre:"Pasta carbonara ligera",categoria:"Comida sabrosa",ingredientes:[{a:"Pasta seca",g:100},{a:"Huevo entero",g:120},{a:"Jamón york",g:80},{a:"Queso parmesano",g:20}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"medio",fn:"bajo",fw:false,pre:false,nota:"Versión light de la carbonara. Sabrosa y energética. No fight week por el sodio."}},
-{id:"comida_sabrosa_005",nombre:"Bowl de atún con arroz y aguacate",categoria:"Comida sabrosa",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Atún en lata al natural",g:160},{a:"Aguacate",g:80},{a:"Tomate",g:80},{a:"Salsa de soja",g:10}],et:{mo:["comida"],td:["verde","amarillo"],cn:"medio",gn:"alto",fn:"bajo",fw:false,pre:false,nota:"Estilo poke. Grasa alta del aguacate — no pre-entreno. No fight week."}},
-{id:"comida_sabrosa_006",nombre:"Tortilla de patatas con chorizo",categoria:"Comida sabrosa",ingredientes:[{a:"Huevo entero",g:180},{a:"Patata cruda",g:150},{a:"Chorizo",g:40},{a:"Cebolla",g:40},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["amarillo"],cn:"medio",gn:"alto",fn:"bajo",fw:false,pre:false,nota:"Contundente. Solo días de descanso. Grasa y sodio alto — no fight week."}},
-{id:"comida_sabrosa_007",nombre:"Salmón a la plancha con salsa de limón",categoria:"Comida sabrosa",ingredientes:[{a:"Salmón fresco",g:200},{a:"Patata cocida",g:180},{a:"Espárragos",g:100},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida","cena"],td:["rojo","verde"],cn:"medio",gn:"medio",fn:"medio",fw:true,pre:false,nota:"Elegante y sabroso. Apto fight week. Omega-3 para recuperación."}},
-{id:"comida_sabrosa_008",nombre:"Arroz con costilla y verduras",categoria:"Comida sabrosa",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Costillas de cerdo",g:150},{a:"Pimiento rojo",g:80},{a:"Tomate",g:80},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["comida"],td:["amarillo"],cn:"medio",gn:"alto",fn:"medio",fw:false,pre:false,nota:"Contundente. Grasa alta. Solo días de descanso o fuera de camp."}},
-{id:"salir_paso_001",nombre:"Arroz blanco con atún",categoria:"Salir del paso",ingredientes:[{a:"Arroz blanco cocido",g:150},{a:"Atún en lata al natural",g:160}],et:{mo:["comida"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Lo más básico que existe. Sin aceite incluso. Siempre disponible. Apto fight week."}},
-{id:"salir_paso_002",nombre:"Huevos fritos con pan",categoria:"Salir del paso",ingredientes:[{a:"Huevo entero",g:180},{a:"Pan blanco de molde",g:60},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["desayuno","comida","cena"],td:["todos"],cn:"medio",gn:"medio",fn:"bajo",fw:true,pre:false,nota:"Socorrido. Para cuando no hay nada más. Siempre hay huevos y pan."}},
-{id:"salir_paso_003",nombre:"Bocadillo de jamón york",categoria:"Salir del paso",ingredientes:[{a:"Baguette",g:150},{a:"Jamón york",g:100}],et:{mo:["comida","snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"De toda la vida. Sodio del jamón — no fight week. Para cuando no hay tiempo."}},
-{id:"salir_paso_004",nombre:"Pasta con aceite y ajo",categoria:"Salir del paso",ingredientes:[{a:"Pasta seca",g:100},{a:"Ajo",g:5},{a:"Aceite de oliva virgen extra",g:15}],et:{mo:["comida"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Sin proteína — añadir atún o huevo si es posible. Solo carbos. Para días de máxima demanda."}},
-{id:"salir_paso_005",nombre:"Leche con galletas maría",categoria:"Salir del paso",ingredientes:[{a:"Leche semidesnatada",g:300},{a:"Copos de maíz",g:60}],et:{mo:["desayuno","snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Para cuando no hay absolutamente nada más. Carbos + calcio. Cumple."}},
-{id:"salir_paso_006",nombre:"Pechuga de pollo con sal",categoria:"Salir del paso",ingredientes:[{a:"Pechuga de pollo cocinada",g:200}],et:{mo:["comida","cena"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Lo más básico en proteína. Preparar mucha cantidad el domingo para toda la semana."}},
-{id:"salir_paso_007",nombre:"Atún con patata cocida",categoria:"Salir del paso",ingredientes:[{a:"Atún en lata al natural",g:160},{a:"Patata cocida",g:200}],et:{mo:["comida"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Dos ingredientes. Proteína + carbos. Apto fight week. Sin cocinar si la patata está preparada."}},
-{id:"salir_paso_008",nombre:"Yogur con plátano",categoria:"Salir del paso",ingredientes:[{a:"Yogur griego 0%",g:200},{a:"Plátano",g:150}],et:{mo:["desayuno","snack"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Siempre disponible. Sin preparación. Proteína + carbos básicos. Apto fight week."}},
-{id:"cena_completa_001",nombre:"Merluza al vapor con patata y zanahoria",categoria:"Cena completa",ingredientes:[{a:"Merluza",g:200},{a:"Patata cocida",g:150},{a:"Zanahoria",g:100},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["todos"],cn:"medio",gn:"bajo",fn:"medio",fw:true,pre:false,nota:"Muy digestiva. Apto fight week. Cena ideal en cualquier fase."}},
-{id:"cena_completa_002",nombre:"Pollo con arroz y champiñones salteados",categoria:"Cena completa",ingredientes:[{a:"Pechuga de pollo cruda",g:180},{a:"Arroz blanco cocido",g:120},{a:"Champiñones",g:120},{a:"Ajo",g:5},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena","comida"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Completa y sabrosa. Champiñones dan sabor sin apenas calorías. Apto fight week."}},
-{id:"cena_completa_003",nombre:"Tortilla de claras con verduras",categoria:"Cena completa",ingredientes:[{a:"Clara de huevo",g:240},{a:"Pimiento rojo",g:80},{a:"Cebolla",g:60},{a:"Tomate",g:80},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["cena"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Baja en calorías y completa. Ideal en reducción. No fight week por la cebolla."}},
-{id:"cena_completa_004",nombre:"Lubina al horno con espárragos",categoria:"Cena completa",ingredientes:[{a:"Lubina",g:200},{a:"Espárragos",g:150},{a:"Aceite de oliva virgen extra",g:10},{a:"Patata cocida",g:100}],et:{mo:["cena"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Muy digestiva. Alta proteína. Apto fight week."}},
-{id:"cena_completa_005",nombre:"Bacalao con tomate y patata",categoria:"Cena completa",ingredientes:[{a:"Bacalao fresco",g:200},{a:"Tomate frito",g:100},{a:"Patata cocida",g:150},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena","comida"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Tradicional y digestivo. Apto fight week. Proteína alta y bajo en grasa."}},
-{id:"cena_sabrosa_001",nombre:"Pechuga rellena de jamón y queso",categoria:"Cena sabrosa",ingredientes:[{a:"Pechuga de pollo cruda",g:200},{a:"Jamón york",g:40},{a:"Queso en lonchas light",g:30},{a:"Aceite de oliva virgen extra",g:5}],et:{mo:["cena"],td:["rojo","verde"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Sabrosa y proteica. Sodio del jamón — no fight week."}},
-{id:"cena_sabrosa_002",nombre:"Gambas al ajillo con arroz",categoria:"Cena sabrosa",ingredientes:[{a:"Gambas",g:200},{a:"Arroz blanco cocido",g:120},{a:"Ajo",g:8},{a:"Aceite de oliva virgen extra",g:15}],et:{mo:["cena"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Sabroso y muy proteico. Apto fight week. Bajo en calorías."}},
-{id:"cena_sabrosa_003",nombre:"Revuelto de gambas con espárragos",categoria:"Cena sabrosa",ingredientes:[{a:"Gambas",g:150},{a:"Espárragos",g:100},{a:"Huevo entero",g:120},{a:"Aceite de oliva virgen extra",g:10}],et:{mo:["cena"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:true,pre:false,nota:"Rápido y sabroso. Alta proteína. Apto fight week."}},
-{id:"cena_sabrosa_004",nombre:"Sopa de marisco con arroz",categoria:"Cena sabrosa",ingredientes:[{a:"Gambas",g:100},{a:"Mejillones",g:100},{a:"Arroz blanco cocido",g:80},{a:"Tomate frito",g:80},{a:"Caldo de verduras",g:400}],et:{mo:["cena"],td:["todos"],cn:"medio",gn:"bajo",fn:"bajo",fw:false,pre:false,nota:"Caliente y reconfortante. Buena recuperación post-entrenamiento nocturno."}}
-];
-
-// Filtra PLATOS_DB según el contexto del día
-// contexto: {momento, tipo_dia, esFightWeek}
-// Reglas: fight week→solo fw:true | pre-entreno→solo pre:true + sin fn:alto + sin gn:alto
-function filtrarPlatosDB(contexto){
-  var mo=contexto.momento||'comida';
-  var td=contexto.tipo_dia||'rojo';
-  var fw=contexto.esFightWeek||false;
-  var esPreEnt=mo==='pre1h'||mo==='pre2h';
-  return PLATOS_DB.filter(function(p){
-    var e=p.et;
-    if(e.mo.indexOf(mo)<0) return false;
-    if(e.td.indexOf('todos')<0&&e.td.indexOf(td)<0) return false;
-    if(fw&&!e.fw) return false;
-    if(esPreEnt){
-      if(!e.pre) return false;
-      if(e.fn==='alto') return false;
-      if(e.gn==='alto') return false;
-    }
-    return true;
-  });
-}
-
-// Devuelve un plato aleatorio de un array filtrado, o null
-function _pickPlato(arr){ return arr.length?arr[Math.floor(Math.random()*arr.length)]:null; }
-
-// Convierte ingredientes [{a,g}] a texto legible
-function _ingTexto(ingredientes){
-  return ingredientes.map(function(i){return i.g+'g '+i.a;}).join(' · ');
-}
 
 // ═══════════════════════════════════════════
 // PLATOS SRC — Estructura: prot/carb/gras/libre/desc
@@ -6996,18 +6837,10 @@ function renderAdminGrid(){
           // Badges de alerta / notificación
           (function(){
             var _qdCard=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
-            var _rlCard=_qdCard.registro_libre||null;
-            var _rlEnvCard=_rlCard&&_rlCard.enviado;
             var _optsCard=_qdCard.opciones_nutri||null;
             var _aprobCard=_optsCard&&_optsCard.aprobado;
             var _falloPesaje=_qdCard.fallo_pesaje||'';
             var html='';
-            if(_rlEnvCard&&!_aprobCard){
-              html+='<div style="background:rgba(0,200,83,.07);border:1px solid rgba(0,200,83,.25);border-radius:6px;padding:5px 10px;margin-bottom:4px;display:flex;align-items:center;gap:6px">'+
-                '<span style="font-size:14px">📬</span>'+
-                '<span style="font-size:11px;font-weight:800;color:#00C853">Registro enviado — listo para generar plan</span>'+
-              '</div>';
-            }
             if(_falloPesaje==='varias'){
               html+='<div style="background:rgba(255,107,53,.07);border:1px solid rgba(255,107,53,.35);border-radius:6px;padding:5px 10px;margin-bottom:4px;display:flex;align-items:center;gap:6px">'+
                 '<span style="font-size:14px">⚠️</span>'+
@@ -7519,23 +7352,6 @@ function adminRenderOpcionesEditor(opts, c){
   });
 
   return html;
-}
-
-async function adminGenerarOpcionesNutri(){
-  var c=S.ca;
-  if(!c){toast('Sin cliente seleccionado','err');return;}
-  toast('⏳ Generando sugerencia...','ok');
-  var sugerencia=generarSugerenciaOpciones(c);
-  // Guardar en cuestionario_datos.opciones_nutri
-  var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
-  _qdc.opciones_nutri=sugerencia;
-  try{
-    await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:c.id,p_datos:{cuestionario_datos:_qdc}})});
-    c.cuestionario_datos=_qdc;
-    S.todos=S.todos.map(function(x){return x.id===c.id?c:x;});
-    toast('✅ Sugerencia generada — revísala y aprueba','ok');
-    adminTab('nutri',document.getElementById('at-nutri'));
-  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 async function adminAprobarOpcionesNutri(){
@@ -8196,70 +8012,27 @@ async function adminTab(tab,btn){
       var _opts=_qdc.opciones_nutri||null;
       var _peso=c.peso||75;
       // ── Registro libre (admin view — desde cuestionario_datos) ────
-      var _qdAdminRL=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
-      var _rlAdmin=_qdAdminRL.registro_libre||null;
-      var _rlEnviadoAdmin=_rlAdmin&&_rlAdmin.enviado;
-      var _registroLibreHtml='';
-      if(c.tipo_cliente==='combate'&&!(_opts&&_opts.aprobado)&&_rlAdmin){
-        var _rlD1=_rlAdmin.dia1||'';
-        var _rlD2=_rlAdmin.dia2||'';
-        var _rlG1=_rlD1.trim().length>0;
-        var _rlG2=_rlD2.trim().length>0;
-        var _rlAmbos=_rlG1&&_rlG2;
-        var _rlFechaEnv=_rlAdmin.fecha_envio?'Enviado el '+_rlAdmin.fecha_envio.slice(5).replace('-','/'):'';
-        _registroLibreHtml='<div class="card" style="margin-bottom:.75rem;border-color:'+(_rlEnviadoAdmin?'rgba(0,200,83,.5)':'rgba(255,179,0,.3)')+'">'+
-          '<div class="ch" style="color:'+(_rlEnviadoAdmin?'#00C853':'#FFB300')+'">'+
-            (_rlEnviadoAdmin?'📬':'📋')+' Registro de alimentación'+
-            '<div style="margin-left:auto;font-size:10px;color:'+(_rlEnviadoAdmin?'#00C853':'#4A5568')+'">'+
-              (_rlEnviadoAdmin?'✅ Listo para generar plan':'⏳ Pendiente de envío')+
-            '</div>'+
-          '</div>'+
-          '<div class="cb">';
-        if(_rlEnviadoAdmin){
-          _registroLibreHtml+='<div style="background:rgba(0,200,83,.07);border:1px solid rgba(0,200,83,.2);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:#00C853;display:flex;align-items:center;gap:8px">'+
-            '<span style="font-size:16px">🔔</span>'+
-            '<span><strong>El atleta ha enviado su registro</strong>'+ (_rlFechaEnv?' — '+_rlFechaEnv:'')+'. Genera su plan nutricional ahora.</span>'+
-          '</div>';
-        }
-        var _rlDias=[{n:1,texto:_rlD1,ok:_rlG1},{n:2,texto:_rlD2,ok:_rlG2}];
-        _rlDias.forEach(function(d){
-          _registroLibreHtml+='<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #1A2A40">'+
-            '<div style="font-size:11px;font-weight:800;color:'+(d.ok?'#F0F4FF':'#2A3A50')+';margin-bottom:6px">'+
-              'DÍA '+d.n+
-              (d.ok?'<span style="margin-left:8px;font-size:10px;color:#00C853">✓ Registrado</span>':'<span style="color:#2A3A50;font-size:10px;margin-left:6px">Sin registrar</span>')+
-            '</div>'+
-            (d.ok?'<div style="font-size:12px;color:#8A9BB0;line-height:1.55;background:#060E1A;border-radius:8px;padding:10px;white-space:pre-wrap">'+d.texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>':'')+
-          '</div>';
-        });
-        _registroLibreHtml+='<button onclick="adminGenerarOpcionesNutri()" class="btn bp bbl" '+((!_rlAmbos&&!_rlEnviadoAdmin)?'disabled style="opacity:.45"':'')+'>';
-        _registroLibreHtml+=(_rlEnviadoAdmin?'⚡ Generar plan nutricional':'⚡ Generar plan');
-        _registroLibreHtml+='</button>';
-        _registroLibreHtml+='</div></div>';
-      }
-
       var nutEditorHtml='';
       if(c.tipo_cliente==='combate'){
         var _aprobado=_opts&&_opts.aprobado;
-        var _genFecha=_opts&&_opts.generado_en?'Generado: '+_opts.generado_en:'';
         nutEditorHtml='<div class="card" style="margin-bottom:.75rem">'+
           '<div class="ch">🥗 Plan Nutricional'+
             '<div style="margin-left:auto;font-size:11px;color:'+(_aprobado?'#00C853':'#FFB300')+'">'+(_aprobado?'✅ Activo para el atleta':'⏳ Pendiente de aprobar')+'</div>'+
           '</div>'+
           '<div class="cb">'+
             '<div style="display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap">'+
-              '<button onclick="adminGenerarOpcionesNutri()" class="btn bp bsm">⚡ Generar sugerencia IA</button>'+
-              (_opts?'<button onclick="adminAprobarOpcionesNutri()" class="btn bs bsm" style="background:rgba(0,200,83,.12);border-color:rgba(0,200,83,.4);color:#00C853">✅ Aprobar y activar</button>':'')+''+
+              (_opts?'<button onclick="adminAprobarOpcionesNutri()" class="btn bs bsm" style="background:rgba(0,200,83,.12);border-color:rgba(0,200,83,.4);color:#00C853">✅ Aprobar y activar</button>':'')+
               (_aprobado?'<button onclick="adminDesactivarOpcionesNutri()" class="btn bg bsm" style="color:#FF6B35">Desactivar</button>':'')+
+              '<button onclick="adminEditarOpcion(-1,\'nueva\')" class="btn bp bsm">+ Añadir opción</button>'+
             '</div>'+
             (_opts?adminRenderOpcionesEditor(_opts,c):
               '<div style="background:#0D1528;border-radius:8px;padding:14px;text-align:center;font-size:12px;color:#4A5568">'+
-                'Sin plan generado — pulsa "Generar sugerencia" para crear opciones automáticamente.<br>'+
-                '<span style="font-size:10px;margin-top:4px;display:block">Basado en las preferencias y fase ATR del atleta.</span>'+
+                'Sin plan todavía — usa "+ Añadir opción" para crear la primera comida.'+
               '</div>')+
           '</div>'+
         '</div>';
       }
-      cont.innerHTML=_registroLibreHtml+nutEditorHtml+'<div id="admin-nutri-dia"></div>';
+      cont.innerHTML=nutEditorHtml+'<div id="admin-nutri-dia"></div>';
 
       // ── Resumen de hoy ───────────────────────────────────────────
       S.rn=nutriArr&&nutriArr[0]||null;
@@ -9177,10 +8950,26 @@ function renderPlanForm(){
   const nc=S.ca&&S.ca.n_comidas||5;
   ai=0;ei=0;
   const f=document.getElementById('plan-form');
+
+  // ── 1. Bloque plantillas (siempre visible, arriba) ────────────
+  var _plantillasHtml=
+    '<div style="background:#0D1528;border-radius:8px;padding:.75rem;margin-bottom:.75rem;border:1px solid rgba(124,77,255,.35)">'+
+      '<div style="font-size:10px;font-weight:800;color:#9C6FFF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">📌 Plantillas guardadas</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+        '<select id="plantilla-sel" class="isml" style="flex:1;min-width:160px;padding:8px;font-size:12px">'+
+          '<option value="">Cargando plantillas…</option>'+
+        '</select>'+
+        '<button class="btn bg bsm" style="font-size:11px" onclick="cargarPlantillaSeleccionada()">Cargar</button>'+
+        '<button class="btn bg bsm" style="font-size:11px" onclick="abrirCopiarDeCliente()">👤 Copiar de cliente</button>'+
+      '</div>'+
+    '</div>';
+
+  // ── 2. Cuerpo del formulario ──────────────────────────────────
+  var _formHtml='';
   if(tipo==='nutricion'){
-    f.innerHTML=Array.from({length:nc},(_,i)=>
+    _formHtml=Array.from({length:nc},(_,i)=>
       '<div style="background:#0D1528;border-radius:8px;padding:.75rem;margin-bottom:.75rem;border:1px solid #1A2A40">'+
-        '<div class="field"><label>Comida '+(i+1)+'</label><input type="text" id="pn-'+(i)+'" value="'+(CN[i]||'Comida '+(i+1))+'"></div>'+
+        '<div class="field"><label>Comida '+(i+1)+'</label><input type="text" id="pn-'+i+'" value="'+(CN[i]||'Comida '+(i+1))+'"></div>'+
         '<div style="display:grid;grid-template-columns:1fr 55px 45px 40px 40px 40px auto;gap:3px;font-size:9px;color:#4A5568;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">'+
           '<span>Alimento</span><span>Gramos</span><span>Kcal</span><span>P</span><span>C</span><span>G</span><span></span>'+
         '</div>'+
@@ -9188,23 +8977,38 @@ function renderPlanForm(){
         '<button class="btn bg bsm" style="margin-top:4px;font-size:11px" onclick="addAl('+i+')">+ Alimento</button>'+
       '</div>'
     ).join('');
-    Array.from({length:nc},(_,i)=>addAl(i));
   } else {
-    var rutinaOpts='<option value="">-- Seleccionar rutina predefinida --</option>';
+    // Rutinas predefinidas (debajo de plantillas, en acordeón discreto)
+    var rutinaOpts='<option value="">-- Seleccionar rutina base --</option>';
     TODAS_RUTINAS.forEach(function(r,i){
       rutinaOpts+='<option value="'+i+'">'+r.nombre+' ('+r.ndias+' días)</option>';
     });
-    f.innerHTML=
-      '<div style="background:#0D1528;border-radius:8px;padding:.75rem;margin-bottom:.75rem;border:1px solid rgba(0,85,255,0.3)">'+
-        '<div class="field"><label>🏋️ Cargar rutina predefinida de Sergio</label>'+
-          '<select id="rutina-sel" class="isml" style="width:100%;padding:9px;font-size:13px" onchange="cargarRutinaPredef(this.value)">'+rutinaOpts+'</select>'+
+    _formHtml=
+      '<details style="margin-bottom:.75rem">'+
+        '<summary style="cursor:pointer;font-size:11px;font-weight:700;color:#4A5568;padding:8px 10px;background:#0D1528;border-radius:7px;border:1px solid #1A2A40;list-style:none;display:flex;align-items:center;gap:6px">'+
+          '<span>🏋️ Rutinas base predefinidas</span>'+
+          '<span style="margin-left:auto;font-size:10px">▼</span>'+
+        '</summary>'+
+        '<div style="padding:.75rem;background:#0D1528;border:1px solid #1A2A40;border-top:0;border-radius:0 0 7px 7px">'+
+          '<select id="rutina-sel" class="isml" style="width:100%;padding:8px;font-size:12px" onchange="cargarRutinaPredef(this.value)">'+rutinaOpts+'</select>'+
+          '<div style="font-size:10px;color:#4A5568;margin-top:4px">Selecciona para pre-cargar ejercicios y editar</div>'+
         '</div>'+
-        '<div style="font-size:11px;color:#4A5568;margin-top:4px">También puedes editar los días o añadir ejercicios manualmente abajo</div>'+
-      '</div>'+
+      '</details>'+
       '<div id="dias-entreno-container"></div>'+
       '<button class="btn bg bsm" style="margin-top:.5rem;font-size:11px;width:100%" onclick="addDiaEntreno()">+ Añadir día manualmente</button>';
+  }
+
+  // ── 3. Pintar TODO de una sola vez (evita que innerHTML+= destruya nodos) ──
+  f.innerHTML=_plantillasHtml+_formHtml;
+
+  // ── 4. Post-render: cargar plantillas en el select ya estable ─
+  loadPlantillasDropdown(tipo);
+
+  if(tipo==='nutricion'){
+    Array.from({length:nc},(_,i)=>addAl(i));
+  } else {
     window._diasEntreno=[];
-    // Auto-cargar primera rutina
+    // Cargar primera rutina base por defecto (en el contenedor, no toca el bloque de plantillas)
     if(RUTINAS&&RUTINAS.length>0){
       setTimeout(function(){
         var sel=document.getElementById('rutina-sel');
@@ -9270,6 +9074,119 @@ document.getElementById('btn-guardar-plan').onclick=async function(){
     hideM('m-plan');toast('✅ Plan asignado','ok');
   }catch(e){toast('Error: '+e.message,'err');}
 };
+
+// ── PLANTILLAS ───────────────────────────────────────────────────────
+async function loadPlantillasDropdown(tipo){
+  var sel=document.getElementById('plantilla-sel');
+  if(!sel) return;
+  try{
+    var rows=await db.get('plantillas','tipo=eq.'+tipo+'&order=creado.desc').catch(function(){return [];});
+    if(!rows||!rows.length){sel.innerHTML='<option value="">— Sin plantillas guardadas —</option>';return;}
+    sel.innerHTML='<option value="">— Cargar plantilla —</option>'+
+      rows.map(function(r){return '<option value="'+r.id+'">'+r.nombre+' ('+new Date(r.creado).toLocaleDateString('es-ES')+')</option>';}).join('');
+  }catch(e){sel.innerHTML='<option value="">— Sin plantillas (tabla no creada) —</option>';}
+}
+
+async function cargarPlantillaSeleccionada(){
+  var sel=document.getElementById('plantilla-sel');
+  if(!sel||!sel.value){toast('Selecciona una plantilla primero','warn');return;}
+  try{
+    var rows=await db.get('plantillas','id=eq.'+sel.value);
+    if(!rows||!rows[0]){toast('Plantilla no encontrada','err');return;}
+    var p=rows[0];
+    var tipo=p.tipo, contenido=p.contenido;
+    if(tipo==='entreno'){
+      window._diasEntreno=(contenido.dias||[]).map(function(d){return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).map(function(e){return Object.assign({},e);})};});
+      renderDiasEntreno();
+    } else {
+      // Para nutrición, rellenar campos (requiere que el form ya esté renderizado)
+      var nc=contenido.comidas&&contenido.comidas.length||0;
+      if(nc>0){
+        // Limpiar y re-renderizar comidas con datos de plantilla
+        document.getElementById('plan-tipo').value='nutricion';
+        renderPlanForm();
+        setTimeout(function(){
+          (contenido.comidas||[]).forEach(function(com,ci){
+            var nomEl=document.getElementById('pn-'+ci);
+            if(nomEl) nomEl.value=com.nombre||('Comida '+(ci+1));
+            // Los alimentos se añaden via addAl, luego se rellenan
+            var pnl=document.getElementById('pnl-'+ci);
+            if(pnl) pnl.innerHTML='';
+            (com.alimentos||[]).forEach(function(al){
+              var id=ai++;
+              var d=document.createElement('div');
+              d.id='pal-'+ci+'-'+id;
+              d.style.cssText='display:grid;grid-template-columns:1fr 55px 45px 40px 40px 40px auto;gap:3px;margin-bottom:3px;align-items:center';
+              d.innerHTML='<input type="text" placeholder="Alimento..." class="isml pal-n" value="'+al.nombre+'">'+
+                '<input type="number" value="'+(al.gramos||100)+'" placeholder="g" class="isml pal-g" style="color:#00C853;text-align:center">'+
+                '<input type="number" value="'+(al.kcal||0)+'" placeholder="kcal" class="isml pal-k" style="color:#7986CB;text-align:center">'+
+                '<input type="number" value="'+(al.p||0)+'" placeholder="P" class="isml pal-p" style="color:#00E5FF;text-align:center">'+
+                '<input type="number" value="'+(al.c||0)+'" placeholder="C" class="isml pal-c" style="color:#FFB300;text-align:center">'+
+                '<input type="number" value="'+(al.g||0)+'" placeholder="G" class="isml pal-gg" style="color:#F48FB1;text-align:center">'+
+                '<button onclick="this.parentElement.remove()" style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.2);color:#FF1744;border-radius:5px;cursor:pointer;padding:4px 7px;font-size:11px">✕</button>';
+              if(pnl) pnl.appendChild(d);
+            });
+          });
+        },100);
+      }
+    }
+    toast('✅ Plantilla "'+p.nombre+'" cargada','ok');
+  }catch(e){toast('Error cargando plantilla: '+e.message,'err');}
+}
+
+async function guardarComoPlanPlantilla(){
+  var tipo=document.getElementById('plan-tipo').value;
+  var nombre=prompt('Nombre para esta plantilla:','');
+  if(!nombre||!nombre.trim()) return;
+  var contenido={};
+  try{
+    if(tipo==='nutricion'){
+      var nc=S.ca&&S.ca.n_comidas||5;
+      contenido.comidas=Array.from({length:nc},(_,i)=>{
+        var nom=document.getElementById('pn-'+i)&&document.getElementById('pn-'+i).value||CN[i];
+        var als=[...document.querySelectorAll('[id^=pal-'+i+'-]')].map(r=>({
+          nombre:r.querySelector('.pal-n')&&r.querySelector('.pal-n').value||'',
+          gramos:parseFloat(r.querySelector('.pal-g')&&r.querySelector('.pal-g').value)||0,
+          kcal:parseFloat(r.querySelector('.pal-k')&&r.querySelector('.pal-k').value)||0,
+          p:parseFloat(r.querySelector('.pal-p')&&r.querySelector('.pal-p').value)||0,
+          c:parseFloat(r.querySelector('.pal-c')&&r.querySelector('.pal-c').value)||0,
+          g:parseFloat(r.querySelector('.pal-gg')&&r.querySelector('.pal-gg').value)||0,
+        })).filter(a=>a.nombre);
+        return{nombre:nom,alimentos:als};
+      });
+    } else {
+      contenido.dias=(window._diasEntreno||[]).map(function(d){
+        return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).filter(function(e){return e.nombre;})};
+      }).filter(function(d){return d.ejercicios&&d.ejercicios.length>0;});
+      if(!contenido.dias.length){toast('Añade ejercicios antes de guardar la plantilla','err');return;}
+    }
+    await db.post('plantillas',{nombre:nombre.trim(),tipo:tipo,contenido:contenido});
+    toast('✅ Plantilla "'+nombre+'" guardada','ok');
+    loadPlantillasDropdown(tipo);
+  }catch(e){toast('Error: '+e.message+' (¿Existe la tabla plantillas?)', 'err');}
+}
+
+async function abrirCopiarDeCliente(){
+  try{
+    var clientes=await db.get('clientes','activo=eq.true&order=nombre.asc&select=id,nombre,apellido');
+    if(!clientes||!clientes.length){toast('Sin clientes activos','warn');return;}
+    var tipo=document.getElementById('plan-tipo').value;
+    var opciones=clientes.map(function(c){return c.id+'|'+c.nombre+' '+c.apellido;});
+    var sel=prompt('Copiar plan de '+tipo+' de:\n'+opciones.map(function(o,i){return (i+1)+'. '+o.split('|')[1];}).join('\n')+'\n\nEscribe el número:','');
+    if(!sel||isNaN(parseInt(sel))) return;
+    var idx=parseInt(sel)-1;
+    if(idx<0||idx>=clientes.length){toast('Número inválido','err');return;}
+    var clienteId=clientes[idx].id;
+    var planesArr=await db.get('planes','cliente_id=eq.'+clienteId+'&tipo=eq.'+tipo+'&activo=eq.true&limit=1');
+    if(!planesArr||!planesArr[0]){toast('Este cliente no tiene plan de '+tipo+' activo','warn');return;}
+    var cont=planesArr[0].contenido;
+    if(tipo==='entreno'){
+      window._diasEntreno=(cont.dias||[]).map(function(d){return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).map(function(e){return Object.assign({},e);})};});
+      renderDiasEntreno();
+    }
+    toast('✅ Plan copiado de '+clientes[idx].nombre+' '+clientes[idx].apellido,'ok');
+  }catch(e){toast('Error: '+e.message,'err');}
+}
 
 // CLIENTE
 
@@ -9656,8 +9573,8 @@ async function enviarCuestionario(){
     document.querySelector('#sec-cuestionario .btn.bp').textContent='✅ Cuestionario enviado';
     document.querySelector('#sec-cuestionario .btn.bp').style.background='#00C853';
     buildTabs();
-    // AUTO-GENERATE PLAN
-    try{ await generarPlanAutomatico(S.user, datos); }catch(pe){console.warn('plan gen:',pe);}
+    // AUTO-GENERATE PLAN — DESACTIVADO: el entrenador sube el plan manualmente
+    // try{ await generarPlanAutomatico(S.user, datos); }catch(pe){console.warn('plan gen:',pe);}
   }catch(e){
     toast('Error al enviar: '+e.message,'err');
   }
@@ -11339,19 +11256,26 @@ async function loadNutri(){
     var combEl=document.getElementById('tipo-dia-combate');
     if(c.tipo_cliente==='combate'){
       if(fitEl) fitEl.style.display='none';
-      S.combatMacros=calcMacrosCombate(c); // Recalcular siempre al cargar
+      S.combatMacros=calcMacrosCombate(c); // Mantener como referencia interna del admin
       if(!S.combatDiaTipo) S.combatDiaTipo='tecnica';
-      // ¿Tiene plan nutricional aprobado?
-      var _qdn=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
-      var _optsNutri=_qdn.opciones_nutri||null;
-      // Para combate: SIEMPRE usar el sistema de opciones, nunca el tracker genérico
       if(combEl) combEl.style.display='none';
       var _ncardTop=document.querySelector('#sec-nutri > .card');
       if(_ncardTop) _ncardTop.style.display='none';
+
+      // ── NUEVO: intentar plan manual de tabla `planes` ──────────
+      var _pnArr=await db.get('planes','cliente_id=eq.'+c.id+'&tipo=eq.nutricion&activo=eq.true&limit=1').catch(function(){return [];});
+      var _nutriManual=_pnArr&&_pnArr[0]&&_pnArr[0].contenido||null;
+      if(_nutriManual){
+        renderNutriPlanManual(c,_nutriManual,S.rn);
+        return;
+      }
+
+      // Fallback: sistema antiguo de opciones (cuestionario_datos.opciones_nutri)
+      var _qdn=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
+      var _optsNutri=_qdn.opciones_nutri||null;
       if(_optsNutri&&_optsNutri.aprobado){
         renderNutricionOpciones(c,S.rn,_optsNutri);
       } else {
-        // Calcular días en app desde fecha_inicio
         var _diasEnApp=999;
         if(c.fecha_inicio){
           var _fi=new Date(c.fecha_inicio+'T12:00:00');
@@ -11448,110 +11372,113 @@ function renderNutricionPendiente(c, diasEnApp){
   var stickyEl=document.getElementById('n-sticky');
   if(stickyEl) stickyEl.style.display='none';
   if(!cont) return;
-  // Comprobar si ya envió el registro libre
-  var _qdNP=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
-  var _rlEnviado=_qdNP.registro_libre&&_qdNP.registro_libre.enviado;
-  if(!_rlEnviado){
-    renderRegistroTextoLibre(c);
-  } else {
-    var fase=c.fase_combate||'base';
-    var faseLabel={base:'Base',camp_cronico:'Camp',peaking:'Peaking',fight_week:'Fight Week',post_pelea:'Post-pelea'}[fase]||'Base';
-    cont.innerHTML=
-      '<div style="background:rgba(77,159,255,.06);border:1.5px solid rgba(77,159,255,.2);border-radius:14px;padding:24px 16px;text-align:center">'+
-        '<div style="font-size:32px;margin-bottom:10px">🥗</div>'+
-        '<div style="font-size:15px;font-weight:900;color:#F0F4FF;margin-bottom:8px">Tu entrenador está preparando tu plan nutricional.</div>'+
-        '<div style="font-size:13px;color:#6E8090;line-height:1.6">En breve lo tendrás listo.</div>'+
-        '<div style="margin-top:14px;display:inline-flex;align-items:center;gap:8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;padding:8px 14px">'+
-          '<span style="font-size:11px;color:#FFB300;font-weight:700">Fase:</span>'+
-          '<span style="font-size:11px;color:#F0F4FF;font-weight:800">'+faseLabel+'</span>'+
-        '</div>'+
-      '</div>';
-  }
+  var fase=c.fase_combate||'base';
+  var faseLabel={base:'Base',camp_cronico:'Camp',peaking:'Peaking',fight_week:'Fight Week',post_pelea:'Post-pelea'}[fase]||'Base';
+  cont.innerHTML=
+    '<div style="background:rgba(77,159,255,.06);border:1.5px solid rgba(77,159,255,.2);border-radius:14px;padding:24px 16px;text-align:center">'+
+      '<div style="font-size:32px;margin-bottom:10px">🥗</div>'+
+      '<div style="font-size:15px;font-weight:900;color:#F0F4FF;margin-bottom:8px">Tu entrenador está preparando tu plan nutricional.</div>'+
+      '<div style="font-size:13px;color:#6E8090;line-height:1.6">En breve lo tendrás listo.</div>'+
+      '<div style="margin-top:14px;display:inline-flex;align-items:center;gap:8px;background:#0D1528;border:1px solid #1A2A40;border-radius:8px;padding:8px 14px">'+
+        '<span style="font-size:11px;color:#FFB300;font-weight:700">Fase:</span>'+
+        '<span style="font-size:11px;color:#F0F4FF;font-weight:800">'+faseLabel+'</span>'+
+      '</div>'+
+    '</div>';
 }
 
-// ── Registro libre (2 días simultáneos) ────────────────────────────────────
-var _diasEnAppActual=1;
-
-function renderRegistroTextoLibre(c){
+// ── PLAN NUTRICIONAL MANUAL (desde tabla `planes`) ────────────────
+function renderNutriPlanManual(c, planManual, rn){
   var cont=document.getElementById('n-comidas');
   var stickyEl=document.getElementById('n-sticky');
   var nStatsEl=document.querySelector('#sec-nutri .g4');
   if(stickyEl) stickyEl.style.display='none';
   if(nStatsEl) nStatsEl.style.display='none';
   if(!cont) return;
-  // Recuperar textos guardados de cuestionario_datos
-  var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
-  var _rl=_qdc.registro_libre||{};
-  var _d1=_rl.dia1||'';
-  var _d2=_rl.dia2||'';
-  var _g1=_d1.trim().length>0;
-  var _g2=_d2.trim().length>0;
-  var _ambos=_g1&&_g2;
-  cont.innerHTML=
-    '<div style="background:rgba(77,159,255,.06);border:1.5px solid rgba(77,159,255,.2);border-radius:14px;padding:16px;margin-bottom:.75rem">'+
-      '<div style="font-size:10px;font-weight:700;color:rgba(77,159,255,.8);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📋 REGISTRO DE ALIMENTACIÓN — 2 DÍAS</div>'+
-      '<div style="font-size:12px;color:#6E8090;line-height:1.55">Cuéntame cómo comes habitualmente. Rellena los dos días — puedes hacerlo ahora, pensando en lo que sueles comer un día normal. Tu entrenador lo usará para diseñar tu plan nutricional.</div>'+
+
+  var comidas=planManual.comidas||[];
+  var opComp=rn&&rn.opciones_completadas?rn.opciones_completadas:{};
+
+  // Badge color día ATR
+  var f=S.fecha;
+  var dow=new Date(f+'T12:00:00').getDay();
+  var _DCOL={red:{label:'🔴 Día ROJO — Neural',bg:'rgba(255,23,68,.08)',border:'rgba(255,23,68,.25)'},green:{label:'🟢 Día VERDE — Energético',bg:'rgba(0,200,83,.08)',border:'rgba(0,200,83,.25)'},yellow:{label:'🟡 Día AMARILLO — Técnica',bg:'rgba(255,214,0,.08)',border:'rgba(255,214,0,.25)'}};
+  var dcInfo=null;
+  try{
+    var _ps=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
+    if(_ps){var _dp=parseDiaPlan(_ps[String(dow)]),_SATRL={fuerza:'red',fisico:'red',gym:'red',sparring:'red',tecnica:'yellow',acondicionamiento:'green',cardio:'green'},_ps2=(_dp.sessions||[]).filter(function(s){return s!=='descanso';})[0]||null,_dck=_ps2?(_SATRL[_ps2]||null):null;if(_dck)dcInfo=_DCOL[_dck];}
+  }catch(e){}
+
+  // Calcular totales de lo completado
+  var totP=0,totC=0,totG=0,totK=0,totPObj=0,totCObj=0,totGObj=0,totKObj=0;
+  comidas.forEach(function(com,ci){
+    var als=com.alimentos||[];
+    var cP=0,cC=0,cG=0,cK=0;
+    als.forEach(function(a){cP+=a.p||0;cC+=a.c||0;cG+=a.g||0;cK+=a.kcal||0;});
+    totPObj+=cP;totCObj+=cC;totGObj+=cG;totKObj+=cK;
+    if(opComp['c'+ci]){totP+=cP;totC+=cC;totG+=cG;totK+=cK;}
+  });
+
+  var html='';
+  // Badge día color
+  if(dcInfo)html+='<div style="background:'+dcInfo.bg+';border:1px solid '+dcInfo.border+';border-radius:8px;padding:6px 12px;margin-bottom:.75rem;font-size:13px;font-weight:700">'+dcInfo.label+'</div>';
+
+  // Barra progreso macros
+  var pctP=totPObj>0?Math.round(totP/totPObj*100):0,pctC=totCObj>0?Math.round(totC/totCObj*100):0,pctG=totGObj>0?Math.round(totG/totGObj*100):0;
+  html+='<div class="card" style="margin-bottom:.75rem"><div class="cb" style="padding:.75rem">'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:.5rem">'+
+      ['P','C','G','Kcal'].map(function(l,i){var vs=[totP,totC,totG,totK],os=[totPObj,totCObj,totGObj,totKObj];var pct=os[i]>0?Math.min(100,Math.round(vs[i]/os[i]*100)):0;var cols=['0,229,255','255,179,0','244,143,177','124,77,255'];return '<div style="text-align:center"><div style="font-size:15px;font-weight:900;color:rgba('+cols[i]+',1)">'+Math.round(vs[i])+'</div><div style="font-size:9px;color:#4A5568">/ '+Math.round(os[i])+'g</div><div style="font-size:9px;color:rgba('+cols[i]+',1);font-weight:700">'+pct+'%</div><div style="height:3px;border-radius:2px;background:rgba('+cols[i]+',.15);margin-top:3px"><div style="height:100%;border-radius:2px;background:rgba('+cols[i]+',1);width:'+pct+'%"></div></div></div>';}).join('')+
     '</div>'+
-    // ─ Día 1 ─
-    '<div style="background:#0D1528;border:1px solid '+(_g1?'rgba(0,200,83,.3)':'#1A2A40')+';border-radius:12px;padding:14px;margin-bottom:.75rem">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
-        '<span style="font-size:11px;font-weight:800;color:'+(_g1?'#00C853':'#4A5568')+';text-transform:uppercase;letter-spacing:.5px">🍽️ Día 1</span>'+
-        (_g1?'<span style="font-size:10px;color:#00C853;margin-left:auto">✓ Guardado</span>':'')+
+    '<div style="font-size:10px;color:#4A5568;text-align:center">'+Math.round(totK)+' / '+Math.round(totKObj)+' kcal completadas</div>'+
+  '</div></div>';
+
+  // Tarjetas de comidas
+  comidas.forEach(function(com,ci){
+    var als=com.alimentos||[];
+    var cP=0,cC=0,cG=0,cK=0;
+    als.forEach(function(a){cP+=a.p||0;cC+=a.c||0;cG+=a.g||0;cK+=a.kcal||0;});
+    var done=!!opComp['c'+ci];
+    html+='<div class="card" style="margin-bottom:.75rem;border-color:rgba('+(done?'0,200,83':'255,255,255')+',.12)">'+
+      '<div class="ch" style="'+(done?'opacity:.6':'')+'">'+
+        '<span>'+com.nombre+'</span>'+
+        '<span style="margin-left:auto;font-size:11px;color:#4A5568;font-weight:400">'+Math.round(cP)+'P · '+Math.round(cC)+'C · '+Math.round(cG)+'G · '+Math.round(cK)+' kcal</span>'+
       '</div>'+
-      '<textarea id="rl-texto-1" rows="6" placeholder="Ej: Desayuno — tortitas de avena con plátano.&#10;Comida — pollo con arroz y ensalada.&#10;Merienda — yogur con nueces.&#10;Cena — salmón con patata al horno."'+
-        ' style="width:100%;padding:12px;background:#060E1A;border:1.5px solid '+(_g1?'rgba(0,200,83,.25)':'#1A2A40')+';border-radius:8px;color:#F0F4FF;font-size:13px;line-height:1.6;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit">'+(_g1?_d1.replace(/</g,'&lt;').replace(/>/g,'&gt;'):'')+'</textarea>'+
-      '<button onclick="guardarTextoLibre(1)" class="btn bp bsm" style="margin-top:10px">💾 Guardar día 1</button>'+
-    '</div>'+
-    // ─ Día 2 ─
-    '<div style="background:#0D1528;border:1px solid '+(_g2?'rgba(0,200,83,.3)':'#1A2A40')+';border-radius:12px;padding:14px;margin-bottom:.75rem">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
-        '<span style="font-size:11px;font-weight:800;color:'+(_g2?'#00C853':'#4A5568')+';text-transform:uppercase;letter-spacing:.5px">🍽️ Día 2</span>'+
-        (_g2?'<span style="font-size:10px;color:#00C853;margin-left:auto">✓ Guardado</span>':'')+
+      '<div class="cb">'+
+        (als.length>0?
+          '<div style="margin-bottom:.75rem">'+
+            als.map(function(a){
+              return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+
+                '<div style="font-size:12px;color:#F0F4FF">'+a.nombre+'</div>'+
+                '<div style="font-size:11px;color:#4A5568;text-align:right">'+
+                  (a.gramos?a.gramos+'g · ':'')+
+                  (a.kcal?Math.round(a.kcal)+' kcal':'')+
+                '</div>'+
+              '</div>';
+            }).join('')+
+          '</div>'
+        :'')+
+        '<button onclick="toggleComidaCompletada('+ci+')" '+
+          'style="width:100%;padding:8px;border-radius:8px;border:1.5px solid rgba('+(done?'0,200,83':'255,255,255')+','+(done?'.4':'.1')+');'+
+          'background:rgba('+(done?'0,200,83':'255,255,255')+','+(done?'.08':'.03')+');'+
+          'color:'+(done?'#00C853':'#6E8090')+';font-size:12px;font-weight:700;cursor:pointer">'+
+          (done?'✅ Completada — toca para desmarcar':'○ Marcar como completada')+
+        '</button>'+
       '</div>'+
-      '<textarea id="rl-texto-2" rows="6" placeholder="Ej: Desayuno — huevos revueltos con tostadas.&#10;Comida — lentejas con verduras.&#10;Merienda — fruta y frutos secos.&#10;Cena — merluza al horno con brócoli."'+
-        ' style="width:100%;padding:12px;background:#060E1A;border:1.5px solid '+(_g2?'rgba(0,200,83,.25)':'#1A2A40')+';border-radius:8px;color:#F0F4FF;font-size:13px;line-height:1.6;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit">'+(_g2?_d2.replace(/</g,'&lt;').replace(/>/g,'&gt;'):'')+'</textarea>'+
-      '<button onclick="guardarTextoLibre(2)" class="btn bp bsm" style="margin-top:10px">💾 Guardar día 2</button>'+
-    '</div>'+
-    // ─ Botón enviar (solo si ambos guardados) ─
-    (_ambos?
-      '<div style="background:rgba(0,200,83,.06);border:1.5px solid rgba(0,200,83,.3);border-radius:12px;padding:14px;text-align:center">'+
-        '<div style="font-size:13px;font-weight:800;color:#00C853;margin-bottom:6px">✅ Los dos días están listos</div>'+
-        '<div style="font-size:11px;color:#6E8090;margin-bottom:12px">Cuando envíes el registro, tu entrenador recibirá una notificación y empezará a preparar tu plan.</div>'+
-        '<button onclick="enviarRegistroLibre()" class="btn bp bbl" style="background:rgba(0,200,83,.15);border-color:rgba(0,200,83,.5);color:#00C853">📬 Enviar al entrenador</button>'+
-      '</div>':
-      '<div style="text-align:center;font-size:11px;color:#2A3A50;padding:8px">Guarda los dos días para poder enviar el registro</div>'
-    );
+    '</div>';
+  });
+
+  cont.innerHTML=html;
 }
 
-async function guardarTextoLibre(diaNum){
-  var ta=document.getElementById('rl-texto-'+diaNum);
-  if(!ta) return;
-  var texto=(ta.value||'').trim();
-  if(!texto){toast('Escribe algo antes de guardar','err');return;}
-  try{
-    var _qdc=S.user.cuestionario_datos?(typeof S.user.cuestionario_datos==='string'?JSON.parse(S.user.cuestionario_datos):JSON.parse(JSON.stringify(S.user.cuestionario_datos))):{};
-    if(!_qdc.registro_libre) _qdc.registro_libre={};
-    _qdc.registro_libre['dia'+diaNum]=texto;
-    await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:S.user.id,p_datos:{cuestionario_datos:_qdc}})});
-    S.user.cuestionario_datos=_qdc;
-    toast('✅ Día '+diaNum+' guardado','ok');
-    renderRegistroTextoLibre(S.user);
-  }catch(e){toast('Error: '+e.message,'err');}
-}
-
-async function enviarRegistroLibre(){
-  try{
-    var _qdc=S.user.cuestionario_datos?(typeof S.user.cuestionario_datos==='string'?JSON.parse(S.user.cuestionario_datos):JSON.parse(JSON.stringify(S.user.cuestionario_datos))):{};
-    var _rl=_qdc.registro_libre||{};
-    if(!_rl.dia1||!_rl.dia2){toast('Guarda los dos días primero','err');return;}
-    _rl.enviado=true;
-    _rl.fecha_envio=hoy();
-    _qdc.registro_libre=_rl;
-    await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:S.user.id,p_datos:{cuestionario_datos:_qdc}})});
-    S.user.cuestionario_datos=_qdc;
-    toast('📬 Registro enviado a tu entrenador','ok');
-    renderNutricionPendiente(S.user, 999);
-  }catch(e){toast('Error: '+e.message,'err');}
+async function toggleComidaCompletada(ci){
+  if(!S.rn) S.rn={};
+  if(!S.rn.opciones_completadas) S.rn.opciones_completadas={};
+  S.rn.opciones_completadas['c'+ci]=!S.rn.opciones_completadas['c'+ci];
+  await saveNutri({opciones_completadas:S.rn.opciones_completadas});
+  // Re-render
+  var _qdn=S.user.cuestionario_datos||{};
+  var _planNArr=await db.get('planes','cliente_id=eq.'+S.user.id+'&tipo=eq.nutricion&activo=eq.true&limit=1').catch(function(){return [];});
+  var _planN=_planNArr&&_planNArr[0]&&_planNArr[0].contenido||null;
+  if(_planN) renderNutriPlanManual(S.user,_planN,S.rn);
 }
 
 function renderNutricionOpciones(c, rn, optsNutri){
@@ -11745,155 +11672,6 @@ async function toggleNutriOpcion(key){
   var _qdn=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
   var _opts=_qdn.opciones_nutri||null;
   if(_opts) renderNutricionOpciones(c,S.rn,_opts);
-}
-
-// Generador automático de sugerencia de opciones basado en preferencias del atleta
-function generarSugerenciaOpciones(c){
-  var qd=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
-  var evitar=(qd.alimentos_evitar||'').toLowerCase();
-
-  // ── Nº de comidas del cliente ─────────────────────────────────────
-  var nComidas=parseInt(c.n_comidas||qd.n_comidas||4);
-  if(nComidas<3) nComidas=3;
-  if(nComidas>5) nComidas=5;
-
-  // ── Registro libre como referencia de hábitos ─────────────────────
-  var _rl=qd.registro_libre||{};
-  var _textoRef=((_rl.dia1||'')+' '+(_rl.dia2||'')).toLowerCase();
-
-  // ── Fight week ────────────────────────────────────────────────────
-  var esFightWeek=false;
-  if(c.fecha_pelea){
-    var _diasPelea=Math.ceil((new Date(c.fecha_pelea+'T12:00:00')-new Date())/(24*3600*1000));
-    esFightWeek=_diasPelea>=0&&_diasPelea<=7;
-  }
-
-  // ── Tipo de día según fase ────────────────────────────────────────
-  var _fase=c.fase_combate||'base';
-  var _tipoDia=(_fase==='peaking'||_fase==='fight_week')?'rojo':
-               (_fase==='post_pesaje'||_fase==='post_pelea')?'verde':'rojo';
-
-  // ── Score por similitud con registro libre ────────────────────────
-  function _score(p){
-    if(!_textoRef) return 0;
-    var s=0;
-    p.ingredientes.forEach(function(ing){
-      ing.a.toLowerCase().split(/\s+/).forEach(function(w){
-        if(w.length>3&&_textoRef.indexOf(w)>=0) s++;
-      });
-    });
-    p.nombre.toLowerCase().split(/\s+/).forEach(function(w){
-      if(w.length>3&&_textoRef.indexOf(w)>=0) s+=2;
-    });
-    return s;
-  }
-
-  // ── Filtro con exclusión de alimentos a evitar ────────────────────
-  function _filtrar(momento, td){
-    var lista=filtrarPlatosDB({momento:momento,tipo_dia:td||_tipoDia,esFightWeek:esFightWeek});
-    if(evitar){
-      lista=lista.filter(function(p){
-        return !p.ingredientes.some(function(ing){
-          return evitar.split(/[,;\s]+/).some(function(ev){return ev.length>2&&ing.a.toLowerCase().indexOf(ev)>=0;});
-        });
-      });
-    }
-    return lista;
-  }
-
-  // ── Selección con bias hacia registro libre ───────────────────────
-  function _pick(momento, td, usados){
-    var lista=_filtrar(momento,td||_tipoDia).filter(function(p){return !usados||(usados.indexOf(p.id)<0);});
-    if(!lista.length) lista=filtrarPlatosDB({momento:momento,tipo_dia:'todos',esFightWeek:esFightWeek})
-                             .filter(function(p){return !usados||(usados.indexOf(p.id)<0);});
-    if(!lista.length) return null;
-    if(!_textoRef) return _pickPlato(lista);
-    var scored=lista.map(function(p){return {p:p,s:_score(p)};}).sort(function(a,b){return b.s-a.s;});
-    var top=scored[0].s;
-    var topLst=scored.filter(function(x){return x.s===top;}).map(function(x){return x.p;});
-    return _pickPlato(topLst);
-  }
-
-  function _copy(p, fallback, nota){
-    if(!p) return {nombre:fallback||'Sin plato',ingredientes:'—',macros:{p:0,c:0,g:0,k:0},nota:nota||''};
-    var m=calcMacrosCampComida(p.ingredientes);
-    return {nombre:p.nombre,ingredientes:_ingTexto(p.ingredientes),macros:m,nota:(nota||p.et.nota||''),plato_id:p.id};
-  }
-
-  // ── Esquemas de slots según n_comidas ─────────────────────────────
-  //  3: desayuno · comida · cena
-  //  4: desayuno · pre-entreno · comida · cena
-  //  5: desayuno · pre-entreno · comida · post-entreno · cena
-  var ESQUEMAS={
-    3:[
-      {label:'Desayuno',    emoji:'🌅',momento:'desayuno',nota:''},
-      {label:'Comida',      emoji:'🍽️',momento:'comida',  nota:''},
-      {label:'Cena',        emoji:'🌙',momento:'cena',    nota:''}
-    ],
-    4:[
-      {label:'Desayuno',    emoji:'🌅',momento:'desayuno',nota:''},
-      {label:'Pre-entreno', emoji:'⚡',momento:'pre2h',  nota:'2-3h antes del entreno. Proteína + carbos complejos.'},
-      {label:'Comida',      emoji:'🍽️',momento:'comida',  nota:''},
-      {label:'Cena',        emoji:'🌙',momento:'cena',    nota:''}
-    ],
-    5:[
-      {label:'Desayuno',    emoji:'🌅',momento:'desayuno',nota:''},
-      {label:'Pre-entreno', emoji:'⚡',momento:'pre2h',  nota:'2-3h antes del entreno. Proteína + carbos complejos.'},
-      {label:'Comida',      emoji:'🍽️',momento:'comida',  nota:''},
-      {label:'Post-entreno',emoji:'💪',momento:'post',   nota:'Proteína + carbos simples. Máximo 30 min después del entreno.'},
-      {label:'Cena',        emoji:'🌙',momento:'cena',    nota:''}
-    ]
-  };
-
-  var slots=ESQUEMAS[nComidas];
-  var usados=[];
-  var ops=[];
-  slots.forEach(function(slot,si){
-    var slotId=si+1;
-    for(var vi=0;vi<3;vi++){
-      var p=_pick(slot.momento,_tipoDia,usados);
-      if(!p){
-        // fallback: cualquier plato del momento sin filtrar tipo_dia
-        var _fb=filtrarPlatosDB({momento:slot.momento,tipo_dia:'todos',esFightWeek:esFightWeek})
-                  .filter(function(x){return usados.indexOf(x.id)<0;});
-        p=_pickPlato(_fb);
-      }
-      if(!p) break; // sin más platos disponibles para este slot
-      usados.push(p.id);
-      var op=_copy(p,slot.label,slot.nota||null);
-      op.id='s'+slotId+'o'+(vi+1);
-      op.slot_id=slotId;
-      op.slot_label=slot.label;
-      op.slot_emoji=slot.emoji;
-      op.variante=vi+1;
-      op.nombre=p.nombre; // solo nombre del plato, sin prefijo de slot
-      ops.push(op);
-    }
-  });
-
-  // ── Pre/Post como referencia de timing (siempre generados) ────────
-  var preComp=_copy(_pick('pre2h',_tipoDia,[]),'Pre-entreno completo',
-    'Mínimo 2h antes del entreno. Grasa baja para no retrasar la digestión.');
-  var preRap=_copy(_pick('pre1h',_tipoDia,[]),'Pre rápido (1h antes)',
-    'Solo carbos rápidos — sin proteína ni grasa a esta distancia.');
-  var postEn=_copy(_pick('post',_tipoDia,[]),'Post-entreno (primeros 30 min)',
-    'Proteína + carbos simples. Sin esperar, máximo 30 min después.');
-
-  var _fwNote=esFightWeek?'⚠️ FIGHT WEEK: platos aptos para semana de pelea. ':'';
-  var _rlNote=_textoRef?'📋 Plan basado en el registro de alimentación del atleta. ':'';
-
-  return {
-    aprobado:false,
-    generado_en:new Date().toISOString().split('T')[0],
-    fight_week:esFightWeek,
-    fase:_fase,
-    n_comidas:nComidas,
-    opciones:ops,
-    pre_completo:preComp,
-    pre_rapido:preRap,
-    post_entreno:postEn,
-    nota_ia:_rlNote+_fwNote+'Plan de '+nComidas+' comidas generado desde PLATOS_DB. Puedes editar cualquier opción.'
-  };
 }
 
 // ─── DISTRIBUCIÓN DE MACROS ───
@@ -14126,6 +13904,233 @@ document.getElementById('btn-ecompleto').onclick=async function(){
 
 async function loadEntrenoCombate(){
   var c=S.user;
+
+  // ═══════════════════════════════════════════════════════════════
+  // PLAN MANUAL — lee de tabla `planes`, NO genera automáticamente
+  // ═══════════════════════════════════════════════════════════════
+  {
+    var _peArr=await db.get('planes','cliente_id=eq.'+c.id+'&tipo=eq.entreno&activo=eq.true&limit=1').catch(function(){return [];});
+    S.pe=_peArr&&_peArr[0]||null;
+    var _planM=S.pe&&S.pe.contenido||null;
+    var _contEl=document.getElementById('e-rutina');
+    if(!_contEl) return;
+    var _fase2=getFaseCombate(c);
+    var _faseP2=FASE_COMBATE_PARAMS[_fase2]||FASE_COMBATE_PARAMS.base;
+
+    if(!_planM){
+      document.getElementById('e-dia').textContent='Pendiente';
+      _contEl.innerHTML=
+        '<div style="background:rgba('+_faseP2.color+',.08);border:1px solid rgba('+_faseP2.color+',.25);border-radius:10px;padding:10px 14px;margin-bottom:.75rem">'+
+          '<div style="font-size:11px;font-weight:800;color:rgba('+_faseP2.color+',1);text-transform:uppercase;letter-spacing:.5px">'+_faseP2.label+'</div>'+
+        '</div>'+
+        '<div class="card"><div class="cb" style="text-align:center;padding:2rem">'+
+          '<div style="font-size:40px;margin-bottom:.75rem">⏳</div>'+
+          '<div style="font-size:16px;font-weight:800;color:#F0F4FF;margin-bottom:.5rem">Plan pendiente</div>'+
+          '<div style="font-size:13px;color:#4A5568;line-height:1.6">Tu entrenador está preparando tu plan de entrenamiento.<br>Aparecerá aquí en cuanto lo suba.</div>'+
+        '</div></div>';
+      return;
+    }
+
+    // ── Variables ───────────────────────────────────────────────
+    var _dow2=new Date().getDay();
+    var _dpNum2=0;
+    if(c.fecha_pelea){var _fp2=new Date(c.fecha_pelea),_hd2=new Date();_hd2.setHours(0,0,0,0);_dpNum2=Math.max(0,Math.ceil((_fp2-_hd2)/(24*3600*1000)));}
+    var _isPeak2=_dpNum2>0&&_dpNum2<=7;
+    var _dias2=_planM.dias||[];
+    var _sch2=_planM.schedule||null;
+    var _hoyIdx2=_dow2===0?6:_dow2-1;
+    var _diHoy2=null;
+    if(_sch2&&_sch2[_hoyIdx2]!==undefined&&_sch2[_hoyIdx2]!==null&&_sch2[_hoyIdx2]!==''){
+      _diHoy2=parseInt(_sch2[_hoyIdx2]);
+    } else if(_dias2.length>0){
+      _diHoy2=_hoyIdx2%_dias2.length;
+    }
+
+    // ── Cargar registros ────────────────────────────────────────
+    var _fHoy2=new Date().toISOString().split('T')[0];
+    var _reC=null,_reHist2=[];
+    try{
+      var _rr=await Promise.all([
+        db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=eq.'+_fHoy2),
+        db.get('registros_entreno','cliente_id=eq.'+c.id+'&completado=eq.true&order=fecha.desc&limit=3'),
+      ]);
+      _reC=_rr[0]&&_rr[0][0]||null;
+      _reHist2=_rr[1]||[];
+    }catch(_e2){}
+    if(!S.reCombate||S.reCombate.fecha!==_fHoy2)S.reCombate={fecha:_fHoy2,ejercicios:{}};
+    if(_reC&&_reC.ejercicios)Object.assign(S.reCombate.ejercicios,_reC.ejercicios);
+    if(_reC){if(_reC.sueno)S.eSueno=_reC.sueno;if(_reC.fatiga_percibida)S.eFatiga=_reC.fatiga_percibida;if(_reC.estres)S.eEstres=_reC.estres;}
+
+    var _h2='';
+
+    // Banner fase
+    _h2+='<div style="background:rgba('+_faseP2.color+',.08);border:1px solid rgba('+_faseP2.color+',.25);border-radius:10px;padding:10px 14px;margin-bottom:.75rem">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center">'+
+        '<div><div style="font-size:11px;font-weight:800;color:rgba('+_faseP2.color+',1);text-transform:uppercase;letter-spacing:.5px">'+_faseP2.label+'</div>'+
+        '<div style="font-size:11px;color:var(--text-3)">Vol: '+_faseP2.vol+' · '+(_isPeak2?'RIR 4-5 (peaking)':_faseP2.rir)+'</div></div>'+
+        (_dpNum2>0?'<div style="font-size:13px;font-weight:800;color:rgba('+_faseP2.color+',1)">'+(_dpNum2===0?'¡PELEA HOY!':_dpNum2+'d ⚔️')+'</div>':'')+
+      '</div>'+
+    '</div>';
+    if(_isPeak2){
+      _h2+='<div style="background:rgba(255,107,53,.08);border:1.5px solid rgba(255,107,53,.4);border-radius:10px;padding:10px 14px;margin-bottom:.75rem">'+
+        '<div style="font-size:12px;font-weight:900;color:#FF6B35;margin-bottom:4px">⚡ SEMANA DE PEAKING — '+_dpNum2+' días para pelea</div>'+
+        '<div style="font-size:11px;color:#A0B0C0;line-height:1.5">• Mantén el peso en la barra — <b style="color:#F0F4FF">misma intensidad</b><br>• Series reducidas al 50% — <b style="color:#F0F4FF">menos volumen</b><br>• RIR 4-5 — no llegues al fallo<br>• Objetivo: llegar <b style="color:#FF6B35">fresco a la pelea</b></div>'+
+      '</div>';
+    }
+
+    // Badge color día ATR
+    try{
+      var _psm2=c.plan_semanal,_plm2=_psm2?(typeof _psm2==='string'?JSON.parse(_psm2):_psm2):null;
+      if(_plm2){
+        var _rdm2=_plm2[String(_dow2)];
+        if(_rdm2){
+          var _dpm2=parseDiaPlan(_rdm2);
+          var _SATR2={fuerza:'red',fisico:'red',gym:'red',sparring:'red',tecnica:'yellow',acondicionamiento:'green',cardio:'green',descanso:null};
+          var _DCM2={red:{bg:'rgba(255,23,68,.10)',border:'rgba(255,23,68,.3)',label:'🔴 Día ROJO — Neural'},green:{bg:'rgba(0,200,83,.10)',border:'rgba(0,200,83,.3)',label:'🟢 Día VERDE — Energético'},yellow:{bg:'rgba(255,214,0,.10)',border:'rgba(255,214,0,.3)',label:'🟡 Día AMARILLO — Recuperación'}};
+          var _prim2=(_dpm2.sessions||[]).filter(function(s){return s!=='descanso';})[0]||null;
+          var _dk2=_prim2?(_SATR2[_prim2]||null):null;
+          if(_dk2&&_DCM2[_dk2]){var _dc3=_DCM2[_dk2];_h2+='<div style="background:'+_dc3.bg+';border:1px solid '+_dc3.border+';border-radius:8px;padding:6px 12px;margin-bottom:.75rem;display:flex;align-items:center;gap:8px"><span style="font-size:13px">'+_dc3.label+'</span></div>';}
+        }
+      }
+    }catch(_e4){}
+
+    // Alerta sobreentrenamiento
+    try{
+      var _ul2=await db.get('registros_entreno','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=2');
+      if(_ul2&&_ul2.length>=2){var _bl2=_ul2.filter(function(r){return r.sensaciones&&r.sensaciones<=4;});if(_bl2.length>=2)_h2+='<div style="background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#FFB300;margin-bottom:.75rem">⚠️ 2 sesiones seguidas con sensaciones bajas — considera reducir carga o hacer deload</div>';}
+    }catch(_e3){}
+
+    // Día de descanso
+    if(_diHoy2===null||!_dias2[_diHoy2]){
+      document.getElementById('e-dia').textContent='Descanso';
+      var _nextN2=_dias2.length>0?(_dias2[(_hoyIdx2+1)%_dias2.length]&&_dias2[(_hoyIdx2+1)%_dias2.length].nombre||''):'';
+      _h2+='<div class="card"><div class="cb" style="text-align:center;padding:1.5rem">'+
+        '<div style="font-size:40px;margin-bottom:.5rem">🛌</div>'+
+        '<div style="font-size:16px;font-weight:800;margin-bottom:.25rem">Día de descanso</div>'+
+        '<div style="font-size:12px;color:var(--text-2);margin-bottom:.75rem">Recuperación activa: movilidad suave, caminata</div>'+
+        (_nextN2?'<div style="font-size:12px;color:var(--gold);font-weight:700">Próxima sesión: '+_nextN2+'</div>':'')+
+      '</div></div>';
+      _contEl.innerHTML=_h2; return;
+    }
+
+    var _diaHoy2=_dias2[_diHoy2];
+    document.getElementById('e-dia').textContent=_diaHoy2.nombre||'Entrenamiento';
+
+    // Tira semanal
+    var _DS2=['L','M','X','J','V','S','D'];
+    _h2+='<div class="card" style="margin-bottom:.75rem"><div class="ch" style="font-size:12px">📅 Esta semana</div><div class="cb" style="padding-top:.25rem"><div style="display:flex;gap:5px;overflow-x:auto;padding-bottom:2px">';
+    for(var _di2=0;_di2<7;_di2++){
+      var _dv2=_sch2?_sch2[_di2]:(_di2%Math.max(_dias2.length,1));
+      var _dnom2=(_dv2!==null&&_dv2!==undefined&&_dv2!=='')?(_dias2[parseInt(_dv2)]&&_dias2[parseInt(_dv2)].nombre||'Día'):'🛌';
+      if(_dv2===null||_dv2===undefined||_dv2==='') _dnom2='🛌';
+      var _isTd2=_di2===_hoyIdx2;
+      _h2+='<div style="flex-shrink:0;text-align:center;padding:5px 7px;border-radius:7px;min-width:36px;background:rgba('+(_isTd2?'0,85,255':'255,255,255')+',.08);border:1px solid rgba('+(_isTd2?'0,85,255':'255,255,255')+',.12)">'+
+        '<div style="font-size:9px;font-weight:900;color:'+(_isTd2?'#4D9FFF':'#4A5568')+'">'+_DS2[_di2]+'</div>'+
+        '<div style="font-size:9px;color:'+(_isTd2?'#F0F4FF':'#6E8090')+';margin-top:2px;max-width:36px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_dnom2.slice(0,6)+'</div>'+
+      '</div>';
+    }
+    _h2+='</div></div></div>';
+
+    // Tarjeta ejercicios del día
+    _h2+='<div class="card" style="margin-bottom:.75rem"><div class="ch">💪 '+(_diaHoy2.nombre||'Entrenamiento')+'</div><div class="cb">';
+    var _ejG2=0;
+    (_diaHoy2.ejercicios||[]).forEach(function(_ej){
+      var _ejN2=_ej.nombre||'Ejercicio';
+      var _ejId2='mcej-'+_ejG2; _ejG2++;
+      var _ns2=parseInt(_ej.series)||3;
+      var _nsAdj2=_isPeak2?Math.max(1,Math.round(_ns2*0.5)):_ns2;
+      var _sarr2=buildSeriesArr(_ejN2,_nsAdj2,_ej.reps);
+      var _allD2=_sarr2.length>0&&_sarr2.every(function(s){return s.done;});
+      var _hasG2=!!getGuiaEj(_ejN2);
+      var _gid2='gm-'+_ejG2;
+      _h2+=
+        '<div style="background:var(--surface-2);border-radius:10px;padding:10px 12px;margin-bottom:8px;'+(_allD2?'opacity:.65;':'')+
+        'border:1.5px solid '+(_allD2?'#00C853':'transparent')+'" id="'+_ejId2+'-block">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">'+
+          '<div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">'+
+            (_allD2?'<span style="color:#00C853;font-size:14px">✅</span>':'')+
+            '<div style="font-size:13px;font-weight:700;color:var(--text)">'+_ejN2+'</div>'+
+            (_hasG2?'<button id="guia-btn-'+_gid2+'" onclick="toggleGuiaEj(\''+_gid2+'\')" style="flex-shrink:0;background:transparent;border:none;font-size:14px;cursor:pointer;opacity:.5;padding:0">ℹ️</button>':'')+
+          '</div>'+
+          '<div style="display:flex;gap:3px;flex-shrink:0">'+
+            (_ej.reps?'<span style="background:rgba(255,179,0,.12);color:#FFB300;border-radius:5px;padding:3px 8px;font-size:12px;font-weight:700">'+_ej.reps+'</span>':'')+
+            ((_ej.rir!=null&&_ej.rir!=='')?'<span style="background:rgba(0,200,83,.1);color:#00C853;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:600">RIR '+_ej.rir+(_isPeak2?' → 4-5':'')+'</span>':'')+
+          '</div>'+
+        '</div>'+
+        (_ej.nota?'<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">'+_ej.nota+'</div>':'')+
+        (_ej.descanso?'<div style="font-size:10px;color:#4A5568;margin-bottom:4px">⏱ '+_ej.descanso+' descanso</div>':'')+
+        renderGuiaEjHTML(_ejN2,_gid2)+
+        '<div id="'+_ejId2+'-series" style="display:flex;flex-direction:column;gap:5px">';
+      _sarr2.forEach(function(_s2,_si2){
+        var _nr2=renderSerieRow(0,_ejG2,_si2,_s2,0,'combate',_ejN2,_ej.rir);
+        var _ne2=_ejN2.replace(/'/g,"\\'");
+        _h2+='<div id="'+_ejId2+'-s'+_si2+'" style="padding:5px 8px;background:'+(_s2.done?'rgba(0,200,83,.06)':'rgba(0,0,0,.2)')+
+          ';border:1px solid '+(_s2.done?'rgba(0,200,83,.4)':'rgba(255,255,255,.05)')+';border-radius:7px">'+
+          _nr2+
+          '<div style="display:flex;justify-content:flex-end;margin-top:4px">'+
+            '<button onclick="marcarSerieCombate(\''+_ne2+'\','+_si2+',\''+_ejId2+'\')" id="'+_ejId2+'-done-'+_si2+'" '+
+              'style="padding:5px 16px;border-radius:7px;border:1.5px solid '+(_s2.done?'#00C853':'rgba(255,255,255,.1)')+
+              ';background:'+(_s2.done?'rgba(0,200,83,.15)':'rgba(255,255,255,.04)')+
+              ';color:'+(_s2.done?'#00C853':'#6E8090')+';font-size:12px;cursor:pointer;font-weight:700">'+
+              (_s2.done?'✅ Hecha':'Marcar')+'</button>'+
+          '</div>'+
+        '</div>';
+      });
+      _h2+='</div></div>';
+    });
+    _h2+='</div></div>';
+
+    // Badge sesión completada
+    if(_reC&&_reC.completado){
+      _h2+='<div style="background:rgba(0,200,83,.06);border:1px solid rgba(0,200,83,.25);border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;color:#00C853;margin-top:.75rem;text-align:center">'+
+        '✅ Sesión guardada hoy · Sensaciones: '+(_reC.sensaciones||'—')+'/10</div>';
+    }
+
+    // Tatami card
+    var _ts2=_reC&&_reC.tatami_sesion||null;
+    var _tsTipos2=[{id:'tecnica_suave',label:'Técnica suave',ic:'🥋',color:'77,159,255'},{id:'tecnica_resistencia',label:'Técnica con resistencia',ic:'⚡',color:'255,179,0'},{id:'sparring_controlado',label:'Sparring controlado',ic:'🥊',color:'0,200,83'},{id:'sparring_duro',label:'Sparring duro',ic:'🔥',color:'255,107,53'},{id:'competicion',label:'Competición',ic:'🏆',color:'255,23,68'},{id:'no_hoy',label:'No hoy',ic:'🛌',color:'74,85,104'}];
+    var _tsSel2=_ts2?_ts2.tipo||null:null,_tsEner2=_ts2?_ts2.energia||7:7,_tsNota2=_ts2?_ts2.nota||'':'';
+    var _tsBtns2=_tsTipos2.map(function(t){var _sel=_tsSel2===t.id;return '<button onclick="tatamiBtnClick(\''+t.id+'\')" data-tatami-btn="'+t.id+'" style="padding:7px 10px;border-radius:8px;border:1.5px solid rgba('+t.color+','+(_sel?'.8':'.25')+');background:rgba('+t.color+','+(_sel?'.15':'.04')+');color:rgba('+t.color+','+(_sel?'1':'.7')+');font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap">'+t.ic+' '+t.label+'</button>';}).join('');
+    _h2+='<div class="card" style="margin-top:.75rem"><div class="ch">🥊 Sesión en el tatami hoy</div><div class="cb">'+
+      '<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:.75rem" id="tatami-btns">'+_tsBtns2+'</div>'+
+      '<div id="tatami-detail" style="'+((_tsSel2&&_tsSel2!=='no_hoy')?'':'display:none')+'">'+
+        '<div style="margin-bottom:.5rem"><label style="font-size:11px;color:#4A5568;font-weight:700;display:block;margin-bottom:4px">¿Cómo ha ido? <span id="tatami-ener-val" style="color:#FFB300;font-weight:900">'+_tsEner2+'</span>/10</label>'+
+        '<input type="range" id="tatami-ener" min="1" max="10" value="'+_tsEner2+'" oninput="document.getElementById(\'tatami-ener-val\').textContent=this.value" style="width:100%;accent-color:#FFB300"></div>'+
+        '<div class="field"><label>Nota rápida (opcional)</label><input type="text" id="tatami-nota" value="'+(_tsNota2.replace(/"/g,'&quot;'))+'" placeholder="ej: buen ritmo, cansancio al final..."></div>'+
+      '</div>'+
+      '<button onclick="guardarTatami()" style="margin-top:.5rem;width:100%;padding:9px;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);color:#FF6B35;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer">💾 Guardar sesión tatami</button>'+
+    '</div></div>';
+
+    // Molestias card
+    var _mol2=_reC&&_reC.molestia_sesion||null,_molZona2=_mol2&&_mol2.zona||null,_molInt2=_mol2&&_mol2.intensidad||null;
+    var _molZonas2=['rodilla','hombro','espalda','cuello','cadera','otro'],_molIcons2={rodilla:'🦵',hombro:'💪',espalda:'🔙',cuello:'🦒',cadera:'🫀',otro:'❓'};
+    var _molIntensidades2=['leve','moderada','fuerte'],_molIntColors2={leve:'0,200,83',moderada:'255,179,0',fuerte:'255,23,68'};
+    var _molZonaBtns2=_molZonas2.map(function(z){var sel=_molZona2===z;return '<button onclick="molestaZonaClick(\''+z+'\')" data-mol-zona="'+z+'" style="padding:6px 10px;border-radius:7px;border:1.5px solid rgba(255,179,0,'+(sel?'.7':'.2')+');background:rgba(255,179,0,'+(sel?'.15':'.03')+');color:rgba(255,179,0,'+(sel?'1':'.6')+');font-size:11px;font-weight:700;cursor:pointer">'+_molIcons2[z]+' '+z.charAt(0).toUpperCase()+z.slice(1)+'</button>';}).join('');
+    var _molIntBtns2=_molIntensidades2.map(function(i){var sel=_molInt2===i,col=_molIntColors2[i];return '<button onclick="molestaIntClick(\''+i+'\')" data-mol-int="'+i+'" style="flex:1;padding:6px;border-radius:7px;border:1.5px solid rgba('+col+','+(sel?'.7':'.2')+');background:rgba('+col+','+(sel?'.15':'.03')+');color:rgba('+col+','+(sel?'1':'.6')+');font-size:11px;font-weight:700;cursor:pointer">'+i.charAt(0).toUpperCase()+i.slice(1)+'</button>';}).join('');
+    var _molTiene2=_mol2&&_mol2.tiene_algo||false;
+    _h2+='<div class="card" style="margin-top:.75rem"><div class="ch">🩹 ¿Tienes alguna molestia hoy?</div><div class="cb">'+
+      '<div style="display:flex;gap:8px;margin-bottom:.5rem" id="mol-resp-btns">'+
+        '<button onclick="molestaRespClick(false)" data-mol-resp="no" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid rgba(0,200,83,'+(!_molTiene2&&_mol2?'.7':'.2')+');background:rgba(0,200,83,'+(!_molTiene2&&_mol2?'.15':'.03')+');color:rgba(0,200,83,'+(!_molTiene2&&_mol2?'1':'.6')+');font-size:12px;font-weight:700;cursor:pointer">✅ No, todo bien</button>'+
+        '<button onclick="molestaRespClick(true)" data-mol-resp="si" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid rgba(255,179,0,'+(_molTiene2?'.7':'.2')+');background:rgba(255,179,0,'+(_molTiene2?'.15':'.03')+');color:rgba(255,179,0,'+(_molTiene2?'1':'.6')+');font-size:12px;font-weight:700;cursor:pointer">🩹 Sí, tengo algo</button>'+
+      '</div>'+
+      '<div id="mol-detail" style="'+((_molTiene2)?'':'display:none')+'">'+
+        '<div style="font-size:11px;color:#4A5568;font-weight:700;margin-bottom:6px">¿Dónde?</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.5rem" id="mol-zona-btns">'+_molZonaBtns2+'</div>'+
+        '<div style="font-size:11px;color:#4A5568;font-weight:700;margin-bottom:6px">Intensidad</div>'+
+        '<div style="display:flex;gap:6px;margin-bottom:.5rem" id="mol-int-btns">'+_molIntBtns2+'</div>'+
+      '</div>'+
+      '<button onclick="guardarMolestia()" style="width:100%;padding:8px;background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.25);color:#FFB300;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px">💾 Guardar</button>'+
+    '</div></div>';
+
+    _contEl.innerHTML=_h2;
+    renderEncuesta();
+    renderFatigaBanner(_reHist2,'e-rutina');
+    return; // ← Plan manual renderizado. El código de auto-generación no se ejecuta.
+  }
+  // ════════════════════════════════════════════════════════════════
+  // CÓDIGO ANTIGUO (auto-generación) — mantenido, nunca se ejecuta
+  // ════════════════════════════════════════════════════════════════
+
   var mat=c.material_disponible||'basico';
   var diasKey='d'+(c.dias_prep_fisica||3);
   if(!RUTINAS_COMBATE[diasKey]) diasKey='d3';
