@@ -11338,6 +11338,7 @@ async function loadNutri(){
     if(c.tipo_cliente==='combate'){
       if(fitEl) fitEl.style.display='none';
       S.combatMacros=calcMacrosCombate(c); // Mantener como referencia interna del admin
+      S.nutriPlanObj=null; // Resetear objetivos del plan manual; se rellena en renderNutriPlanManual
       if(!S.combatDiaTipo) S.combatDiaTipo='tecnica';
       if(combEl) combEl.style.display='none';
       var _ncardTop=document.querySelector('#sec-nutri > .card');
@@ -11515,6 +11516,8 @@ function renderNutriPlanManual(c, planManual, rn){
     totPObj+=cP;totCObj+=cC;totGObj+=cG;totKObj+=cK;
     if(opComp['c'+ci]){totP+=cP;totC+=cC;totG+=cG;totK+=cK;}
   });
+  // Guardar objetivos del plan manual para que getActiveObjetivos() los use
+  S.nutriPlanObj={k:Math.round(totKObj),p:Math.round(totPObj),c:Math.round(totCObj),g:Math.round(totGObj)};
 
   var html='';
   // Badge día color
@@ -12819,6 +12822,10 @@ function renderSuplCombate(c){
 // Devuelve los macros del día activo (entreno o descanso)
 function getActiveObjetivos(){
   var c=S.user;
+  // Plan manual asignado: los objetivos son la suma de alimentos de la dieta del día
+  if(S.nutriPlanObj&&S.nutriPlanObj.k>0){
+    return {k:S.nutriPlanObj.k,p:S.nutriPlanObj.p,c:S.nutriPlanObj.c,g:S.nutriPlanObj.g};
+  }
   // COMBATE: usa macros calculados por tipo de día
   if(c.tipo_cliente==='combate'){
     if(!S.combatMacros) S.combatMacros=calcMacrosCombate(c);
