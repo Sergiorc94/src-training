@@ -9009,7 +9009,8 @@ function renderPlanForm(){
         '</div>'+
       '</details>'+
       '<div id="dias-entreno-container"></div>'+
-      '<button class="btn bg bsm" style="margin-top:.5rem;font-size:11px;width:100%" onclick="addDiaEntreno()">+ Añadir día manualmente</button>';
+      '<button class="btn bg bsm" style="margin-top:.5rem;font-size:11px;width:100%" onclick="addDiaEntreno()">+ Añadir día manualmente</button>'+
+      '<div id="plan-sched-section"></div>';
   }
 
   // ── 3. Pintar TODO de una sola vez (evita que innerHTML+= destruya nodos) ──
@@ -9204,10 +9205,39 @@ document.getElementById('btn-guardar-plan').onclick=async function(){
     contenido.dias=(window._diasEntreno||[]).map(function(d){
       return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).filter(function(e){return e.nombre;})};
     }).filter(function(d){return d.ejercicios&&d.ejercicios.length>0;});
-    if(!contenido.dias.length){toast('Añade al menos un día con ejercicios','err');return;} }
+    if(!contenido.dias.length){toast('Añade al menos un día con ejercicios','err');return;}
+
+    // ── Leer distribución semanal del editor ──
+    var _WDOWS=[1,2,3,4,5,6,0]; // Lun→Dom (getDay values)
+    var _psNew={};   // plan_semanal unificado {dow: {s:[...], gym_dia_idx?}}
+    var _schNew={};  // legacy schedule {hoyIdx(Mon=0): gym_dia_idx|null}
+    _WDOWS.forEach(function(dow){
+      var sel=document.getElementById('wsched-'+dow);
+      var v=sel?sel.value:'';
+      var hoyIdx=dow===0?6:dow-1; // Mon=0..Sun=6
+      if(!v||v==='descanso'){
+        _psNew[dow]={s:['descanso']};
+        _schNew[hoyIdx]=null;
+      } else if(v.startsWith('fuerza_')){
+        var idx=parseInt(v.replace('fuerza_',''));
+        _psNew[dow]={s:['fuerza'],gym_dia_idx:idx};
+        _schNew[hoyIdx]=idx;
+      } else {
+        _psNew[dow]={s:[v]};
+        _schNew[hoyIdx]=null;
+      }
+    });
+    contenido.schedule=_schNew;
+  }
   try{
     await db.patch('planes','cliente_id=eq.'+c.id+'&tipo=eq.'+tipo,{activo:false}).catch(()=>{});
     await db.post('planes',{cliente_id:c.id,tipo,contenido,activo:true,semana_inicio:hoy()});
+    // Guardar plan_semanal en el cliente (solo si es entreno con schedule definido)
+    if(tipo==='entreno'&&Object.keys(_psNew||{}).length){
+      var _psStr=JSON.stringify(_psNew);
+      await db.patch('clientes','id=eq.'+c.id,{plan_semanal:_psStr}).catch(function(){});
+      if(S.ca) S.ca.plan_semanal=_psStr;
+    }
     hideM('m-plan');toast('✅ Plan asignado','ok');
   }catch(e){toast('Error: '+e.message,'err');}
 };
@@ -9235,6 +9265,7 @@ async function cargarPlantillaSeleccionada(){
     if(tipo==='entreno'){
       window._diasEntreno=(contenido.dias||[]).map(function(d){return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).map(function(e){return Object.assign({},e);})};});
       renderDiasEntreno();
+      renderSchedEditor(window._diasEntreno);
     } else {
       // Nutrición — carga plantilla respetando formato porColor y legado
       document.getElementById('plan-tipo').value='nutricion';
@@ -13441,12 +13472,68 @@ function cargarRutinaPredef(idx){
     return { nombre: d.nombre, ejercicios: d.ejercicios.map(function(e){ return Object.assign({},e); }) };
   });
   renderDiasEntreno();
+  renderSchedEditor(window._diasEntreno);
 }
 
 function addDiaEntreno(){
   if(!window._diasEntreno) window._diasEntreno = [];
   window._diasEntreno.push({ nombre: 'Día '+(window._diasEntreno.length+1), ejercicios: [] });
   renderDiasEntreno();
+  renderSchedEditor(window._diasEntreno);
+}
+
+// ── Distribución semanal (admin plan form) ───────────────────────────
+function renderSchedEditor(dias){
+  var sec=document.getElementById('plan-sched-section');
+  if(!sec) return;
+  var n=(dias&&dias.length)||0;
+  if(!n){sec.innerHTML='';return;}
+
+  var _saved={};
+  try{var _ps=S.ca&&S.ca.plan_semanal;_saved=typeof _ps==='string'?JSON.parse(_ps):(_ps||{});}catch(e){}
+
+  var DAYS=[{dow:1,label:'Lun'},{dow:2,label:'Mar'},{dow:3,label:'Mié'},{dow:4,label:'Jue'},{dow:5,label:'Vie'},{dow:6,label:'Sáb'},{dow:0,label:'Dom'}];
+  var gymOpts=dias.map(function(d,i){return '<option value="fuerza_'+i+'">💪 '+d.nombre+'</option>';}).join('');
+  var baseOpts='<option value="">🛌 Descanso</option><option value="tecnica">🥋 Técnica</option><option value="sparring">🥊 Sparring</option><option value="acondicionamiento">🏃 Acondicionamiento</option>';
+
+  var html='<div style="background:#0D1528;border-radius:8px;padding:.75rem;border:1px solid rgba(77,159,255,.3);margin-top:.75rem">'+
+    '<div style="font-size:10px;font-weight:800;color:#4D9FFF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.25rem">📅 Distribución semanal</div>'+
+    '<div style="font-size:10px;color:#4A5568;margin-bottom:.5rem">Plan con '+n+' sesión'+(n!==1?'es':'')+' de fuerza. Asígnalas a los días que quieras.</div>';
+  DAYS.forEach(function(day){
+    html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'+
+      '<div style="width:30px;font-size:11px;font-weight:700;color:#F0F4FF;flex-shrink:0">'+day.label+'</div>'+
+      '<select id="wsched-'+day.dow+'" class="isml" onchange="schedCheckWarning()" style="flex:1;padding:5px;font-size:11px">'+baseOpts+gymOpts+'</select>'+
+    '</div>';
+  });
+  html+='<div id="sched-warn" style="margin-top:4px;font-size:10px;color:#FFB300;min-height:14px"></div></div>';
+  sec.innerHTML=html;
+
+  // Pre-fill from saved plan_semanal
+  DAYS.forEach(function(day){
+    var entry=_saved[String(day.dow)];
+    if(!entry) return;
+    var dp=parseDiaPlan(entry),ses=(dp.sessions||[])[0]||'';
+    var v=(ses==='fuerza'&&entry.gym_dia_idx!==undefined)?'fuerza_'+entry.gym_dia_idx:(ses==='descanso'?'':ses);
+    var sel=document.getElementById('wsched-'+day.dow);
+    if(sel&&v) sel.value=v;
+  });
+  schedCheckWarning();
+}
+
+function schedCheckWarning(){
+  var warn=document.getElementById('sched-warn');
+  if(!warn) return;
+  var DAYS=[1,2,3,4,5,6,0];
+  var vals={};DAYS.forEach(function(d){var s=document.getElementById('wsched-'+d);vals[d]=s?s.value:'';});
+  var msgs=[];
+  // Duplicate fuerza sessions
+  var seen={};DAYS.forEach(function(d){var v=vals[d];if(v.startsWith('fuerza_')){if(seen[v])msgs.push('⚠️ '+v.replace('fuerza_','Día ')+'  asignado más de una vez');seen[v]=true;}});
+  // Fuerza the day after sparring
+  DAYS.forEach(function(d,i){if(vals[d]==='sparring'){var nd=DAYS[(i+1)%7];if(vals[nd]&&vals[nd].startsWith('fuerza_'))msgs.push('⚠️ Evita fuerza el día siguiente al sparring');}});
+  // Not all fuerza sessions covered
+  var n=(window._diasEntreno||[]).length;
+  for(var i=0;i<n;i++){if(!Object.values(vals).includes('fuerza_'+i))msgs.push('⚠️ Día '+(i+1)+' del plan sin asignar');}
+  warn.textContent=msgs[0]||'';
 }
 
 function renderDiasEntreno(){
@@ -14007,10 +14094,34 @@ async function loadEntrenoCombate(){
     var _sch2=_planM.schedule||null;
     var _hoyIdx2=_dow2===0?6:_dow2-1;
     var _diHoy2=null;
-    if(_sch2&&_sch2[_hoyIdx2]!==undefined&&_sch2[_hoyIdx2]!==null&&_sch2[_hoyIdx2]!==''){
-      _diHoy2=parseInt(_sch2[_hoyIdx2]);
-    } else if(_dias2.length>0){
-      _diHoy2=_hoyIdx2%_dias2.length;
+    var _nonGymType2=null; // 'tecnica','sparring','acondicionamiento',...
+
+    // ── Plan_semanal unificado (sistema nuevo: gym_dia_idx) ──────────
+    try{
+      var _psU2=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
+      if(_psU2){
+        var _entU2=_psU2[String(_dow2)];
+        if(_entU2){
+          var _dpU2=parseDiaPlan(_entU2);
+          var _sesU2=(_dpU2.sessions||[])[0]||'descanso';
+          if(_sesU2==='fuerza'&&_entU2.gym_dia_idx!==undefined&&_dias2[_entU2.gym_dia_idx]){
+            _diHoy2=parseInt(_entU2.gym_dia_idx);
+          } else if(_sesU2==='descanso'||!_sesU2){
+            _diHoy2=null; // descanso explícito
+          } else {
+            _nonGymType2=_sesU2; // técnica, sparring, acondicionamiento...
+          }
+        }
+      }
+    }catch(_eU2){}
+
+    // Fallback al schedule legacy o secuencial
+    if(_diHoy2===null&&_nonGymType2===null){
+      if(_sch2&&_sch2[_hoyIdx2]!==undefined&&_sch2[_hoyIdx2]!==null&&_sch2[_hoyIdx2]!==''){
+        _diHoy2=parseInt(_sch2[_hoyIdx2]);
+      } else if(_dias2.length>0){
+        _diHoy2=_hoyIdx2%_dias2.length;
+      }
     }
 
     // ── Cargar registros ────────────────────────────────────────
@@ -14060,8 +14171,28 @@ async function loadEntrenoCombate(){
       if(_ul2&&_ul2.length>=2){var _bl2=_ul2.filter(function(r){return r.sensaciones&&r.sensaciones<=4;});if(_bl2.length>=2)_h2+='<div style="background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#FFB300;margin-bottom:.75rem">⚠️ 2 sesiones seguidas con sensaciones bajas — considera reducir carga o hacer deload</div>';}
     }catch(_e3){}
 
-    // Día de descanso
+    // Día sin ejercicios de fuerza (descanso o sesión deportiva)
     if(_diHoy2===null||!_dias2[_diHoy2]){
+      if(_nonGymType2&&_nonGymType2!=='descanso'){
+        // Día activo sin gym: técnica, sparring, acondicionamiento...
+        var _ngMap2={
+          tecnica:   {emoji:'🥋',title:'Técnica Deportiva',  msg:'Sesión de técnica hoy. Céntrate en la calidad de movimiento.'},
+          sparring:  {emoji:'🥊',title:'Sparring',           msg:'Sesión de sparring hoy. Aplica lo trabajado con cabeza y control.'},
+          acondicionamiento:{emoji:'🏃',title:'Acondicionamiento',msg:'Trabajo de resistencia y acondicionamiento físico.'},
+          cardio:    {emoji:'🏃',title:'Cardio',             msg:'Sesión cardiovascular hoy.'},
+          fisico:    {emoji:'💪',title:'Trabajo Físico',     msg:'Sesión de acondicionamiento físico general.'},
+          gym:       {emoji:'🏋️',title:'Gym',               msg:'Sesión en el gym.'},
+        };
+        var _ngl2=_ngMap2[_nonGymType2]||{emoji:'💪',title:_nonGymType2.charAt(0).toUpperCase()+_nonGymType2.slice(1),msg:'Sesión planificada para hoy.'};
+        document.getElementById('e-dia').textContent=_ngl2.title;
+        _h2+='<div class="card"><div class="cb" style="text-align:center;padding:1.5rem">'+
+          '<div style="font-size:40px;margin-bottom:.5rem">'+_ngl2.emoji+'</div>'+
+          '<div style="font-size:16px;font-weight:800;margin-bottom:.25rem">'+_ngl2.title+'</div>'+
+          '<div style="font-size:12px;color:var(--text-2)">'+_ngl2.msg+'</div>'+
+        '</div></div>';
+        _contEl.innerHTML=_h2; return;
+      }
+      // Descanso
       document.getElementById('e-dia').textContent='Descanso';
       var _nextN2=_dias2.length>0?(_dias2[(_hoyIdx2+1)%_dias2.length]&&_dias2[(_hoyIdx2+1)%_dias2.length].nombre||''):'';
       _h2+='<div class="card"><div class="cb" style="text-align:center;padding:1.5rem">'+
@@ -14079,14 +14210,26 @@ async function loadEntrenoCombate(){
     // Tira semanal
     var _DS2=['L','M','X','J','V','S','D'];
     _h2+='<div class="card" style="margin-bottom:.75rem"><div class="ch" style="font-size:12px">📅 Esta semana</div><div class="cb" style="padding-top:.25rem"><div style="display:flex;gap:5px;overflow-x:auto;padding-bottom:2px">';
+    var _psStrip2={};try{var _pss2=c.plan_semanal;_psStrip2=typeof _pss2==='string'?JSON.parse(_pss2):(_pss2||{});}catch(e){}
+    var _SICO2={tecnica:'🥋',sparring:'🥊',acondicionamiento:'🏃',cardio:'🏃',fuerza:'💪',fisico:'💪',gym:'💪',descanso:'🛌'};
     for(var _di2=0;_di2<7;_di2++){
-      var _dv2=_sch2?_sch2[_di2]:(_di2%Math.max(_dias2.length,1));
-      var _dnom2=(_dv2!==null&&_dv2!==undefined&&_dv2!=='')?(_dias2[parseInt(_dv2)]&&_dias2[parseInt(_dv2)].nombre||'Día'):'🛌';
-      if(_dv2===null||_dv2===undefined||_dv2==='') _dnom2='🛌';
       var _isTd2=_di2===_hoyIdx2;
+      var _stripDow2=_di2===6?0:_di2+1; // hoyIdx(Mon=0..Sun=6) → getDay()
+      var _stripEntry2=_psStrip2[String(_stripDow2)];
+      var _dnom2='🛌';
+      if(_stripEntry2){
+        var _sdp2=parseDiaPlan(_stripEntry2),_sse2=(_sdp2.sessions||[])[0]||'descanso';
+        if(_sse2==='fuerza'&&_stripEntry2.gym_dia_idx!==undefined){
+          var _sdia2=_dias2[_stripEntry2.gym_dia_idx];
+          _dnom2=_sdia2?_sdia2.nombre.slice(0,5):'💪';
+        } else {_dnom2=_SICO2[_sse2]||'•';}
+      } else if(_sch2){
+        var _dv2=_sch2[_di2];
+        if(_dv2!==null&&_dv2!==undefined&&_dv2!=='') _dnom2=(_dias2[parseInt(_dv2)]&&_dias2[parseInt(_dv2)].nombre.slice(0,5))||'💪';
+      }
       _h2+='<div style="flex-shrink:0;text-align:center;padding:5px 7px;border-radius:7px;min-width:36px;background:rgba('+(_isTd2?'0,85,255':'255,255,255')+',.08);border:1px solid rgba('+(_isTd2?'0,85,255':'255,255,255')+',.12)">'+
         '<div style="font-size:9px;font-weight:900;color:'+(_isTd2?'#4D9FFF':'#4A5568')+'">'+_DS2[_di2]+'</div>'+
-        '<div style="font-size:9px;color:'+(_isTd2?'#F0F4FF':'#6E8090')+';margin-top:2px;max-width:36px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_dnom2.slice(0,6)+'</div>'+
+        '<div style="font-size:9px;color:'+(_isTd2?'#F0F4FF':'#6E8090')+';margin-top:2px;max-width:36px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_dnom2+'</div>'+
       '</div>';
     }
     _h2+='</div></div></div>';
