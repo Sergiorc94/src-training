@@ -1117,7 +1117,6 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         <div style="font-size:22px;font-weight:900;letter-spacing:2px">ENTRENAMIENTO HOY</div>
         <div id="e-dia" style="padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(0,85,255,0.12);color:#4D9FFF"></div>
         <div style="margin-left:auto;display:flex;gap:6px">
-          <button class="btn bg bsm" onclick="showBibliotecaEjercicios()">📚 Ejercicios</button>
           <button class="btn bg bsm" onclick="showHistorialEntrenos()">📅 Historial</button>
         </div>
       </div>
@@ -6300,6 +6299,9 @@ function buildTabs(){
       ).join('');
     }
   }
+  // Ocultar la barra de tabs superior en vista cliente (usa la barra inferior mob-nav)
+  var _tabsEl=document.getElementById('tabs');
+  if(_tabsEl) _tabsEl.style.display=S.isAdmin?'':'none';
 }
 
 function onTab(id,btn){
@@ -14048,14 +14050,7 @@ async function loadEntrenoCombate(){
 
     var _h2='';
 
-    // Banner fase
-    _h2+='<div style="background:rgba('+_faseP2.color+',.08);border:1px solid rgba('+_faseP2.color+',.25);border-radius:10px;padding:10px 14px;margin-bottom:.75rem">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center">'+
-        '<div><div style="font-size:11px;font-weight:800;color:rgba('+_faseP2.color+',1);text-transform:uppercase;letter-spacing:.5px">'+_faseP2.label+'</div>'+
-        '<div style="font-size:11px;color:var(--text-3)">Vol: '+_faseP2.vol+' · '+(_isPeak2?'RIR 4-5 (peaking)':_faseP2.rir)+'</div></div>'+
-        (_dpNum2>0?'<div style="font-size:13px;font-weight:800;color:rgba('+_faseP2.color+',1)">'+(_dpNum2===0?'¡PELEA HOY!':_dpNum2+'d ⚔️')+'</div>':'')+
-      '</div>'+
-    '</div>';
+    // Banner fase — eliminado (sistema manual, no muestra fase/vol/RIR al cliente)
     if(_isPeak2){
       _h2+='<div style="background:rgba(255,107,53,.08);border:1.5px solid rgba(255,107,53,.4);border-radius:10px;padding:10px 14px;margin-bottom:.75rem">'+
         '<div style="font-size:12px;font-weight:900;color:#FF6B35;margin-bottom:4px">⚡ SEMANA DE PEAKING — '+_dpNum2+' días para pelea</div>'+
@@ -14118,8 +14113,28 @@ async function loadEntrenoCombate(){
 
     // Tarjeta ejercicios del día
     _h2+='<div class="card" style="margin-bottom:.75rem"><div class="ch">💪 '+(_diaHoy2.nombre||'Entrenamiento')+'</div><div class="cb">';
+
+    // ── Sección calentamiento (lista simple, sin inputs de registro) ──
+    var _ejsAll2=_diaHoy2.ejercicios||[];
+    var _ejsWarm2=_ejsAll2.filter(function(e){return e.tipo==='Calentamiento';});
+    var _ejsMain2=_ejsAll2.filter(function(e){return e.tipo!=='Calentamiento';});
+    if(_ejsWarm2.length>0){
+      _h2+='<div style="background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.2);border-radius:10px;padding:10px 12px;margin-bottom:10px">'+
+        '<div style="font-size:12px;font-weight:800;color:#FF6B35;margin-bottom:8px;letter-spacing:.3px">🔥 Calentamiento (5-10 min)</div>'+
+        _ejsWarm2.map(function(_ew){
+          var _wseries=_ew.series?_ew.series+'× ':'';
+          var _wreps=_ew.reps||'';
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+
+            '<div style="font-size:12px;color:#F0F4FF;font-weight:500">'+(_ew.nombre||'')+'</div>'+
+            '<div style="font-size:11px;color:#4A5568;font-weight:700">'+_wseries+_wreps+'</div>'+
+          '</div>';
+        }).join('')+
+      '</div>';
+    }
+
+    // ── Ejercicios principales (con inputs de registro) ──
     var _ejG2=0;
-    (_diaHoy2.ejercicios||[]).forEach(function(_ej){
+    _ejsMain2.forEach(function(_ej){
       var _ejN2=_ej.nombre||'Ejercicio';
       var _ejId2='mcej-'+_ejG2; _ejG2++;
       var _ns2=parseInt(_ej.series)||3;
