@@ -6277,10 +6277,10 @@ function buildTabs(){
     tabs=[['admin','👥 Clientes'],['vc','👤 Ver Cliente'],['recetas','🍽️ Recetas'],['platos','🍳 Platos']];
     mobTabs=null; // hide mob-nav for admin
   } else if(S.user&&S.user.tipo_cliente==='combate'){
-    tabs=[['inicio','🏠 Inicio'],['camp','🥊 Camp'],['entreno','🏋️ Entreno'],['nutri','🥗 Nutrición'],['prog','📈 Progreso'],['cuestionario','👤 Perfil']];
+    tabs=[['inicio','🏠 Inicio'],['camp','🥊 Camp'],['entreno','🏋️ Entreno'],['nutri','🥗 Nutrición'],['prog','📈 Progreso']];
     mobTabs=[['inicio','🏠','Inicio'],['camp','🥊','Camp'],['entreno','🏋️','Entreno'],['nutri','🥗','Nutrición'],['prog','📈','Progreso']];
   } else {
-    tabs=[['inicio','🏠 Inicio'],['nutri','🥗 Nutrición'],['entreno','💪 Entreno'],['prog','📈 Progreso'],['compra','🛒 Compra'],['cuestionario','👤 Perfil']];
+    tabs=[['inicio','🏠 Inicio'],['nutri','🥗 Nutrición'],['entreno','💪 Entreno'],['prog','📈 Progreso'],['compra','🛒 Compra']];
     mobTabs=[['inicio','🏠','Inicio'],['nutri','🥗','Nutrición'],['entreno','💪','Entreno'],['prog','📈','Progreso'],['compra','🛒','Compra']];
   }
   document.getElementById('tabs').innerHTML=tabs.map(([id,l],i)=>
@@ -9885,25 +9885,9 @@ function eliminarCompraManual(idx){
 
 async function loadInicio(){
   const c=S.user;
-  // Show cuestionario reminder if not completed
+  // Banner cuestionario eliminado — solo accesible desde admin
   var bannerEl = document.getElementById('cuest-banner');
-  if(bannerEl){
-    if(!S.user.cuestionario_completado){
-      bannerEl.innerHTML='<div style="background:rgba(255,179,0,0.08);border:1px solid rgba(255,179,0,0.25);'+
-        'border-radius:8px;padding:10px 14px;margin-bottom:1rem;display:flex;align-items:center;gap:10px">'+
-        '<div style="font-size:20px">📋</div>'+
-        '<div style="flex:1">'+
-          '<div style="font-size:13px;font-weight:700;color:#FFB300">Rellena tu cuestionario inicial</div>'+
-          '<div style="font-size:11px;color:#4A5568">Ayuda a Sergio a conocerte mejor para personalizar tu plan</div>'+
-        '</div>'+
-        '<button onclick="onTab(\'cuestionario\',document.querySelector(\'[onclick*=cuestionario]\'))" '+
-          'style="background:#FFB300;color:#000;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">'+
-          'Rellenar →</button>'+
-      '</div>';
-    } else {
-      bannerEl.innerHTML='';
-    }
-  }
+  if(bannerEl) bannerEl.innerHTML='';
   // Show guide if first time
   var guiaEl=document.getElementById('guia-inicio');
   if(guiaEl && !localStorage.getItem('guia_vista')){
