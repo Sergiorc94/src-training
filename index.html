@@ -9102,18 +9102,73 @@ function switchNutriColor(color){
 }
 
 function addAl(ci){
-  const id=ai++;const l=document.getElementById('pnl-'+ci);if(!l)return;
+  const id=ai++;const rowId='pal-'+ci+'-'+id;
+  const l=document.getElementById('pnl-'+ci);if(!l)return;
   const d=document.createElement('div');
-  d.id='pal-'+ci+'-'+id;
-  d.style.cssText='display:grid;grid-template-columns:1fr 55px 45px 40px 40px 40px auto;gap:3px;margin-bottom:3px;align-items:center';
-  d.innerHTML='<input type="text" placeholder="Alimento..." class="isml pal-n">'+
-    '<input type="number" value="100" placeholder="g" class="isml pal-g" style="color:#00C853;text-align:center">'+
+  d.id=rowId;
+  d.style.cssText='display:grid;grid-template-columns:1fr 55px 45px 40px 40px 40px auto;gap:3px;margin-bottom:3px;align-items:start';
+  d.innerHTML=
+    '<div style="position:relative">'+
+      '<input type="text" placeholder="Alimento..." class="isml pal-n" style="width:100%;box-sizing:border-box" '+
+        'oninput="palSearch(this,\''+rowId+'\')" '+
+        'onblur="setTimeout(function(){var dd=document.getElementById(\'pdd-'+rowId+'\');if(dd)dd.style.display=\'none\';},150)">'+
+      '<div id="pdd-'+rowId+'" style="display:none;position:absolute;top:100%;left:0;right:0;background:#0A1020;border:1px solid #1A2A40;border-top:none;border-radius:0 0 7px 7px;z-index:200;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.5)"></div>'+
+    '</div>'+
+    '<input type="number" value="100" placeholder="g" class="isml pal-g" style="color:#00C853;text-align:center" oninput="palRecalc(\''+rowId+'\')">'+
     '<input type="number" placeholder="kcal" class="isml pal-k" style="color:#7986CB;text-align:center">'+
     '<input type="number" placeholder="P" class="isml pal-p" style="color:#00E5FF;text-align:center">'+
     '<input type="number" placeholder="C" class="isml pal-c" style="color:#FFB300;text-align:center">'+
     '<input type="number" placeholder="G" class="isml pal-gg" style="color:#F48FB1;text-align:center">'+
-    '<button onclick="this.parentElement.remove()" style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.2);color:#FF1744;border-radius:5px;cursor:pointer;padding:4px 7px;font-size:11px">✕</button>';
+    '<button onclick="this.parentElement.remove()" style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.2);color:#FF1744;border-radius:5px;cursor:pointer;padding:4px 7px;font-size:11px;margin-top:2px">✕</button>';
   l.appendChild(d);
+}
+
+// ── Autocompletado de alimentos (formulario plan nutrición) ──────────
+function palSearch(inp, rowId){
+  var dd=document.getElementById('pdd-'+rowId);
+  if(!dd) return;
+  function norm(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();}
+  var q=norm(inp.value||'');
+  if(q.length<2){dd.style.display='none';return;}
+  var matches=Object.keys(ALIMENTOS_DB).filter(function(k){return norm(k).indexOf(q)>=0;}).slice(0,8);
+  if(!matches.length){dd.style.display='none';return;}
+  dd.style.display='';
+  dd.innerHTML=matches.map(function(k){
+    var v=ALIMENTOS_DB[k]; // [P,C,G,Kcal] por 100g
+    var esc=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return '<div onclick="palPick(\''+esc+'\',\''+rowId+'\')" '+
+      'style="padding:7px 10px;cursor:pointer;font-size:12px;border-bottom:1px solid #1A2A40;display:flex;justify-content:space-between;align-items:center" '+
+      'onmouseover="this.style.background=\'#1A2A40\'" onmouseout="this.style.background=\'\'">'+
+      '<span style="color:#F0F4FF;font-weight:600">'+k+'</span>'+
+      '<span style="color:#4A5568;font-size:10px;white-space:nowrap;margin-left:6px">'+v[0]+'P · '+v[1]+'C · '+v[2]+'G</span>'+
+    '</div>';
+  }).join('');
+}
+
+function palPick(nombre, rowId){
+  var row=document.getElementById(rowId);
+  if(!row) return;
+  var inp=row.querySelector('.pal-n');
+  if(inp) inp.value=nombre;
+  var dd=document.getElementById('pdd-'+rowId);
+  if(dd) dd.style.display='none';
+  palRecalc(rowId);
+}
+
+function palRecalc(rowId){
+  var row=document.getElementById(rowId);
+  if(!row) return;
+  var nombre=(row.querySelector('.pal-n')&&row.querySelector('.pal-n').value)||'';
+  var g=parseFloat(row.querySelector('.pal-g')&&row.querySelector('.pal-g').value)||0;
+  var v=ALIMENTOS_DB[nombre];
+  if(!v||!g) return;
+  var f=g/100;
+  var r=function(x){return Math.round(x*f*10)/10;};
+  var kEl=row.querySelector('.pal-k'),pEl=row.querySelector('.pal-p'),cEl=row.querySelector('.pal-c'),gEl=row.querySelector('.pal-gg');
+  if(pEl) pEl.value=r(v[0]);
+  if(cEl) cEl.value=r(v[1]);
+  if(gEl) gEl.value=r(v[2]);
+  if(kEl) kEl.value=Math.round(v[3]*f);
 }
 
 function addEj(di){
@@ -11040,81 +11095,7 @@ async function loadCamp(){
   var fasSMult=faseP?faseP.s_mult:1;
   var volPct=faseP?faseP.vol:'100%';
 
-  // Phase countdown banner
-  html+='<div style="border-radius:14px;border:2px solid rgba('+faseCol+',.35);background:rgba('+faseCol+',.07);padding:16px;margin-bottom:.75rem">';
-  // Top row: phase label + days
-  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
-  html+='<div>';
-  html+='<div style="font-size:10px;font-weight:700;color:rgba('+faseCol+',.8);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px">'+(_isAmateur?'Esta semana':'Fase actual')+'</div>';
-  html+='<div style="font-size:22px;font-weight:900;color:rgba('+faseCol+',1)">'+(_isAmateur&&_AMATEUR_FASE[fase]?_AMATEUR_FASE[fase]:faseP.label)+'</div>';
-  html+='<div style="font-size:11px;color:var(--text-3);margin-top:2px">'+(_isAmateur?(_AMATEUR_RIR[faseP.rir]||faseP.rir):'Vol: '+volPct+' · '+faseP.rir)+'</div>';
-  html+='</div>';
-  if(diasFight!==null){
-    html+='<div style="text-align:center;background:rgba('+faseCol+',.1);border:1px solid rgba('+faseCol+',.2);border-radius:10px;padding:10px 16px">';
-    html+=diasFight===0?
-      '<div style="font-size:26px;font-weight:900;color:rgba('+faseCol+',1)">HOY</div>':
-      '<div style="font-size:34px;font-weight:900;color:rgba('+faseCol+',1);line-height:1">'+diasFight+'</div>';
-    html+='<div style="font-size:10px;color:rgba('+faseCol+',.7);font-weight:700;text-transform:uppercase">'+
-      (diasFight===0?'¡PELEA!':diasFight===1?'día':'días')+'</div>';
-    if(semFight>0) html+='<div style="font-size:9px;color:var(--text-4);margin-top:2px">'+semFight+' sem restantes</div>';
-    html+='</div>';
-  }
-  html+='</div>';
-
-  // Focus points
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px">';
-  fps.forEach(function(pt){
-    html+='<div style="display:flex;align-items:flex-start;gap:5px;font-size:11px;color:var(--text-2)">'+
-      '<span style="color:rgba('+faseCol+',1);font-weight:900;flex-shrink:0">✦</span>'+pt+'</div>';
-  });
-  html+='</div>';
-
-  // ── Nota personalizada por perfil de atleta ──────────────────────
-  var qd_camp=c.cuestionario_datos||{};
-  var perfilC=qd_camp.perfil_atleta||null;
-  if(perfilC&&ATR_PROFILES[perfilC]){
-    var pc=ATR_PROFILES[perfilC];
-    var pcColors={hulk:'255,107,53',flash:'255,179,0',superman:'120,80,255',halcon:'77,159,255'};
-    var pcCol=pcColors[perfilC]||'77,159,255';
-    // Notas por perfil × fase ATR
-    var PERFIL_NOTAS={
-      hulk:{
-        base:'Base: Introduce trabajo de velocidad desde ya. Tu fuerza ya existe — necesitas aprender a expresarla rápido.',
-        camp_cronico:'Camp: PRIORIDAD — Fast Force. Sentadilla pesada → salto inmediato. Tu fuerza sin velocidad es fuerza muerta en el ring.',
-        transformation:'🔑 FASE CRÍTICA para ti. Convierte fuerza en velocidad. Prioriza el método de contraste cada sesión roja.',
-        realization:'Peaking: Activa el SNC. Saltos ligeros. No entrenes fuerza pesada — solo encender el interruptor.',
-        fight_week:'Fight week: Solo activación neural. 3 saltos al cajón + 2 EMOM de swings. Sin fuerza. Sin agotamiento.'
-      },
-      flash:{
-        base:'Base: PRIORIDAD — fuerza máxima. Tus golpes son rápidos pero sin potencia real detrás. Sin base de fuerza no hay velocidad útil.',
-        camp_cronico:'Camp: Esta es tu fase más importante. Sube el techo de fuerza antes de transformarla. RIR 0-1 en ejercicios principales.',
-        intensification:'🔑 FASE CRÍTICA para ti. Fuerza máxima al límite. Sin esto no habrá transformación real.',
-        transformation:'Transformación: Ahora convierte tu fuerza nueva en velocidad. Por fin tienes potencia real que transformar.',
-        fight_week:'Fight week: Activa velocidad. EMOM de swings + saltos. Tus golpes ya tienen algo que expresar.'
-      },
-      superman:{
-        base:'Base: Ajuste fino. Mantén equilibrio fuerza-velocidad. Sube todo a la vez con moderación.',
-        camp_cronico:'Camp: Varía el estímulo cada semana. Semana de fuerza, semana de velocidad. Nunca dejes caer ninguno de los dos.',
-        transformation:'Transformación: El método de contraste es tu herramienta. Aprovecha que tienes ambas cualidades — fuerza Y velocidad.',
-        fight_week:'Fight week: Activación balanceada. Fuerza ligera + velocidad. Llegas con el perfil completo.'
-      },
-      halcon:{
-        base:'Base: Sube todo a la vez. Amplia base general. Todavía no hay que priorizar — todo tiene margen de mejora.',
-        camp_cronico:'Camp: Volumen alto, intensidad moderada. Construye la base primero. No intentes llegar al límite todavía.',
-        transformation:'Transformación: Introduce el método de contraste. Empieza a conectar fuerza con velocidad.',
-        fight_week:'Fight week: Activación suave. EMOM + movilidad. Llegas fresco y con buena base.'
-      }
-    };
-    var notaPerfilFase=(PERFIL_NOTAS[perfilC]&&(PERFIL_NOTAS[perfilC][fase]||PERFIL_NOTAS[perfilC]['base']))||'';
-    if(notaPerfilFase){
-      html+='<div style="background:rgba('+pcCol+',.06);border:1px solid rgba('+pcCol+',.2);border-radius:8px;padding:9px 12px;margin-top:8px;display:flex;gap:9px;align-items:flex-start">';
-      html+='<div style="font-size:16px;flex-shrink:0">'+pc.name.split(' ').slice(-1)[0]+'</div>';
-      html+='<div><div style="font-size:10px;font-weight:800;color:rgba('+pcCol+',1);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">'+pc.name+' — tu nota de fase</div>';
-      html+='<div style="font-size:11px;color:var(--text-2);line-height:1.5">'+notaPerfilFase+'</div></div></div>';
-    }
-  }
-
-  html+='</div>'; // cierra phase banner
+  // FASE ACTUAL eliminada — sistema de planes manuales (INSTRUCCION_CODE_visual.md)
 
   // Weekly training template — con nombre real de cada sesión
   var _guia=getSesionGuia(c);
@@ -11151,8 +11132,8 @@ async function loadCamp(){
     cardio:   {icon:'🏃',label:'Acondicionamiento',col:'0,229,255'},
     descanso: {icon:'🛌',label:'Descanso',col:'74,85,104'}
   };
-  html+='<div style="border-top:1px solid rgba('+faseCol+',.15);padding-top:10px">';
-  html+='<div style="font-size:10px;font-weight:700;color:rgba('+faseCol+',.7);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Plantilla semanal</div>';
+  html+='<div class="card" style="margin-bottom:.75rem"><div class="cb" style="padding:.75rem">';
+  html+='<div style="font-size:10px;font-weight:700;color:rgba('+faseCol+',.7);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">📅 Plantilla semanal</div>';
   html+='<div style="display:flex;flex-direction:column;gap:4px">';
   DIAS_ES.forEach(function(d,i){
     var realDow=_dowMap[i];           // getDay() para este día
@@ -11187,8 +11168,7 @@ async function loadCamp(){
     if(isHoy) html+='<div style="margin-left:auto;font-size:9px;font-weight:800;color:rgba('+col+',1);background:rgba('+col+',.15);padding:2px 6px;border-radius:4px">HOY</div>';
     html+='</div>';
   });
-  html+='</div></div>';
-  html+='</div>'; // end phase card
+  html+='</div></div></div>'; // cierra flex días + cb + card plantilla semanal
 
   // Header
   html+='<div style="margin-bottom:1.25rem">'+
