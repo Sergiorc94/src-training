@@ -8967,16 +8967,28 @@ function renderPlanForm(){
   // ── 2. Cuerpo del formulario ──────────────────────────────────
   var _formHtml='';
   if(tipo==='nutricion'){
-    _formHtml=Array.from({length:nc},(_,i)=>
-      '<div style="background:#0D1528;border-radius:8px;padding:.75rem;margin-bottom:.75rem;border:1px solid #1A2A40">'+
+    // Pestañas de color de día
+    var _colorTabs=
+      '<div style="display:flex;gap:4px;margin-bottom:.75rem">'+
+        [['red','🔴 ROJO','rgba(255,23,68'],['yellow','🟡 AMARILLO','rgba(255,214,0'],['green','🟢 VERDE','rgba(0,200,83']].map(function(t){
+          var act=t[0]==='yellow';
+          return '<button id="nutri-tab-'+t[0]+'" onclick="switchNutriColor(\''+t[0]+'\')" '+
+            'style="flex:1;padding:7px 4px;font-size:11px;font-weight:700;border-radius:7px;cursor:pointer;border:1.5px solid;'+
+            'background:'+(act?t[2]+',.12)':'rgba(255,255,255,.02)')+';'+
+            'border-color:'+(act?t[2]+',.5)':'rgba(255,255,255,.07)')+';'+
+            'color:'+(act?'#F0F4FF':'#4A5568')+'">'+t[1]+'</button>';
+        }).join('')+
+      '</div>';
+    _formHtml=_colorTabs+Array.from({length:nc},function(_,i){
+      return '<div style="background:#0D1528;border-radius:8px;padding:.75rem;margin-bottom:.75rem;border:1px solid #1A2A40">'+
         '<div class="field"><label>Comida '+(i+1)+'</label><input type="text" id="pn-'+i+'" value="'+(CN[i]||'Comida '+(i+1))+'"></div>'+
         '<div style="display:grid;grid-template-columns:1fr 55px 45px 40px 40px 40px auto;gap:3px;font-size:9px;color:#4A5568;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">'+
           '<span>Alimento</span><span>Gramos</span><span>Kcal</span><span>P</span><span>C</span><span>G</span><span></span>'+
         '</div>'+
         '<div id="pnl-'+i+'"></div>'+
         '<button class="btn bg bsm" style="margin-top:4px;font-size:11px" onclick="addAl('+i+')">+ Alimento</button>'+
-      '</div>'
-    ).join('');
+      '</div>';
+    }).join('');
   } else {
     // Rutinas predefinidas (debajo de plantillas, en acordeón discreto)
     var rutinaOpts='<option value="">-- Seleccionar rutina base --</option>';
@@ -9005,6 +9017,8 @@ function renderPlanForm(){
   loadPlantillasDropdown(tipo);
 
   if(tipo==='nutricion'){
+    window._nutriByColor={red:null,yellow:null,green:null};
+    window._nutriActiveColor='yellow';
     Array.from({length:nc},(_,i)=>addAl(i));
   } else {
     window._diasEntreno=[];
@@ -9016,6 +9030,73 @@ function renderPlanForm(){
       },50);
     }
   }
+}
+
+// ── Nutrición por color de día (helpers admin) ───────────────────────
+function _nutriSaveTab(){
+  if(!window._nutriActiveColor) return;
+  var nc=S.ca&&S.ca.n_comidas||5;
+  var comidas=Array.from({length:nc},function(_,i){
+    var nom=(document.getElementById('pn-'+i)&&document.getElementById('pn-'+i).value)||(CN&&CN[i])||'Comida '+(i+1);
+    var als=[].slice.call(document.querySelectorAll('[id^=pal-'+i+'-]')).map(function(r){return{
+      nombre:r.querySelector('.pal-n')&&r.querySelector('.pal-n').value||'',
+      gramos:parseFloat(r.querySelector('.pal-g')&&r.querySelector('.pal-g').value)||0,
+      kcal:parseFloat(r.querySelector('.pal-k')&&r.querySelector('.pal-k').value)||0,
+      p:parseFloat(r.querySelector('.pal-p')&&r.querySelector('.pal-p').value)||0,
+      c:parseFloat(r.querySelector('.pal-c')&&r.querySelector('.pal-c').value)||0,
+      g:parseFloat(r.querySelector('.pal-gg')&&r.querySelector('.pal-gg').value)||0,
+    };}).filter(function(a){return a.nombre;});
+    return{nombre:nom,alimentos:als};
+  });
+  if(!window._nutriByColor) window._nutriByColor={red:null,yellow:null,green:null};
+  window._nutriByColor[window._nutriActiveColor]={comidas:comidas};
+}
+
+function _nutriLoadTab(color){
+  var nc=S.ca&&S.ca.n_comidas||5;
+  var data=window._nutriByColor&&window._nutriByColor[color];
+  Array.from({length:nc},function(_,i){
+    var nomEl=document.getElementById('pn-'+i);
+    if(nomEl) nomEl.value=(data&&data.comidas&&data.comidas[i]&&data.comidas[i].nombre)||(CN&&CN[i])||'Comida '+(i+1);
+    var pnl=document.getElementById('pnl-'+i);
+    if(pnl) pnl.innerHTML='';
+  });
+  if(data&&data.comidas&&data.comidas.length){
+    data.comidas.forEach(function(com,ci){
+      (com.alimentos||[]).forEach(function(al){
+        var id=ai++;
+        var d=document.createElement('div');
+        d.id='pal-'+ci+'-'+id;
+        d.style.cssText='display:grid;grid-template-columns:1fr 55px 45px 40px 40px 40px auto;gap:3px;margin-bottom:3px;align-items:center';
+        d.innerHTML='<input type="text" placeholder="Alimento..." class="isml pal-n" value="'+al.nombre+'">'+
+          '<input type="number" value="'+(al.gramos||100)+'" placeholder="g" class="isml pal-g" style="color:#00C853;text-align:center">'+
+          '<input type="number" value="'+(al.kcal||0)+'" placeholder="kcal" class="isml pal-k" style="color:#7986CB;text-align:center">'+
+          '<input type="number" value="'+(al.p||0)+'" placeholder="P" class="isml pal-p" style="color:#00E5FF;text-align:center">'+
+          '<input type="number" value="'+(al.c||0)+'" placeholder="C" class="isml pal-c" style="color:#FFB300;text-align:center">'+
+          '<input type="number" value="'+(al.g||0)+'" placeholder="G" class="isml pal-gg" style="color:#F48FB1;text-align:center">'+
+          '<button onclick="this.parentElement.remove()" style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.2);color:#FF1744;border-radius:5px;cursor:pointer;padding:4px 7px;font-size:11px">✕</button>';
+        var pnl=document.getElementById('pnl-'+ci);
+        if(pnl) pnl.appendChild(d);
+      });
+    });
+  } else {
+    Array.from({length:nc},function(_,i){addAl(i);});
+  }
+  window._nutriActiveColor=color;
+  var _TC={red:'rgba(255,23,68',yellow:'rgba(255,214,0',green:'rgba(0,200,83'};
+  ['red','yellow','green'].forEach(function(c){
+    var btn=document.getElementById('nutri-tab-'+c);
+    if(!btn) return;
+    var act=c===color;
+    btn.style.background=act?_TC[c]+',.12)':'rgba(255,255,255,.02)';
+    btn.style.borderColor=act?_TC[c]+',.5)':'rgba(255,255,255,.07)';
+    btn.style.color=act?'#F0F4FF':'#4A5568';
+  });
+}
+
+function switchNutriColor(color){
+  _nutriSaveTab();
+  _nutriLoadTab(color);
 }
 
 function addAl(ci){
@@ -9050,19 +9131,18 @@ document.getElementById('btn-guardar-plan').onclick=async function(){
   const tipo=document.getElementById('plan-tipo').value;
   const c=S.ca;let contenido={};
   if(tipo==='nutricion'){
-    const nc=c&&c.n_comidas||5;
-    contenido.comidas=Array.from({length:nc},(_,i)=>{
-      const nom=document.getElementById('pn-'+i)&&document.getElementById('pn-'+i).value||CN[i];
-      const als=[...document.querySelectorAll('[id^=pal-'+i+'-]')].map(r=>({
-        nombre:r.querySelector('.pal-n')&&r.querySelector('.pal-n').value||'',
-        gramos:parseFloat(r.querySelector('.pal-g')&&r.querySelector('.pal-g').value)||0,
-        kcal:parseFloat(r.querySelector('.pal-k')&&r.querySelector('.pal-k').value)||0,
-        p:parseFloat(r.querySelector('.pal-p')&&r.querySelector('.pal-p').value)||0,
-        c:parseFloat(r.querySelector('.pal-c')&&r.querySelector('.pal-c').value)||0,
-        g:parseFloat(r.querySelector('.pal-gg')&&r.querySelector('.pal-gg').value)||0,
-      })).filter(a=>a.nombre);
-      return{nombre:nom,alimentos:als};
+    // Guardar pestaña activa y recoger las tres
+    _nutriSaveTab();
+    var _nbc=window._nutriByColor||{};
+    var _pC={};
+    ['red','yellow','green'].forEach(function(col){
+      var td=_nbc[col];
+      if(td&&td.comidas&&td.comidas.some(function(m){return m.alimentos&&m.alimentos.length;})){
+        _pC[col]=td;
+      }
     });
+    if(!Object.keys(_pC).length){toast('Añade al menos una comida con alimentos','err');return;}
+    contenido.porColor=_pC;
   } else {
     contenido.dias=(window._diasEntreno||[]).map(function(d){
       return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).filter(function(e){return e.nombre;})};
@@ -9099,36 +9179,18 @@ async function cargarPlantillaSeleccionada(){
       window._diasEntreno=(contenido.dias||[]).map(function(d){return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).map(function(e){return Object.assign({},e);})};});
       renderDiasEntreno();
     } else {
-      // Para nutrición, rellenar campos (requiere que el form ya esté renderizado)
-      var nc=contenido.comidas&&contenido.comidas.length||0;
-      if(nc>0){
-        // Limpiar y re-renderizar comidas con datos de plantilla
-        document.getElementById('plan-tipo').value='nutricion';
-        renderPlanForm();
-        setTimeout(function(){
-          (contenido.comidas||[]).forEach(function(com,ci){
-            var nomEl=document.getElementById('pn-'+ci);
-            if(nomEl) nomEl.value=com.nombre||('Comida '+(ci+1));
-            // Los alimentos se añaden via addAl, luego se rellenan
-            var pnl=document.getElementById('pnl-'+ci);
-            if(pnl) pnl.innerHTML='';
-            (com.alimentos||[]).forEach(function(al){
-              var id=ai++;
-              var d=document.createElement('div');
-              d.id='pal-'+ci+'-'+id;
-              d.style.cssText='display:grid;grid-template-columns:1fr 55px 45px 40px 40px 40px auto;gap:3px;margin-bottom:3px;align-items:center';
-              d.innerHTML='<input type="text" placeholder="Alimento..." class="isml pal-n" value="'+al.nombre+'">'+
-                '<input type="number" value="'+(al.gramos||100)+'" placeholder="g" class="isml pal-g" style="color:#00C853;text-align:center">'+
-                '<input type="number" value="'+(al.kcal||0)+'" placeholder="kcal" class="isml pal-k" style="color:#7986CB;text-align:center">'+
-                '<input type="number" value="'+(al.p||0)+'" placeholder="P" class="isml pal-p" style="color:#00E5FF;text-align:center">'+
-                '<input type="number" value="'+(al.c||0)+'" placeholder="C" class="isml pal-c" style="color:#FFB300;text-align:center">'+
-                '<input type="number" value="'+(al.g||0)+'" placeholder="G" class="isml pal-gg" style="color:#F48FB1;text-align:center">'+
-                '<button onclick="this.parentElement.remove()" style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.2);color:#FF1744;border-radius:5px;cursor:pointer;padding:4px 7px;font-size:11px">✕</button>';
-              if(pnl) pnl.appendChild(d);
-            });
-          });
-        },100);
-      }
+      // Nutrición — carga plantilla respetando formato porColor y legado
+      document.getElementById('plan-tipo').value='nutricion';
+      renderPlanForm();
+      setTimeout(function(){
+        if(contenido.porColor){
+          window._nutriByColor=Object.assign({red:null,yellow:null,green:null},contenido.porColor);
+        } else if(contenido.comidas&&contenido.comidas.length){
+          // Formato legado: cargar en pestaña amarilla
+          window._nutriByColor={red:null,yellow:{comidas:contenido.comidas},green:null};
+        }
+        _nutriLoadTab(window._nutriActiveColor||'yellow');
+      },150);
     }
     toast('✅ Plantilla "'+p.nombre+'" cargada','ok');
   }catch(e){toast('Error cargando plantilla: '+e.message,'err');}
@@ -9141,19 +9203,17 @@ async function guardarComoPlanPlantilla(){
   var contenido={};
   try{
     if(tipo==='nutricion'){
-      var nc=S.ca&&S.ca.n_comidas||5;
-      contenido.comidas=Array.from({length:nc},(_,i)=>{
-        var nom=document.getElementById('pn-'+i)&&document.getElementById('pn-'+i).value||CN[i];
-        var als=[...document.querySelectorAll('[id^=pal-'+i+'-]')].map(r=>({
-          nombre:r.querySelector('.pal-n')&&r.querySelector('.pal-n').value||'',
-          gramos:parseFloat(r.querySelector('.pal-g')&&r.querySelector('.pal-g').value)||0,
-          kcal:parseFloat(r.querySelector('.pal-k')&&r.querySelector('.pal-k').value)||0,
-          p:parseFloat(r.querySelector('.pal-p')&&r.querySelector('.pal-p').value)||0,
-          c:parseFloat(r.querySelector('.pal-c')&&r.querySelector('.pal-c').value)||0,
-          g:parseFloat(r.querySelector('.pal-gg')&&r.querySelector('.pal-gg').value)||0,
-        })).filter(a=>a.nombre);
-        return{nombre:nom,alimentos:als};
+      _nutriSaveTab();
+      var _nbc2=window._nutriByColor||{};
+      var _pC2={};
+      ['red','yellow','green'].forEach(function(col){
+        var td=_nbc2[col];
+        if(td&&td.comidas&&td.comidas.some(function(m){return m.alimentos&&m.alimentos.length;})){
+          _pC2[col]=td;
+        }
       });
+      if(!Object.keys(_pC2).length){toast('Añade alimentos antes de guardar la plantilla','err');return;}
+      contenido.porColor=_pC2;
     } else {
       contenido.dias=(window._diasEntreno||[]).map(function(d){
         return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).filter(function(e){return e.nombre;})};
@@ -9183,6 +9243,14 @@ async function abrirCopiarDeCliente(){
     if(tipo==='entreno'){
       window._diasEntreno=(cont.dias||[]).map(function(d){return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).map(function(e){return Object.assign({},e);})};});
       renderDiasEntreno();
+    } else {
+      // Nutrición
+      if(cont.porColor){
+        window._nutriByColor=Object.assign({red:null,yellow:null,green:null},cont.porColor);
+      } else if(cont.comidas){
+        window._nutriByColor={red:null,yellow:{comidas:cont.comidas},green:null};
+      }
+      _nutriLoadTab(window._nutriActiveColor||'yellow');
     }
     toast('✅ Plan copiado de '+clientes[idx].nombre+' '+clientes[idx].apellido,'ok');
   }catch(e){toast('Error: '+e.message,'err');}
@@ -11395,18 +11463,35 @@ function renderNutriPlanManual(c, planManual, rn){
   if(nStatsEl) nStatsEl.style.display='none';
   if(!cont) return;
 
-  var comidas=planManual.comidas||[];
   var opComp=rn&&rn.opciones_completadas?rn.opciones_completadas:{};
 
-  // Badge color día ATR
+  // Badge color día ATR + extrae color para selección de dieta
   var f=S.fecha;
   var dow=new Date(f+'T12:00:00').getDay();
   var _DCOL={red:{label:'🔴 Día ROJO — Neural',bg:'rgba(255,23,68,.08)',border:'rgba(255,23,68,.25)'},green:{label:'🟢 Día VERDE — Energético',bg:'rgba(0,200,83,.08)',border:'rgba(0,200,83,.25)'},yellow:{label:'🟡 Día AMARILLO — Técnica',bg:'rgba(255,214,0,.08)',border:'rgba(255,214,0,.25)'}};
-  var dcInfo=null;
+  var dcInfo=null,_todayColorKey=null;
   try{
     var _ps=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
-    if(_ps){var _dp=parseDiaPlan(_ps[String(dow)]),_SATRL={fuerza:'red',fisico:'red',gym:'red',sparring:'red',tecnica:'yellow',acondicionamiento:'green',cardio:'green'},_ps2=(_dp.sessions||[]).filter(function(s){return s!=='descanso';})[0]||null,_dck=_ps2?(_SATRL[_ps2]||null):null;if(_dck)dcInfo=_DCOL[_dck];}
+    if(_ps){var _dp=parseDiaPlan(_ps[String(dow)]),_SATRL={fuerza:'red',fisico:'red',gym:'red',sparring:'red',tecnica:'yellow',acondicionamiento:'green',cardio:'green'},_ps2=(_dp.sessions||[]).filter(function(s){return s!=='descanso';})[0]||null,_dck=_ps2?(_SATRL[_ps2]||null):null;if(_dck){dcInfo=_DCOL[_dck];_todayColorKey=_dck;}}
   }catch(e){}
+
+  // Seleccionar comidas según formato del plan (nuevo porColor vs legado)
+  var comidas=[];
+  if(planManual.porColor){
+    var _cData=planManual.porColor[_todayColorKey||'yellow']||planManual.porColor['yellow']||null;
+    comidas=(_cData&&_cData.comidas)||[];
+    if(!comidas.length){
+      cont.innerHTML='<div class="card"><div class="cb" style="text-align:center;padding:1.5rem">'+
+        '<div style="font-size:2rem;margin-bottom:.5rem">⏳</div>'+
+        '<div style="color:#4A5568;font-size:13px">Sin plan de nutrición para el día de hoy.</div>'+
+        '<div style="color:#6E8090;font-size:11px;margin-top:.25rem">El entrenador asignará la dieta de este color pronto.</div>'+
+      '</div></div>';
+      return;
+    }
+  } else {
+    // Formato legado (contenido.comidas directo) — retrocompatibilidad
+    comidas=planManual.comidas||[];
+  }
 
   // Calcular totales de lo completado
   var totP=0,totC=0,totG=0,totK=0,totPObj=0,totCObj=0,totGObj=0,totKObj=0;
