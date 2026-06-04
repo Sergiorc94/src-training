@@ -10145,6 +10145,10 @@ async function loadInicio(){
           cardio:          {icon:'🏃',label:'Cardio',          color:'#00E5FF',borderColor:'rgba(0,229,255,.2)', isGym:false},
           descanso:        {icon:'😴',label:'Descanso',        color:'#4A5568',borderColor:'#1A2A40',            isGym:false},
         };
+        // Si el día combina técnica+fuerza, la tarjeta muestra el GYM (lo que hay que registrar)
+        var _allSes2=(_dpH&&_dpH.sessions)||[_sesType];
+        var _hasGymSes=_allSes2.some(function(s){return s==='fuerza'||s==='gym'||s==='fisico';});
+        if(_hasGymSes) _sesType='fuerza';
         _sesInfo=_SESMAP[_sesType]||_SESMAP.fuerza;
 
         if(!_sesInfo.isGym){
@@ -10331,8 +10335,15 @@ function renderSemanaCalendario(c){
   var cardsHtml=dias.map(function(d){
     var isHoy=d.isHoy;
 
-    // Determinar color ATR del día según sesión principal
-    var primarySes=d.sessions.length>0&&!d.sessions.includes('descanso')?d.sessions[0]:null;
+    // Determinar color ATR del día según la sesión más intensa
+    // (sparring/fuerza=rojo, tecnica=amarillo, acond=verde, descanso=sin color)
+    var _INTENS={sparring:3,fuerza:3,gym:3,fisico:3,tecnica:2,acondicionamiento:1,cardio:1,descanso:0};
+    var primarySes=null;
+    if(d.sessions.length>0&&!d.sessions.every(function(s){return s==='descanso';})){
+      primarySes=d.sessions.reduce(function(best,s){
+        return !best||(_INTENS[s]||0)>(_INTENS[best]||0)?s:best;
+      },null);
+    }
     var diaColor=primarySes?(SESSION_INFO[primarySes]||{}).diaColor||null:null;
     var dcMap=diaColor?DIA_COLOR_MAP[diaColor]:null;
 
@@ -11244,17 +11255,26 @@ async function loadCamp(){
     var isHoy=(realDow===_hoyDow);
 
     var icon,label,col,extra='';
-    if(gymSes){
+    // PRIORIDAD: plan_semanal manual primero; getSesionGuia solo como fallback
+    if(planEntry&&planEntry.s&&planEntry.s[0]&&planEntry.s[0]!=='descanso'){
+      // Sesión asignada manualmente — puede ser múltiple (técnica+fuerza)
+      var allSes=planEntry.s;
+      // Sesión más intensa determina icono y color principal
+      var _INTCAMP={sparring:3,fuerza:3,gym:3,fisico:3,tecnica:2,acondicionamiento:1,cardio:1};
+      var mainKey=allSes.reduce(function(b,s){return (_INTCAMP[s]||0)>(_INTCAMP[b]||0)?s:b;},allSes[0]);
+      var st=_STYPE[mainKey]||_STYPE.descanso;
+      icon=st.icon; label=st.label; col=st.col;
+      // Sesiones adicionales
+      var extraSes=allSes.filter(function(s){return s!==mainKey;});
+      extraSes.forEach(function(s){
+        var st2=_STYPE[s];
+        if(st2) extra+=' <span style="font-size:9px;color:rgba('+st2.col+',.8)">+ '+st2.icon+'</span>';
+      });
+    } else if(gymSes){
+      // Fallback: sesión generada automáticamente (plan viejo)
       icon=gymSes.emoji||'💪';
       label=_shortNom(gymSes);
       col=faseCol;
-    } else if(planEntry&&planEntry.s&&planEntry.s[0]){
-      var st=_STYPE[planEntry.s[0]]||_STYPE.descanso;
-      icon=st.icon; label=st.label; col=st.col;
-      if(planEntry.s[1]){
-        var st2=_STYPE[planEntry.s[1]]||_STYPE.descanso;
-        extra=' <span style="font-size:9px;color:rgba('+st2.col+',.8)">+ '+st2.label+'</span>';
-      }
     } else {
       icon='🛌'; label='Descanso'; col='74,85,104';
     }
