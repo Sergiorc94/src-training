@@ -331,6 +331,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         <button class="btn bg bsm" id="at-ci" style="flex:1" onclick="adminTab('ci',this)">Check-ins</button>
         <button class="btn bg bsm" id="at-cfg" style="flex:1" onclick="adminTab('cfg',this)">Config</button>
         <button class="btn bg bsm" id="at-plan" style="flex:1" onclick="adminTab('plan',this)">📊 Plan</button>
+        <button class="btn bg bsm" id="at-perfil" style="flex:1" onclick="adminTab('perfil',this)">👤 Perfil</button>
       </div>
       <div id="vc-content"></div>
     </div>
@@ -8279,6 +8280,29 @@ async function adminTab(tab,btn){
       renderPlanificador(cl, false)+
     '</div></div>';
   }
+  else if(tab==='perfil'){
+    // Muestra el cuestionario/perfil del cliente en contexto admin
+    window._adminCuestionario=S.ca;
+    var _origUser=S.user;
+    S.user=S.ca; // loadCuestionario usa S.user para pre-rellenar
+    showSec('cuestionario');
+    loadCuestionario();
+    S.user=_origUser;
+    // Botón volver al admin
+    var _bvEl=document.getElementById('cuest-back-admin');
+    if(!_bvEl){
+      var _bv=document.createElement('div');
+      _bv.id='cuest-back-admin';
+      _bv.style.cssText='position:sticky;top:0;z-index:100;background:#070E1A;padding:8px 1rem;border-bottom:1px solid #1A2A40;display:flex;align-items:center;gap:8px';
+      _bv.innerHTML='<button onclick="window._adminCuestionario=null;showSec(\'vc\');adminTab(\'hoy\',document.getElementById(\'at-hoy\'))" '+
+        'style="background:rgba(255,255,255,.06);border:1px solid #1A2A40;color:#F0F4FF;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">'+
+        '← Volver al cliente</button>'+
+        '<span style="font-size:13px;font-weight:700;color:#4D9FFF">Perfil de '+S.ca.nombre+' '+S.ca.apellido+'</span>';
+      var _sec=document.getElementById('sec-cuestionario');
+      if(_sec) _sec.insertBefore(_bv, _sec.firstChild);
+    }
+    return;
+  }
   else if(tab==='cfg'){
     const cl=S.ca;
     cont.innerHTML='<div class="card"><div class="ch">⚙️ Configuración</div><div class="cb">'+
@@ -9648,8 +9672,10 @@ async function enviarCuestionario(){
     fecha: new Date().toISOString().split('T')[0]
   };
 
+  // En modo admin, guardamos sobre S.ca en vez de S.user
+  var _tgt=window._adminCuestionario||S.user;
   // Datos extra de combate si aplica
-  var esCombate=S.user&&S.user.tipo_cliente==='combate';
+  var esCombate=_tgt&&_tgt.tipo_cliente==='combate';
   var planSemJson=null;
   if(esCombate){
     datos.deporte=document.getElementById('q-c-deporte').value||'';
@@ -9688,7 +9714,7 @@ async function enviarCuestionario(){
       altura: datos.altura
     };
     if(planSemJson) patchBase.plan_semanal=planSemJson;
-    await db.patch('clientes','id=eq.'+S.user.id, patchBase);
+    await db.patch('clientes','id=eq.'+_tgt.id, patchBase);
     // Marcar cuestionario completado + campos extra vía RPC (SECURITY DEFINER)
     if(esCombate){
       try{
@@ -9703,9 +9729,8 @@ async function enviarCuestionario(){
           peso_categoria:datos.peso_categoria||null
         };
         if(datos.dias_sparring!==undefined) rpcBody.dias_sparring=datos.dias_sparring;
-        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:S.user.id,p_datos:rpcBody})});
-        // Actualizar S.user para que la app reaccione de inmediato
-        Object.assign(S.user,{
+        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:_tgt.id,p_datos:rpcBody})});
+        Object.assign(_tgt,{
           deporte:datos.deporte,
           nivel_combate:datos.nivel_combate,
           dias_prep_fisica:datos.dias_fuerza||3,
@@ -9715,20 +9740,28 @@ async function enviarCuestionario(){
         });
       }catch(e2){console.warn('extras combate:',e2);}
     } else {
-      // No-combat: marcar cuestionario_completado vía RPC
       try{
-        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:S.user.id,p_datos:{cuestionario_completado:true}})});
+        await api('rpc/actualizar_cliente_extras',{method:'POST',body:JSON.stringify({p_id:_tgt.id,p_datos:{cuestionario_completado:true}})});
       }catch(e3){console.warn('cuestionario_completado rpc:',e3);}
     }
-    S.user.cuestionario_completado = true;
-    S.user.cuestionario_datos = datos;
-    if(planSemJson) S.user.plan_semanal=planSemJson;
+    _tgt.cuestionario_completado = true;
+    _tgt.cuestionario_datos = datos;
+    if(planSemJson) _tgt.plan_semanal=planSemJson;
     okSav();
-    toast('✅ Cuestionario guardado. Tu plan semanal está listo 🎯','ok');
-    // Keep on cuestionario tab, show success
-    document.querySelector('#sec-cuestionario .btn.bp').textContent='✅ Cuestionario enviado';
-    document.querySelector('#sec-cuestionario .btn.bp').style.background='#00C853';
-    buildTabs();
+    // Si estamos en modo admin: volver al panel admin
+    if(window._adminCuestionario){
+      toast('✅ Perfil de '+_tgt.nombre+' guardado','ok');
+      window._adminCuestionario=null;
+      var _bvEl2=document.getElementById('cuest-back-admin');
+      if(_bvEl2) _bvEl2.remove();
+      showSec('vc');
+      adminTab('hoy',document.getElementById('at-hoy'));
+    } else {
+      toast('✅ Cuestionario guardado. Tu plan semanal está listo 🎯','ok');
+      document.querySelector('#sec-cuestionario .btn.bp').textContent='✅ Cuestionario enviado';
+      document.querySelector('#sec-cuestionario .btn.bp').style.background='#00C853';
+      buildTabs();
+    }
     // AUTO-GENERATE PLAN — DESACTIVADO: el entrenador sube el plan manualmente
     // try{ await generarPlanAutomatico(S.user, datos); }catch(pe){console.warn('plan gen:',pe);}
   }catch(e){
