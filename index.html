@@ -10118,53 +10118,105 @@ async function loadInicio(){
       if(!peHoy){
         entCard.innerHTML='<div class="card"><div class="ch">💪 Entrenamiento</div><div class="cb"><div style="font-size:12px;color:#4A5568">Sin plan asignado aún</div></div></div>';
       } else {
-        // Determinar sesión de hoy desde el plan
         var dias=peHoy.contenido&&peHoy.contenido.dias||[];
         var sched=peHoy.contenido&&peHoy.contenido.schedule||null;
         var hoyDow=new Date().getDay();
         var hoyIdx=hoyDow===0?6:hoyDow-1;
-        var diHoy=null;
-        if(sched&&sched[hoyIdx]!==undefined&&sched[hoyIdx]!=='') diHoy=parseInt(sched[hoyIdx]);
-        else diHoy=hoyIdx%Math.max(dias.length,1);
-        var diaHoy=dias[diHoy]||dias[0];
-        var ejTotal=diaHoy?(diaHoy.ejercicios||[]).length:0;
-        // Series completadas hoy
-        var ejHechos=0;
-        if(reHoy&&reHoy.ejercicios&&diaHoy){
-          (diaHoy.ejercicios||[]).forEach(function(ej){
-            var saved=reHoy.ejercicios[ej.nombre];
-            if(saved&&(saved.series||[]).some(function(s){return s.done;})) ejHechos++;
-          });
+
+        // ── Leer tipo de sesión desde plan_semanal (mismo origen que "Mi semana") ──
+        var _sesInfo={icon:'💪',label:'Entrenamiento',color:'#4D9FFF',borderColor:'#1A2A40',isGym:true};
+        var _sesType='fuerza';
+        var _psObj=null;
+        try{var _ps=c.plan_semanal;_psObj=_ps?(typeof _ps==='string'?JSON.parse(_ps):_ps):null;}catch(e){}
+        if(_psObj){
+          var _entryHoy=_psObj[String(hoyDow)];
+          if(_entryHoy){
+            var _dpH=parseDiaPlan(_entryHoy);
+            _sesType=(_dpH.sessions||[])[0]||'descanso';
+          }
         }
-        var sesCompleta=reHoy&&reHoy.completado;
-        var pctEj=ejTotal?Math.round(ejHechos/ejTotal*100):0;
-        var colEj=sesCompleta?'#00C853':pctEj>0?'#FFB300':'#4A5568';
-        entCard.innerHTML='<div class="card" style="border-color:'+(sesCompleta?'rgba(0,200,83,.2)':pctEj>0?'rgba(255,179,0,.15)':'#1A2A40')+'">'+
-          '<div class="ch">💪 Entrenamiento hoy'+
-            '<div style="margin-left:auto;font-size:11px;font-weight:700;color:'+colEj+'">'+
-              (sesCompleta?'✅ Completado':pctEj>0?ejHechos+'/'+ejTotal+' ej.':'Pendiente')+
+        var _SESMAP={
+          fuerza:          {icon:'💪',label:'Fuerza',          color:'#4D9FFF',borderColor:'rgba(77,159,255,.2)', isGym:true},
+          gym:             {icon:'💪',label:'Fuerza',          color:'#4D9FFF',borderColor:'rgba(77,159,255,.2)', isGym:true},
+          fisico:          {icon:'💪',label:'Fuerza',          color:'#4D9FFF',borderColor:'rgba(77,159,255,.2)', isGym:true},
+          sparring:        {icon:'🥊',label:'Sparring',        color:'#FF6B35',borderColor:'rgba(255,107,53,.2)', isGym:false},
+          tecnica:         {icon:'🥋',label:'Técnica',         color:'#FFB300',borderColor:'rgba(255,179,0,.2)',  isGym:false},
+          acondicionamiento:{icon:'🏃',label:'Acondicionamiento',color:'#00E5FF',borderColor:'rgba(0,229,255,.2)',isGym:false},
+          cardio:          {icon:'🏃',label:'Cardio',          color:'#00E5FF',borderColor:'rgba(0,229,255,.2)', isGym:false},
+          descanso:        {icon:'😴',label:'Descanso',        color:'#4A5568',borderColor:'#1A2A40',            isGym:false},
+        };
+        _sesInfo=_SESMAP[_sesType]||_SESMAP.fuerza;
+
+        if(!_sesInfo.isGym){
+          // Día sin fuerza: sparring / técnica / acondicionamiento / descanso
+          var sesCompleta=reHoy&&reHoy.completado;
+          entCard.innerHTML='<div class="card" style="border-color:'+_sesInfo.borderColor+'">'+
+            '<div class="ch">'+_sesInfo.icon+' Entrenamiento hoy'+
+              (sesCompleta?'<div style="margin-left:auto;font-size:11px;font-weight:700;color:#00C853">✅ Registrado</div>':'')+
             '</div>'+
-          '</div>'+
-          '<div class="cb">'+
-            '<div style="display:flex;align-items:center;gap:10px">'+
+            '<div class="cb"><div style="display:flex;align-items:center;gap:10px">'+
               '<div style="flex:1">'+
-                '<div style="font-size:14px;font-weight:800;color:#F0F4FF;margin-bottom:4px">'+
-                  (diaHoy?diaHoy.nombre:'—')+
+                '<div style="font-size:14px;font-weight:800;color:'+_sesInfo.color+';margin-bottom:4px">'+_sesInfo.label+'</div>'+
+                '<div style="font-size:11px;color:#4A5568">'+
+                  (reHoy&&reHoy.sensaciones?'Sensaciones: <span style="color:#0055FF;font-weight:700">'+reHoy.sensaciones+'/10</span>':'Sin registrar aún')+
                 '</div>'+
-                '<div style="font-size:11px;color:#4A5568">'+ejTotal+' ejercicios'+
-                  (reHoy&&reHoy.sensaciones?' · Sensaciones: <span style="color:#0055FF;font-weight:700">'+reHoy.sensaciones+'/10</span>':'')+
-                '</div>'+
-                (pctEj>0&&!sesCompleta?
-                  '<div style="height:3px;background:#1A2A40;border-radius:2px;margin-top:6px"><div style="height:100%;width:'+pctEj+'%;background:#FFB300;border-radius:2px"></div></div>':'')+
               '</div>'+
-              '<button onclick="onTab(\'entreno\',document.querySelector(\'[onclick*=entreno]\'))" '+
-                'style="padding:10px 16px;border-radius:8px;border:none;background:'+(sesCompleta?'rgba(0,200,83,.1)':'rgba(0,85,255,.15)')+';'+
-                'color:'+(sesCompleta?'#00C853':'#4D9FFF')+';font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">'+
-                (sesCompleta?'Ver →':'Entrenar →')+
-              '</button>'+
+              '<button onclick="mobTab(\'entreno\',document.getElementById(\'mn-entreno\'))" '+
+                'style="padding:10px 16px;border-radius:8px;border:none;background:rgba(255,255,255,.06);'+
+                'color:#F0F4FF;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">Ver →</button>'+
+            '</div></div>'+
+          '</div>';
+        } else {
+          // Día de fuerza: mostrar sesión del plan manual
+          var _gymIdx=null;
+          // Primero: gym_dia_idx de plan_semanal (sistema nuevo)
+          if(_psObj&&_psObj[String(hoyDow)]&&_psObj[String(hoyDow)].gym_dia_idx!==undefined){
+            _gymIdx=parseInt(_psObj[String(hoyDow)].gym_dia_idx);
+          }
+          // Fallback: schedule legacy
+          if(_gymIdx===null){
+            if(sched&&sched[hoyIdx]!==undefined&&sched[hoyIdx]!=='') _gymIdx=parseInt(sched[hoyIdx]);
+            else _gymIdx=hoyIdx%Math.max(dias.length,1);
+          }
+          var diaHoy=dias[_gymIdx]||dias[0];
+          var ejTotal=diaHoy?(diaHoy.ejercicios||[]).filter(function(e){return e.tipo!=='Calentamiento';}).length:0;
+          var ejHechos=0;
+          if(reHoy&&reHoy.ejercicios&&diaHoy){
+            (diaHoy.ejercicios||[]).filter(function(e){return e.tipo!=='Calentamiento';}).forEach(function(ej){
+              var saved=reHoy.ejercicios[ej.nombre];
+              if(saved&&(saved.series||[]).some(function(s){return s.done;})) ejHechos++;
+            });
+          }
+          var sesCompleta=reHoy&&reHoy.completado;
+          var pctEj=ejTotal?Math.round(ejHechos/ejTotal*100):0;
+          var colEj=sesCompleta?'#00C853':pctEj>0?'#FFB300':'#4A5568';
+          entCard.innerHTML='<div class="card" style="border-color:'+(sesCompleta?'rgba(0,200,83,.2)':pctEj>0?'rgba(255,179,0,.15)':'#1A2A40')+'">'+
+            '<div class="ch">💪 Entrenamiento hoy'+
+              '<div style="margin-left:auto;font-size:11px;font-weight:700;color:'+colEj+'">'+
+                (sesCompleta?'✅ Completado':pctEj>0?ejHechos+'/'+ejTotal+' ej.':'Pendiente')+
+              '</div>'+
             '</div>'+
-          '</div>'+
-        '</div>';
+            '<div class="cb">'+
+              '<div style="display:flex;align-items:center;gap:10px">'+
+                '<div style="flex:1">'+
+                  '<div style="font-size:14px;font-weight:800;color:#F0F4FF;margin-bottom:4px">'+
+                    (diaHoy?diaHoy.nombre:'—')+
+                  '</div>'+
+                  '<div style="font-size:11px;color:#4A5568">'+ejTotal+' ejercicios'+
+                    (reHoy&&reHoy.sensaciones?' · Sensaciones: <span style="color:#0055FF;font-weight:700">'+reHoy.sensaciones+'/10</span>':'')+
+                  '</div>'+
+                  (pctEj>0&&!sesCompleta?
+                    '<div style="height:3px;background:#1A2A40;border-radius:2px;margin-top:6px"><div style="height:100%;width:'+pctEj+'%;background:#FFB300;border-radius:2px"></div></div>':'')+
+                '</div>'+
+                '<button onclick="mobTab(\'entreno\',document.getElementById(\'mn-entreno\'))" '+
+                  'style="padding:10px 16px;border-radius:8px;border:none;background:'+(sesCompleta?'rgba(0,200,83,.1)':'rgba(0,85,255,.15)')+';'+
+                  'color:'+(sesCompleta?'#00C853':'#4D9FFF')+';font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">'+
+                  (sesCompleta?'Ver →':'Entrenar →')+
+                '</button>'+
+              '</div>'+
+            '</div>'+
+          '</div>';
+        }
       }
     }
 
