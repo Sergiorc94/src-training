@@ -9206,8 +9206,24 @@ document.getElementById('btn-guardar-plan').onclick=async function(){
     contenido.schedule=_schNew;
   }
   try{
-    await db.patch('planes','cliente_id=eq.'+c.id+'&tipo=eq.'+tipo,{activo:false}).catch(()=>{});
-    await db.post('planes',{cliente_id:c.id,tipo,contenido,activo:true,semana_inicio:hoy()});
+    if(tipo==='nutricion'){
+      // NUTRICIÓN: merge del color en el plan existente — NO borrar los demás colores
+      var _exArr=await db.get('planes','cliente_id=eq.'+c.id+'&tipo=eq.nutricion&activo=eq.true&limit=1').catch(function(){return [];});
+      var _exPlan=_exArr&&_exArr[0]||null;
+      if(_exPlan){
+        // Fusionar: conservar colores existentes, sobreescribir solo los nuevos
+        var _exPC=(_exPlan.contenido&&_exPlan.contenido.porColor)||{};
+        var _merged=Object.assign({},_exPlan.contenido||{},{porColor:Object.assign({},_exPC,contenido.porColor)});
+        await db.patch('planes','id=eq.'+_exPlan.id,{contenido:_merged});
+      } else {
+        // Primera vez: crear plan nuevo
+        await db.post('planes',{cliente_id:c.id,tipo:'nutricion',contenido:contenido,activo:true,semana_inicio:hoy()});
+      }
+    } else {
+      // ENTRENO: desactivar anterior y crear nuevo (comportamiento existente)
+      await db.patch('planes','cliente_id=eq.'+c.id+'&tipo=eq.'+tipo,{activo:false}).catch(()=>{});
+      await db.post('planes',{cliente_id:c.id,tipo,contenido,activo:true,semana_inicio:hoy()});
+    }
     // Guardar plan_semanal en el cliente (solo si es entreno con schedule definido)
     if(tipo==='entreno'&&Object.keys(_psNew||{}).length){
       var _psStr=JSON.stringify(_psNew);
