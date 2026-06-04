@@ -10477,7 +10477,7 @@ function renderPasosWidget(){
   if(!el) return;
   var c=S.user;
   if(!c||c.tipo_cliente!=='combate'){el.innerHTML='';return;}
-  var saved=JSON.parse(localStorage.getItem('src_pasos_'+hoy())||'null');
+  var saved=JSON.parse(localStorage.getItem('src_pasos_'+(c&&c.id||'x')+'_'+hoy())||'null');
   if(saved!==null){
     var info=_pasosInfo(saved);
     el.innerHTML=
@@ -10488,7 +10488,7 @@ function renderPasosWidget(){
           '<div style="font-size:20px;font-weight:900;color:rgba('+info.col+',1)">'+saved.toLocaleString('es-ES')+
             ' <span style="font-size:12px;font-weight:600">'+info.label+'</span></div>'+
         '</div>'+
-        '<button onclick="localStorage.removeItem(\'src_pasos_\'+hoy());renderPasosWidget()" style="background:none;border:none;color:#4A5568;font-size:11px;cursor:pointer">↩ Editar</button>'+
+        '<button onclick="localStorage.removeItem(\'src_pasos_\'+(S.user&&S.user.id||\'x\')+\'_\'+hoy());renderPasosWidget()" style="background:none;border:none;color:#4A5568;font-size:11px;cursor:pointer">↩ Editar</button>'+
       '</div>';
     return;
   }
@@ -10532,7 +10532,7 @@ async function guardarPasos(){
   var c=S.user; if(!c) return;
   try{
     await db.upsert('registros_entreno',{cliente_id:c.id,fecha:hoy(),pasos_diarios:n},'cliente_id,fecha');
-    localStorage.setItem('src_pasos_'+hoy(),JSON.stringify(n));
+    localStorage.setItem('src_pasos_'+(c&&c.id||'x')+'_'+hoy(),JSON.stringify(n));
     renderPasosWidget();
     toast('👟 '+n.toLocaleString('es-ES')+' pasos guardados','ok');
   }catch(e){toast('Error: '+e.message,'err');}
@@ -11833,11 +11833,13 @@ function getDistribucion(nc, modo, preIdx, postIdx){
 // ═══════════════════════════════════════════════════════════
 // ─── READINESS DIARIO ─────────────────────────────────────────────────────────
 function getReadinessHoy(){
-  try{ return JSON.parse(localStorage.getItem('src_readiness_'+hoy())||'null'); }
+  var uid=S.user&&S.user.id||'x';
+  try{ return JSON.parse(localStorage.getItem('src_readiness_'+uid+'_'+hoy())||'null'); }
   catch(e){ return null; }
 }
 function setReadinessHoy(data){
-  localStorage.setItem('src_readiness_'+hoy(), JSON.stringify(data));
+  var uid=S.user&&S.user.id||'x';
+  localStorage.setItem('src_readiness_'+uid+'_'+hoy(), JSON.stringify(data));
 }
 function calcReadinessScore(d){
   return Math.round(((d.sueno*0.30+d.musculos*0.30+d.cabeza*0.20+d.energia*0.20)/5)*100);
@@ -11916,7 +11918,7 @@ function renderReadinessWidget(){
     var info=getReadinessInfo(saved.score);
     el.innerHTML='<div class="card" style="border:1px solid rgba('+info.color+',.3);background:rgba('+info.color+',.03)">'+
       '<div class="ch" style="color:rgba('+info.color+',1)">'+info.emoji+' Check-in — '+saved.score+'%'+
-        '<button onclick="localStorage.removeItem(\'src_readiness_\'+hoy());renderReadinessWidget();if(S.combatMacros)renderTipoDiaCombate();" style="margin-left:auto;background:none;border:none;color:#4A5568;cursor:pointer;font-size:11px;padding:0">↩ Editar</button>'+
+        '<button onclick="localStorage.removeItem(\'src_readiness_\'+(S.user&&S.user.id||\'x\')+\'_\'+hoy());renderReadinessWidget();if(S.combatMacros)renderTipoDiaCombate();" style="margin-left:auto;background:none;border:none;color:#4A5568;cursor:pointer;font-size:11px;padding:0">↩ Editar</button>'+
       '</div>'+
       '<div class="cb" style="padding-top:6px">'+
         '<div style="display:flex;gap:6px;margin-bottom:8px">'+
