@@ -939,18 +939,6 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
       <!-- 4. BANNER DE FASE / PLAN -->
       <div id="plan-banner" style="margin-bottom:.75rem"></div>
 
-      <!-- 5. OBJETIVO DEL DÍA — macros + progreso nutricional -->
-      <div class="card">
-        <div class="ch">🎯 Objetivo del día</div>
-        <div class="cb">
-          <div class="g4" id="i-macros" style="margin-bottom:1rem"></div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:#4A5568;margin-bottom:4px">
-            <span>Completado hoy</span><span id="i-pct">0%</span>
-          </div>
-          <div class="pbar"><div class="pfill" id="i-prog" style="background:#0055FF;width:0%"></div></div>
-        </div>
-      </div>
-
       <!-- 6. ENTRENAMIENTO HOY — acción principal del día -->
       <div id="i-entreno-card"></div>
 
@@ -963,42 +951,6 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
       <!-- 9. ESTADÍSTICAS — datos secundarios -->
       <div class="g3" id="i-stats" style="margin-top:.75rem"></div>
 
-      <!-- 10. GUÍA DE INICIO (solo nuevos usuarios, oculta por defecto) -->
-      <div id="guia-inicio" class="card" style="margin-top:.75rem;display:none">
-        <div class="ch">🚀 ¿Por dónde empiezo?</div>
-        <div class="cb">
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div style="display:flex;align-items:center;gap:12px;padding:8px;background:#0D1528;border-radius:8px;cursor:pointer" onclick="onTab('nutri',document.querySelector('[onclick*=nutri]'))">
-              <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,179,0,.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🥗</div>
-              <div>
-                <div style="font-weight:700;color:#F0F4FF;font-size:14px">1. Elige tus comidas del día</div>
-                <div style="font-size:12px;color:#4A5568">Selecciona cuántas comidas vas a hacer y elige tus platos</div>
-              </div>
-              <div style="margin-left:auto;color:#4A5568">→</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px;padding:8px;background:#0D1528;border-radius:8px;cursor:pointer" onclick="onTab('entreno',document.querySelector('[onclick*=entreno]'))">
-              <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,229,255,.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💪</div>
-              <div>
-                <div style="font-weight:700;color:#F0F4FF;font-size:14px">2. Registra tu entrenamiento</div>
-                <div style="font-size:12px;color:#4A5568">Apunta tus cargas y marca los ejercicios completados</div>
-              </div>
-              <div style="margin-left:auto;color:#4A5568">→</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px;padding:8px;background:#0D1528;border-radius:8px;cursor:pointer" onclick="onTab('prog',document.querySelector('[onclick*=prog]'))">
-              <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,200,83,.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📈</div>
-              <div>
-                <div style="font-weight:700;color:#F0F4FF;font-size:14px">3. Registra tu peso semanal</div>
-                <div style="font-size:12px;color:#4A5568">Pésate y anótalo para ver tu evolución</div>
-              </div>
-              <div style="margin-left:auto;color:#4A5568">→</div>
-            </div>
-          </div>
-          <button onclick="document.getElementById('guia-inicio').style.display='none';localStorage.setItem('guia_vista','1')"
-            style="margin-top:.75rem;background:none;border:none;color:#4A5568;font-size:12px;cursor:pointer;width:100%">
-            Entendido, no mostrar más
-          </button>
-        </div>
-      </div>
 
     </div>
 
@@ -9922,7 +9874,7 @@ async function loadInicio(){
   var bannerEl = document.getElementById('cuest-banner');
   if(bannerEl) bannerEl.innerHTML='';
   // Show guide if first time
-  var guiaEl=document.getElementById('guia-inicio');
+  var guiaEl=null; // bloque guia eliminado
   if(guiaEl && !localStorage.getItem('guia_vista')){
     guiaEl.style.display='';
   }
@@ -10041,31 +9993,6 @@ async function loadInicio(){
   renderPasosWidget();
   var planBanner=document.getElementById('plan-banner');
   if(planBanner) planBanner.innerHTML=renderPlanificador(c,true);
-  var iObj=getActiveObjetivos();
-  if(c.tipo_cliente==='combate'){
-    // Combat: show fight countdown + camp phase instead of fitness macros
-    var fase=getFaseCombate(c);
-    var faseP=FASE_COMBATE_PARAMS[fase];
-    var diasPelea=0;
-    if(c.fecha_pelea){var fp2=new Date(c.fecha_pelea),hD2=new Date();hD2.setHours(0,0,0,0);diasPelea=Math.max(0,Math.ceil((fp2-hD2)/(24*3600*1000)));}
-    var mCombat=calcMacrosCombate(c)||{};
-    var mActivo=mCombat.tecnica||{};
-    document.getElementById('i-macros').innerHTML=
-      (c.fecha_pelea?
-        '<div style="grid-column:1/-1;background:rgba('+(diasPelea<=7?'255,23,68':diasPelea<=21?'255,179,0':'200,232,102')+',.06);border:1px solid rgba('+(diasPelea<=7?'255,23,68':diasPelea<=21?'255,179,0':'200,232,102')+',.2);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px">'+
-          '<div style="font-size:32px;font-weight:900;color:'+(diasPelea<=7?'#FF1744':diasPelea<=21?'#FFB300':'#C8E866')+'">'+diasPelea+'</div>'+
-          '<div><div style="font-size:11px;color:#4A5568;text-transform:uppercase;font-weight:700">días para la pelea</div>'+
-          '<div style="font-size:13px;font-weight:700;color:rgba('+(diasPelea<=7?'255,23,68':diasPelea<=21?'255,179,0':'200,232,102')+',1)">'+faseP.label+'</div></div>'+
-          '<div style="margin-left:auto;font-size:11px;color:#4A5568">'+c.fecha_pelea+'</div>'+
-        '</div>':'')+
-      [['Kcal',Math.round(mActivo.k||0),'#7986CB'],['Prot',Math.round(mActivo.p||0)+'g','#00E5FF'],['Carb',Math.round(mActivo.c||0)+'g','#FFB300'],['Gras',Math.round(mActivo.g||0)+'g','#F48FB1']]
-        .map(([l,v,col])=>'<div class="mp"><div class="mpv" style="color:'+col+'">'+v+'</div><div class="mpl">'+l+'</div></div>').join('');
-  } else {
-    document.getElementById('i-macros').innerHTML=[
-      ['Kcal',iObj.k||0,'#7986CB'],['Prot',(iObj.p||0)+'g','#00E5FF'],
-      ['Carb',(iObj.c||0)+'g','#FFB300'],['Gras',(iObj.g||0)+'g','#F48FB1']
-    ].map(([l,v,col])=>'<div class="mp"><div class="mpv" style="color:'+col+'">'+v+'</div><div class="mpl">'+l+'</div></div>').join('');
-  }
   try{
     var [_rn, _re, _reHist, _pe] = await Promise.all([
       db.get('registros_nutricion','cliente_id=eq.'+c.id+'&fecha=eq.'+hoy()),
@@ -10085,10 +10012,6 @@ async function loadInicio(){
       var twEl=document.getElementById('tatami-inicio-widget');
       if(twEl) twEl.style.display='none';
     }
-    const pct=iObj.k>0?Math.min(100,Math.round((S.rn&&S.rn.kcal_real||0)/iObj.k*100)):0;
-    document.getElementById('i-prog').style.width=pct+'%';
-    document.getElementById('i-pct').textContent=pct+'%';
-
     // Racha de días activos
     var racha=0, hoyStr=hoy();
     if(_reHist&&_reHist.length){
