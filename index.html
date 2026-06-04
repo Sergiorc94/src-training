@@ -8945,6 +8945,14 @@ function renderPlanForm(){
   // ── 2. Cuerpo del formulario ──────────────────────────────────
   var _formHtml='';
   if(tipo==='nutricion'){
+    // Selector nº de comidas
+    var _ncSel='<div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding:8px 10px;background:#0D1528;border-radius:7px;border:1px solid #1A2A40">'+
+      '<span style="font-size:11px;font-weight:700;color:#F0F4FF">🍽️ Nº de comidas</span>'+
+      '<select id="plan-nc" class="isml" style="width:72px;padding:5px;font-size:12px" onchange="cambiarNcNutri(parseInt(this.value))">'+
+        [3,4,5,6].map(function(n){return '<option value="'+n+'"'+(n===nc?' selected':'')+'>'+n+'</option>';}).join('')+
+      '</select>'+
+      '<span style="font-size:10px;color:#4A5568">(cambia → regenera filas)</span>'+
+    '</div>';
     // Pestañas de color de día
     var _colorTabs=
       '<div style="display:flex;gap:4px;margin-bottom:.75rem">'+
@@ -8957,16 +8965,20 @@ function renderPlanForm(){
             'color:'+(act?'#F0F4FF':'#4A5568')+'">'+t[1]+'</button>';
         }).join('')+
       '</div>';
-    _formHtml=_colorTabs+Array.from({length:nc},function(_,i){
-      return '<div style="background:#0D1528;border-radius:8px;padding:.75rem;margin-bottom:.75rem;border:1px solid #1A2A40">'+
-        '<div class="field"><label>Comida '+(i+1)+'</label><input type="text" id="pn-'+i+'" value="'+(CN[i]||'Comida '+(i+1))+'"></div>'+
-        '<div style="display:grid;grid-template-columns:1fr 55px 45px 40px 40px 40px auto;gap:3px;font-size:9px;color:#4A5568;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">'+
-          '<span>Alimento</span><span>Gramos</span><span>Kcal</span><span>P</span><span>C</span><span>G</span><span></span>'+
-        '</div>'+
-        '<div id="pnl-'+i+'"></div>'+
-        '<button class="btn bg bsm" style="margin-top:4px;font-size:11px" onclick="addAl('+i+')">+ Alimento</button>'+
+    // Filas de comidas (en contenedor reutilizable por cambiarNcNutri)
+    _formHtml=_ncSel+_colorTabs+
+      '<div id="nutri-rows-container">'+
+      Array.from({length:nc},function(_,i){
+        return '<div style="background:#0D1528;border-radius:8px;padding:.75rem;margin-bottom:.75rem;border:1px solid #1A2A40">'+
+          '<div class="field"><label>Comida '+(i+1)+'</label><input type="text" id="pn-'+i+'" value="'+(CN[i]||'Comida '+(i+1))+'"></div>'+
+          '<div style="display:grid;grid-template-columns:1fr 55px 45px 40px 40px 40px auto;gap:3px;font-size:9px;color:#4A5568;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">'+
+            '<span>Alimento</span><span>Gramos</span><span>Kcal</span><span>P</span><span>C</span><span>G</span><span></span>'+
+          '</div>'+
+          '<div id="pnl-'+i+'"></div>'+
+          '<button class="btn bg bsm" style="margin-top:4px;font-size:11px" onclick="addAl('+i+')">+ Alimento</button>'+
+        '</div>';
+      }).join('')+
       '</div>';
-    }).join('');
   } else {
     // Rutinas predefinidas (debajo de plantillas, en acordeón discreto)
     var rutinaOpts='<option value="">-- Seleccionar rutina base --</option>';
@@ -9014,7 +9026,8 @@ function renderPlanForm(){
 // ── Nutrición por color de día (helpers admin) ───────────────────────
 function _nutriSaveTab(){
   if(!window._nutriActiveColor) return;
-  var nc=S.ca&&S.ca.n_comidas||5;
+  var _ncEl=document.getElementById('plan-nc');
+  var nc=(_ncEl?parseInt(_ncEl.value):0)||(S.ca&&S.ca.n_comidas)||5;
   var comidas=Array.from({length:nc},function(_,i){
     var nom=(document.getElementById('pn-'+i)&&document.getElementById('pn-'+i).value)||(CN&&CN[i])||'Comida '+(i+1);
     var als=[].slice.call(document.querySelectorAll('[id^=pal-'+i+'-]')).map(function(r){return{
@@ -9032,7 +9045,8 @@ function _nutriSaveTab(){
 }
 
 function _nutriLoadTab(color){
-  var nc=S.ca&&S.ca.n_comidas||5;
+  var _ncEl=document.getElementById('plan-nc');
+  var nc=(_ncEl?parseInt(_ncEl.value):0)||(S.ca&&S.ca.n_comidas)||5;
   var data=window._nutriByColor&&window._nutriByColor[color];
   Array.from({length:nc},function(_,i){
     var nomEl=document.getElementById('pn-'+i);
@@ -9076,6 +9090,25 @@ function _nutriLoadTab(color){
 function switchNutriColor(color){
   _nutriSaveTab();
   _nutriLoadTab(color);
+}
+
+function cambiarNcNutri(newNc){
+  _nutriSaveTab(); // preservar datos de la pestaña actual
+  var rowsCont=document.getElementById('nutri-rows-container');
+  if(!rowsCont) return;
+  // Reconstruir filas con el nuevo nc
+  rowsCont.innerHTML=Array.from({length:newNc},function(_,i){
+    return '<div style="background:#0D1528;border-radius:8px;padding:.75rem;margin-bottom:.75rem;border:1px solid #1A2A40">'+
+      '<div class="field"><label>Comida '+(i+1)+'</label><input type="text" id="pn-'+i+'" value="'+(CN&&CN[i]?CN[i]:'Comida '+(i+1))+'"></div>'+
+      '<div style="display:grid;grid-template-columns:1fr 55px 45px 40px 40px 40px auto;gap:3px;font-size:9px;color:#4A5568;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">'+
+        '<span>Alimento</span><span>Gramos</span><span>Kcal</span><span>P</span><span>C</span><span>G</span><span></span>'+
+      '</div>'+
+      '<div id="pnl-'+i+'"></div>'+
+      '<button class="btn bg bsm" style="margin-top:4px;font-size:11px" onclick="addAl('+i+')">+ Alimento</button>'+
+    '</div>';
+  }).join('');
+  // Recargar datos de la pestaña activa (trunca o expande)
+  _nutriLoadTab(window._nutriActiveColor||'yellow');
 }
 
 function addAl(ci){
