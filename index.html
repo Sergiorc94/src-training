@@ -10728,65 +10728,60 @@ function abrirDiaModal(idx){
     html+='</div>';
   }
 
-  // ── Macros del día ──
-  var macros=null;
+  // ── Nutrición del día (plan manual por color) ──
   if(esCombate){
-    var cm=calcMacrosCombate(c);
-    if(esDescanso) macros=cm.descanso||cm.tecnica;
-    else {
-      // La sesión de mayor demanda marca los macros
-      var prioMap={sparring:4,fuerza:3,tecnica:2,acondicionamiento:2,cardio:2,fisico:3,descanso:1};
-      var topSes=activas.slice().sort(function(a,b){return (prioMap[b]||1)-(prioMap[a]||1);})[0];
-      macros=cm[topSes]||cm.tecnica;
+    // Determinar color del día: sesión más intensa, descanso → verde
+    var _SATRL_M={sparring:'red',fuerza:'red',gym:'red',fisico:'red',tecnica:'yellow',acondicionamiento:'green',cardio:'green'};
+    var _INTENS_M={sparring:3,fuerza:3,gym:3,fisico:3,tecnica:2,acondicionamiento:1,cardio:1};
+    var _modalColor='green'; // descanso → verde
+    if(activas.length>0){
+      var _topM=activas.reduce(function(b,s){return (_INTENS_M[s]||0)>(_INTENS_M[b]||0)?s:b;},activas[0]);
+      _modalColor=_SATRL_M[_topM]||'yellow';
     }
-  } else {
-    var ao=getActiveObjetivos();
-    macros={k:ao.k,p:ao.p,c:ao.c,g:ao.g};
-  }
+    var _CLBL={red:'🔴 Dieta ROJA',yellow:'🟡 Dieta AMARILLA',green:'🟢 Dieta VERDE'};
+    var _CCOL={red:'255,23,68',yellow:'255,214,0',green:'0,200,83'};
 
-  if(macros){
-    html+='<div style="margin-bottom:12px">'+
-      '<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Macros del día</div>'+
-      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'+
-        [['Kcal',Math.round(macros.k||0),'#7986CB',''],['Prot',Math.round(macros.p||0),'#00E5FF','g'],['Carb',Math.round(macros.c||0),'#FFB300','g'],['Gras',Math.round(macros.g||0),'#F48FB1','g']]
-        .map(function(m){return '<div style="text-align:center;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:8px 4px">'+
-          '<div style="font-size:16px;font-weight:900;color:'+m[2]+'">'+m[1]+m[3]+'</div>'+
+    // Obtener comidas del plan manual
+    var _nPlan=S.peNutri&&S.peNutri.contenido||null;
+    var _comidasM=null;
+    if(_nPlan){
+      if(_nPlan.porColor){
+        var _cd2=_nPlan.porColor[_modalColor];
+        _comidasM=_cd2&&_cd2.comidas||null;
+      } else if(_nPlan.comidas){
+        _comidasM=_nPlan.comidas; // formato legado
+      }
+    }
+
+    var _cc=_CCOL[_modalColor]||'255,214,0';
+    html+='<div style="margin-bottom:12px">';
+    html+='<div style="font-size:10px;font-weight:700;color:rgba('+_cc+',1);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">'+(_CLBL[_modalColor]||'Plan de nutrición')+'</div>';
+
+    if(_comidasM&&_comidasM.length){
+      // Totales macros
+      var _tP=0,_tC=0,_tG=0,_tK=0;
+      _comidasM.forEach(function(com){(com.alimentos||[]).forEach(function(a){_tP+=a.p||0;_tC+=a.c||0;_tG+=a.g||0;_tK+=a.kcal||0;});});
+      html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px">'+
+        [['Kcal',Math.round(_tK),'#7986CB'],['Prot',Math.round(_tP)+'g','#00E5FF'],['Carb',Math.round(_tC)+'g','#FFB300'],['Gras',Math.round(_tG)+'g','#F48FB1']]
+        .map(function(m){return '<div style="text-align:center;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:7px 3px">'+
+          '<div style="font-size:15px;font-weight:900;color:'+m[2]+'">'+m[1]+'</div>'+
           '<div style="font-size:9px;font-weight:700;color:#4A5568;text-transform:uppercase">'+m[0]+'</div></div>';}).join('')+
-      '</div>'+
-    '</div>';
-  }
-
-  // ── Slots de comida ──
-  if(esCombate&&!esDescanso&&macros){
-    var nc=c.n_comidas||5;
-    var slots=getMealSlotsHoy(d.sessions,d.tipo,nc);
-    var SLOTCOLS={desayuno:'#FFB300',normal:'#4D9FFF',pre:'#00E5FF',intra:'#FF6B35',post_pre:'#AB47BC',post:'#00C853',cena:'#7986CB'};
-    var pPerSlot=Math.round((macros.p||0)/nc);
-    var cPerSlot=Math.round((macros.c||0)/nc);
-    var gPerSlot=Math.round((macros.g||0)/nc);
-
-    // Comidas por defecto del admin
-    var cd=c.comidas_defecto?(typeof c.comidas_defecto==='string'?JSON.parse(c.comidas_defecto):c.comidas_defecto):null;
-
-    html+='<div>'+
-      '<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Plan de comidas</div>'+
-      slots.map(function(slotType,si){
-        var sd=SLOT_DEFS[slotType]||{label:'Comida '+(si+1),icon:'🍽️',color:'#4D9FFF'};
-        var slotCol=SLOTCOLS[slotType]||sd.color;
-        var adminDef=cd?cd[slotType]:null;
-        var platoDef=adminDef&&PLATOS[adminDef]?adminDef:null;
-        return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.02);border:1px solid '+slotCol+'22;border-radius:8px;margin-bottom:4px">'+
-          '<div style="font-size:16px;flex-shrink:0">'+sd.icon+'</div>'+
-          '<div style="flex:1;min-width:0">'+
-            '<div style="font-size:11px;font-weight:800;color:'+slotCol+'">'+sd.label+'</div>'+
-            (platoDef?'<div style="font-size:10px;color:#4A5568;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📌 '+platoDef.substring(0,35)+'</div>':'<div style="font-size:10px;color:#2A3A50">Sin comida por defecto</div>')+
-          '</div>'+
-          '<div style="text-align:right;flex-shrink:0">'+
-            '<div style="font-size:10px;color:#8899AA">P'+pPerSlot+' C'+cPerSlot+' G'+gPerSlot+'</div>'+
-          '</div>'+
+      '</div>';
+      // Lista de comidas
+      _comidasM.forEach(function(com){
+        var _cP=0,_cC=0,_cG=0,_cK=0;
+        (com.alimentos||[]).forEach(function(a){_cP+=a.p||0;_cC+=a.c||0;_cG+=a.g||0;_cK+=a.kcal||0;});
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(255,255,255,.02);border:1px solid rgba('+_cc+',.15);border-radius:8px;margin-bottom:4px">'+
+          '<div style="font-size:11px;font-weight:700;color:#F0F4FF">'+com.nombre+'</div>'+
+          '<div style="font-size:10px;color:#4A5568;text-align:right">'+Math.round(_cP)+'P · '+Math.round(_cC)+'C · '+Math.round(_cG)+'G<br><span style="color:#7986CB">'+Math.round(_cK)+' kcal</span></div>'+
         '</div>';
-      }).join('')+
-    '</div>';
+      });
+    } else if(_nPlan){
+      html+='<div style="font-size:12px;color:#4A5568;padding:8px 0">Sin plan de nutrición para este color todavía.</div>';
+    } else {
+      html+='<div style="font-size:12px;color:#4A5568;padding:8px 0">Sin plan de nutrición asignado.</div>';
+    }
+    html+='</div>';
   }
 
   // ── Botón ir a nutrición (si es hoy) ──
@@ -11357,7 +11352,8 @@ async function loadNutri(){
 
       // ── NUEVO: intentar plan manual de tabla `planes` ──────────
       var _pnArr=await db.get('planes','cliente_id=eq.'+c.id+'&tipo=eq.nutricion&activo=eq.true&limit=1').catch(function(){return [];});
-      var _nutriManual=_pnArr&&_pnArr[0]&&_pnArr[0].contenido||null;
+      S.peNutri=_pnArr&&_pnArr[0]||null; // cached para el modal de "Mi semana"
+      var _nutriManual=S.peNutri&&S.peNutri.contenido||null;
       if(_nutriManual){
         renderNutriPlanManual(c,_nutriManual,S.rn);
         return;
@@ -11497,7 +11493,7 @@ function renderNutriPlanManual(c, planManual, rn){
   var dcInfo=null,_todayColorKey=null;
   try{
     var _ps=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
-    if(_ps){var _dp=parseDiaPlan(_ps[String(dow)]),_SATRL={fuerza:'red',fisico:'red',gym:'red',sparring:'red',tecnica:'yellow',acondicionamiento:'green',cardio:'green'},_ps2=(_dp.sessions||[]).filter(function(s){return s!=='descanso';})[0]||null,_dck=_ps2?(_SATRL[_ps2]||null):null;if(_dck){dcInfo=_DCOL[_dck];_todayColorKey=_dck;}}
+    if(_ps){var _dp=parseDiaPlan(_ps[String(dow)]),_SATRL={fuerza:'red',fisico:'red',gym:'red',sparring:'red',tecnica:'yellow',acondicionamiento:'green',cardio:'green'},_ps2=(_dp.sessions||[]).filter(function(s){return s!=='descanso';})[0]||null,_dck=_ps2?(_SATRL[_ps2]||null):null;if(_dck){dcInfo=_DCOL[_dck];_todayColorKey=_dck;}else{_todayColorKey='green';dcInfo=_DCOL['green'];}} // descanso → verde
   }catch(e){}
 
   // Seleccionar comidas según formato del plan (nuevo porColor vs legado)
