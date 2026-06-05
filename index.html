@@ -14159,7 +14159,8 @@ async function loadEntrenoCombate(){
     var _sch2=_planM.schedule||null;
     var _hoyIdx2=_dow2===0?6:_dow2-1;
     var _diHoy2=null;
-    var _nonGymType2=null; // 'tecnica','sparring','acondicionamiento',...
+    var _nonGymType2=null;    // día sin gym: 'tecnica','sparring','acond'...
+    var _extraSesType2=null;  // sesión extra en días combinados (técnica+gym)
 
     // ── Plan_semanal unificado (sistema nuevo: gym_dia_idx) ──────────
     try{
@@ -14168,13 +14169,24 @@ async function loadEntrenoCombate(){
         var _entU2=_psU2[String(_dow2)];
         if(_entU2){
           var _dpU2=parseDiaPlan(_entU2);
-          var _sesU2=(_dpU2.sessions||[])[0]||'descanso';
-          if(_sesU2==='fuerza'&&_entU2.gym_dia_idx!==undefined&&_dias2[_entU2.gym_dia_idx]){
-            _diHoy2=parseInt(_entU2.gym_dia_idx);
-          } else if(_sesU2==='descanso'||!_sesU2){
-            _diHoy2=null; // descanso explícito
+          var _allSes2=_dpU2.sessions||[];
+          // ¿Tiene sesión de fuerza/gym en alguna posición?
+          var _hasGym2=_allSes2.some(function(s){return s==='fuerza'||s==='gym'||s==='fisico';});
+          var _firstSes2=_allSes2[0]||'descanso';
+          var _isDescanso2=!_allSes2.length||_allSes2.every(function(s){return s==='descanso';});
+
+          if(_hasGym2){
+            // Día con gym (puede ser solo gym o técnica+gym)
+            if(_entU2.gym_dia_idx!==undefined&&_dias2[_entU2.gym_dia_idx]){
+              _diHoy2=parseInt(_entU2.gym_dia_idx);
+            }
+            // Si hay también técnica/sparring, guardarlo como nota adicional
+            var _extras2=_allSes2.filter(function(s){return s!=='fuerza'&&s!=='gym'&&s!=='fisico'&&s!=='descanso';});
+            if(_extras2.length>0) _extraSesType2=_extras2[0];
+          } else if(_isDescanso2){
+            _diHoy2=null; // descanso → sin gym
           } else {
-            _nonGymType2=_sesU2; // técnica, sparring, acondicionamiento...
+            _nonGymType2=_firstSes2; // día puro de técnica/sparring/acond
           }
         }
       }
@@ -14223,7 +14235,10 @@ async function loadEntrenoCombate(){
           var _dpm2=parseDiaPlan(_rdm2);
           var _SATR2={fuerza:'red',fisico:'red',gym:'red',sparring:'red',tecnica:'yellow',acondicionamiento:'green',cardio:'green',descanso:null};
           var _DCM2={red:{bg:'rgba(255,23,68,.10)',border:'rgba(255,23,68,.3)',label:'🔴 Día ROJO — Neural'},green:{bg:'rgba(0,200,83,.10)',border:'rgba(0,200,83,.3)',label:'🟢 Día VERDE — Energético'},yellow:{bg:'rgba(255,214,0,.10)',border:'rgba(255,214,0,.3)',label:'🟡 Día AMARILLO — Recuperación'}};
-          var _prim2=(_dpm2.sessions||[]).filter(function(s){return s!=='descanso';})[0]||null;
+          // Color por sesión más intensa (sparring/fuerza=rojo, tecnica=amarillo, acond=verde)
+          var _INT2={sparring:3,fuerza:3,gym:3,fisico:3,tecnica:2,acondicionamiento:1,cardio:1};
+          var _actSes2=(_dpm2.sessions||[]).filter(function(s){return s!=='descanso';});
+          var _prim2=_actSes2.reduce(function(b,s){return !b||(_INT2[s]||0)>(_INT2[b]||0)?s:b;},null);
           var _dk2=_prim2?(_SATR2[_prim2]||null):null;
           if(_dk2&&_DCM2[_dk2]){var _dc3=_DCM2[_dk2];_h2+='<div style="background:'+_dc3.bg+';border:1px solid '+_dc3.border+';border-radius:8px;padding:6px 12px;margin-bottom:.75rem;display:flex;align-items:center;gap:8px"><span style="font-size:13px">'+_dc3.label+'</span></div>';}
         }
@@ -14270,7 +14285,17 @@ async function loadEntrenoCombate(){
     }
 
     var _diaHoy2=_dias2[_diHoy2];
-    document.getElementById('e-dia').textContent=_diaHoy2.nombre||'Entrenamiento';
+    // Mostrar nombre combinado si hay sesión extra (técnica + gym)
+    var _diaLabel2=_diaHoy2.nombre||'Entrenamiento';
+    var _EXTRA_LABELS2={tecnica:'🥋 Técnica deportiva',sparring:'🥊 Sparring',acondicionamiento:'🏃 Acondicionamiento',cardio:'🏃 Cardio'};
+    if(_extraSesType2&&_EXTRA_LABELS2[_extraSesType2]) _diaLabel2=_EXTRA_LABELS2[_extraSesType2]+' + '+_diaLabel2;
+    document.getElementById('e-dia').textContent=_diaLabel2;
+    // Banner de sesión deportiva adicional (antes de los ejercicios de gym)
+    if(_extraSesType2){
+      var _EX_STYLE2={tecnica:{col:'255,179,0',icon:'🥋',lbl:'Técnica deportiva'},sparring:{col:'255,107,53',icon:'🥊',lbl:'Sparring'},acondicionamiento:{col:'0,229,255',icon:'🏃',lbl:'Acondicionamiento'},cardio:{col:'0,229,255',icon:'🏃',lbl:'Cardio'}};
+      var _es2=_EX_STYLE2[_extraSesType2]||{col:'255,179,0',icon:'💪',lbl:_extraSesType2};
+      _h2+='<div style="background:rgba('+_es2.col+',.08);border:1px solid rgba('+_es2.col+',.25);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:13px;font-weight:700;color:rgba('+_es2.col+',1)">'+_es2.icon+' '+_es2.lbl+' (sesión deportiva — registra también en tatami)</div>';
+    }
 
     // Tira semanal
     var _DS2=['L','M','X','J','V','S','D'];
