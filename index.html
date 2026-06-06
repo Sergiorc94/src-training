@@ -113,14 +113,13 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
 .isml:focus{border-color:#0055FF}
 
 /* ── MOBILE BOTTOM NAV ───────────────── */
-.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#070E1A;border-top:1px solid #1A2A40;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.5);padding-bottom:env(safe-area-inset-bottom,0px)}
+.mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#070E1A;border-top:1px solid #1A2A40;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.5);padding-bottom:env(safe-area-inset-bottom,0px)}
 .mob-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 6px;background:none;border:none;color:#4A5568;font-size:9px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:color .15s;-webkit-tap-highlight-color:transparent}
 .mob-nav-btn.mob-active{color:#0055FF}
 .mob-nav-icon{font-size:20px;line-height:1}
+#app{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 @media(max-width:640px){
-  .mob-nav{display:flex}
   .tabs{display:none!important}
-  #app{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   .g4{grid-template-columns:repeat(2,1fr)!important}
   .g3{grid-template-columns:1fr 1fr!important}
   .main{padding:1rem .75rem}
