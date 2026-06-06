@@ -8110,6 +8110,41 @@ async function adminTab(tab,btn){
       });
       html+='</tbody></table></div></div></div>';
 
+      // ── Check-ins matutinos (readiness) ──
+      var rdRecs=(wRecs||[]).filter(function(r){return r.readiness&&r.readiness.score;});
+      if(rdRecs.length){
+        html+='<div class="card" style="margin-bottom:.75rem"><div class="ch">⚡ Check-ins matutinos</div><div class="cb">';
+        // Alertas: sueño < 2 o score < 40 tres días seguidos
+        var badSleep=rdRecs.filter(function(r){return r.readiness.sueno<=2;});
+        var lowScore=rdRecs.filter(function(r){return r.readiness.score<40;});
+        if(badSleep.length>=2) html+='<div style="background:rgba(255,23,68,.07);border:1px solid rgba(255,23,68,.3);border-radius:8px;padding:8px 12px;margin-bottom:.5rem;font-size:12px;font-weight:700;color:#FF1744">⚠️ '+badSleep.length+' días con sueño muy malo (1-2/5)</div>';
+        if(lowScore.length>=2) html+='<div style="background:rgba(255,107,53,.07);border:1px solid rgba(255,107,53,.3);border-radius:8px;padding:8px 12px;margin-bottom:.5rem;font-size:12px;font-weight:700;color:#FF6B35">⚠️ '+lowScore.length+' días con readiness bajo (&lt;40%)</div>';
+        html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+        html+='<thead><tr style="border-bottom:1px solid #1A2A40">'+
+          '<th style="padding:6px;text-align:left;color:#4A5568;font-size:10px">Fecha</th>'+
+          '<th style="padding:6px;text-align:center;color:#4D9FFF;font-size:10px">Score</th>'+
+          '<th style="padding:6px;text-align:center;font-size:10px;color:#4A5568">😴 Sueño</th>'+
+          '<th style="padding:6px;text-align:center;font-size:10px;color:#4A5568">🦵 Músc.</th>'+
+          '<th style="padding:6px;text-align:center;font-size:10px;color:#4A5568">🧠 Cabeza</th>'+
+          '<th style="padding:6px;text-align:center;font-size:10px;color:#4A5568">⚡ Energía</th>'+
+        '</tr></thead><tbody>';
+        var _rdCols={1:'#FF1744',2:'#FF6B35',3:'#FFB300',4:'#4D9FFF',5:'#00C853'};
+        rdRecs.slice(0,14).forEach(function(r){
+          var rd=r.readiness;
+          var sc=rd.score||0;
+          var scCol=sc>=80?'#00C853':sc>=60?'#4D9FFF':sc>=40?'#FFB300':'#FF1744';
+          html+='<tr style="border-bottom:1px solid #0D1528">'+
+            '<td style="padding:5px 6px;color:#4A5568;font-size:11px;white-space:nowrap">'+r.fecha+'</td>'+
+            '<td style="padding:5px 6px;text-align:center;font-weight:900;color:'+scCol+'">'+sc+'%</td>'+
+            ['sueno','musculos','cabeza','energia'].map(function(k){
+              var v=rd[k];var c2=v?(_rdCols[v]||'#FFB300'):'#2A3A50';
+              return '<td style="padding:5px 6px;text-align:center;font-weight:800;color:'+c2+'">'+(v||'—')+'</td>';
+            }).join('')+
+          '</tr>';
+        });
+        html+='</tbody></table></div></div></div>';
+      }
+
       // ── Historial de molestias ──
       var molRecs=(wRecs||[]).filter(function(r){return r.molestia_sesion&&r.molestia_sesion.tiene_algo;});
       if(molRecs.length){
@@ -10038,6 +10073,7 @@ async function loadInicio(){
     }
   }
 
+  await initReadinessHoy(); // cargar readiness de Supabase si no está en localStorage
   renderReadinessWidget();
   renderPasosWidget();
   var planBanner=document.getElementById('plan-banner');
@@ -11880,6 +11916,17 @@ function setReadinessHoy(data){
   var uid=S.user&&S.user.id||'x';
   localStorage.setItem('src_readiness_'+uid+'_'+hoy(), JSON.stringify(data));
 }
+async function initReadinessHoy(){
+  // Si ya está en localStorage, no hace falta ir a Supabase
+  if(getReadinessHoy()||!S.user) return;
+  try{
+    var rows=await db.get('registros_entreno',
+      'cliente_id=eq.'+S.user.id+'&fecha=eq.'+hoy()+'&select=readiness&limit=1');
+    if(rows&&rows[0]&&rows[0].readiness){
+      setReadinessHoy(rows[0].readiness);
+    }
+  }catch(e){}
+}
 function calcReadinessScore(d){
   return Math.round(((d.sueno*0.30+d.musculos*0.30+d.cabeza*0.20+d.energia*0.20)/5)*100);
 }
@@ -11933,16 +11980,16 @@ async function guardarReadiness(){
   data.energia_despertar=eSel?parseInt(eSel.dataset.rdval):null;
   data.score=calcReadinessScore(data);
   setReadinessHoy(data);
-  // Guardar sueño en DB
-  if(S.user&&(data.horas_sueno||data.calidad_sueno||data.hora_dormir)){
+  // Guardar en Supabase (readiness completo + campos individuales de sueño)
+  if(S.user){
     try{
-      var payload={cliente_id:S.user.id,fecha:hoy()};
-      if(data.hora_dormir) payload.hora_dormir=data.hora_dormir;
-      if(data.horas_sueno) payload.horas_sueno=data.horas_sueno;
-      if(data.calidad_sueno) payload.calidad_sueno=data.calidad_sueno;
+      var payload={cliente_id:S.user.id,fecha:hoy(),readiness:data};
+      if(data.hora_dormir)    payload.hora_dormir=data.hora_dormir;
+      if(data.horas_sueno)    payload.horas_sueno=data.horas_sueno;
+      if(data.calidad_sueno)  payload.calidad_sueno=data.calidad_sueno;
       if(data.energia_despertar) payload.energia_despertar=data.energia_despertar;
       await db.upsert('registros_entreno',payload,'cliente_id,fecha');
-    }catch(e){console.warn('Error guardando sueño:',e);}
+    }catch(e){console.warn('Error guardando readiness:',e);}
   }
   renderReadinessWidget();
   if(S.combatMacros) renderTipoDiaCombate();
