@@ -14230,7 +14230,7 @@ async function loadEntrenoCombate(){
             var _extras2=_allSes2.filter(function(s){return s!=='fuerza'&&s!=='gym'&&s!=='fisico'&&s!=='descanso';});
             if(_extras2.length>0) _extraSesType2=_extras2[0];
           } else if(_isDescanso2){
-            _diHoy2=null; // descanso → sin gym
+            _nonGymType2='descanso'; // descanso explícito — evita que el fallback muestre gym
           } else {
             _nonGymType2=_firstSes2; // día puro de técnica/sparring/acond
           }
@@ -14238,13 +14238,13 @@ async function loadEntrenoCombate(){
       }
     }catch(_eU2){}
 
-    // Fallback al schedule legacy o secuencial
+    // Fallback al schedule legacy (solo si plan_semanal no tiene entrada para hoy)
     if(_diHoy2===null&&_nonGymType2===null){
       if(_sch2&&_sch2[_hoyIdx2]!==undefined&&_sch2[_hoyIdx2]!==null&&_sch2[_hoyIdx2]!==''){
         _diHoy2=parseInt(_sch2[_hoyIdx2]);
-      } else if(_dias2.length>0){
-        _diHoy2=_hoyIdx2%_dias2.length;
       }
+      // Sin plan_semanal ni schedule legacy → descanso (NO mostrar gym de forma aleatoria)
+      // _diHoy2 y _nonGymType2 quedan null → la sección de descanso los maneja
     }
 
     // ── Cargar registros ────────────────────────────────────────
