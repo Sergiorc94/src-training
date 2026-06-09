@@ -7961,32 +7961,8 @@ async function adminTab(tab,btn){
       var _savedUser=S.user, _savedRn=S.rn, _savedSemNutri=S._semNutri;
       S.user=c;
 
-      // ── Plan nutricional editor ──────────────────────────────────
-      var _qdc=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
-      var _opts=_qdc.opciones_nutri||null;
-      var _peso=c.peso||75;
-      // ── Registro libre (admin view — desde cuestionario_datos) ────
-      var nutEditorHtml='';
-      if(c.tipo_cliente==='combate'){
-        var _aprobado=_opts&&_opts.aprobado;
-        nutEditorHtml='<div class="card" style="margin-bottom:.75rem">'+
-          '<div class="ch">🥗 Plan Nutricional'+
-            '<div style="margin-left:auto;font-size:11px;color:'+(_aprobado?'#00C853':'#FFB300')+'">'+(_aprobado?'✅ Activo para el atleta':'⏳ Pendiente de aprobar')+'</div>'+
-          '</div>'+
-          '<div class="cb">'+
-            '<div style="display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap">'+
-              (_opts?'<button onclick="adminAprobarOpcionesNutri()" class="btn bs bsm" style="background:rgba(0,200,83,.12);border-color:rgba(0,200,83,.4);color:#00C853">✅ Aprobar y activar</button>':'')+
-              (_aprobado?'<button onclick="adminDesactivarOpcionesNutri()" class="btn bg bsm" style="color:#FF6B35">Desactivar</button>':'')+
-              '<button onclick="adminEditarOpcion(-1,\'nueva\')" class="btn bp bsm">+ Añadir opción</button>'+
-            '</div>'+
-            (_opts?adminRenderOpcionesEditor(_opts,c):
-              '<div style="background:#0D1528;border-radius:8px;padding:14px;text-align:center;font-size:12px;color:#4A5568">'+
-                'Sin plan todavía — usa "+ Añadir opción" para crear la primera comida.'+
-              '</div>')+
-          '</div>'+
-        '</div>';
-      }
-      cont.innerHTML=nutEditorHtml+'<div id="admin-nutri-dia"></div>';
+      // ── Solo Nutrición de hoy ──────────────────────────────────
+      cont.innerHTML='<div id="admin-nutri-dia"></div>';
 
       // ── Resumen de hoy ───────────────────────────────────────────
       S.rn=nutriArr&&nutriArr[0]||null;
@@ -10321,19 +10297,21 @@ function renderSemanaCalendario(c){
   var planObj=null;
   try{ planObj=ps?(typeof ps==='string'?JSON.parse(ps):ps):null; }catch(e){}
 
-  // Construir los 7 días de la semana (Lun→Dom = índices 1..6,0)
-  var weekOrder=[1,2,3,4,5,6,0]; // lunes primero
   var today=new Date(); today.setHours(0,0,0,0);
 
-  // Calcular el lunes de esta semana
-  var lunesDiff=(hoyDow===0?-6:1-hoyDow);
-  var lunes=new Date(today); lunes.setDate(today.getDate()+lunesDiff);
+  // ── Mes completo: del día 1 al último del mes actual ───────────
+  var mesActual=new Date(today.getFullYear(), today.getMonth(), 1);
+  var mesLabel=mesActual.toLocaleDateString('es-ES',{month:'long',year:'numeric'});
+  mesLabel=mesLabel.charAt(0).toUpperCase()+mesLabel.slice(1);
+  var ultimoDia=new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
 
   // Si no hay plan, para fitness mostramos el plan de entreno
   var fitPlan=S._peActivo||null; // guardado si existe
 
-  var dias=weekOrder.map(function(dow,i){
-    var dt=new Date(lunes); dt.setDate(lunes.getDate()+i);
+  var dias=[];
+  for(var _mi=1;_mi<=ultimoDia;_mi++){
+    var dt=new Date(today.getFullYear(), today.getMonth(), _mi);
+    var dow=dt.getDay();
     var dtStr=dt.toISOString().split('T')[0];
     var isHoy=dt.getTime()===today.getTime();
     var isPasado=dt<today;
@@ -10359,28 +10337,41 @@ function renderSemanaCalendario(c){
       var fitDiIdx=null;
       if(fitSched&&fitSched[fitIdx]!==undefined&&fitSched[fitIdx]!=='') fitDiIdx=parseInt(fitSched[fitIdx]);
       else fitDiIdx=fitIdx%Math.max(fitDias.length,1);
-      var fitDia=fitDias[fitDiIdx];
-      if(fitDia&&fitDia.nombre) fitDayName=fitDia.nombre;
+      var fitDia2=fitDias[fitDiIdx];
+      if(fitDia2&&fitDia2.nombre) fitDayName=fitDia2.nombre;
     }
 
-    return {dow:dow, dt:dt, dtStr:dtStr, isHoy:isHoy, isPasado:isPasado, isFuturo:isFuturo,
-            sessions:sessions, tipo:tipo, fitDayName:fitDayName};
-  });
+    dias.push({dow:dow, dt:dt, dtStr:dtStr, isHoy:isHoy, isPasado:isPasado, isFuturo:isFuturo,
+               sessions:sessions, tipo:tipo, fitDayName:fitDayName});
+  }
 
   // Guardar datos para el modal
   window._semDias=dias;
   window._semSESSION_INFO=SESSION_INFO;
 
-  // ── Renderizar ────────────────────────────────────────────────
-  // Título
-  var semLabel='Semana del '+lunes.getDate()+' de '+lunes.toLocaleDateString('es-ES',{month:'long'});
+  // ── Renderizar en cuadrícula de 7 columnas (calendário) ────────
+  // Días de cabecera Lun→Dom
+  var CAL_HEADS=['L','M','X','J','V','S','D'];
+  var _INTENS={sparring:3,fuerza:3,gym:3,fisico:3,tecnica:2,acondicionamiento:1,cardio:1,descanso:0};
 
-  var cardsHtml=dias.map(function(d){
+  // Offset inicial: cuántas celdas vacías antes del día 1 (Lun=0, Dom=6)
+  var _firstDow=dias[0]?dias[0].dow:1;
+  var _offset=_firstDow===0?6:_firstDow-1; // lunes=0...domingo=6
+
+  var calHtml='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
+  // Cabecera
+  CAL_HEADS.forEach(function(h){
+    calHtml+='<div style="text-align:center;font-size:9px;font-weight:900;color:#4A5568;padding:4px 0;text-transform:uppercase;letter-spacing:.5px">'+h+'</div>';
+  });
+  // Celdas vacías del offset
+  for(var _oi=0;_oi<_offset;_oi++){
+    calHtml+='<div></div>';
+  }
+
+  // Celdas de los días
+  dias.forEach(function(d, _didx){
     var isHoy=d.isHoy;
 
-    // Determinar color ATR del día según la sesión más intensa
-    // (sparring/fuerza=rojo, tecnica=amarillo, acond=verde, descanso=sin color)
-    var _INTENS={sparring:3,fuerza:3,gym:3,fisico:3,tecnica:2,acondicionamiento:1,cardio:1,descanso:0};
     var primarySes=null;
     if(d.sessions.length>0&&!d.sessions.every(function(s){return s==='descanso';})){
       primarySes=d.sessions.reduce(function(best,s){
@@ -10392,111 +10383,55 @@ function renderSemanaCalendario(c){
 
     var borderCol=isHoy?'#0055FF':
                   (dcMap&&!d.isPasado)?dcMap.border:
-                  d.isPasado?'rgba(255,255,255,.04)':'rgba(255,255,255,.08)';
-    var bgCol=isHoy?'rgba(0,85,255,.12)':
+                  d.isPasado?'rgba(255,255,255,.04)':'rgba(255,255,255,.06)';
+    var bgCol=isHoy?'rgba(0,85,255,.15)':
               (dcMap&&!d.isPasado)?dcMap.bg:
-              d.isPasado?'rgba(0,0,0,.1)':'rgba(255,255,255,.02)';
-    var textCol=isHoy?'#F0F4FF':d.isPasado?'#4A5568':'#8899AA';
-    var numCol=isHoy?'#0055FF':(dcMap&&!d.isPasado)?dcMap.dot:d.isPasado?'#4A5568':'#8899AA';
+              d.isPasado?'rgba(0,0,0,.08)':'rgba(255,255,255,.02)';
+    var numCol=isHoy?'#0055FF':(dcMap&&!d.isPasado)?dcMap.dot:d.isPasado?'#4A5568':'#6E8090';
 
-    // Dot de color ATR (solo días futuros/hoy con sesión)
-    var atrDot=(dcMap&&!d.isPasado)?'<div style="font-size:8px;line-height:1;margin-bottom:1px">'+dcMap.label+'</div>':'';
-
-    // Contenido de sesiones
-    var sesHtml='';
-    if(d.sessions.length===0){
-      if(d.fitDayName){
-        // Fitness: mostrar nombre del día de entreno
-        sesHtml='<div style="font-size:10px;font-weight:700;color:#4D9FFF;text-align:center;margin-top:4px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52px">'+
-          d.fitDayName.substring(0,12)+'</div>';
-      } else {
-        sesHtml='<div style="font-size:18px;margin-top:2px;opacity:.25">—</div>';
-      }
-    } else {
-      var iconsHtml=d.sessions.map(function(s){
-        var si=SESSION_INFO[s]||{icon:'❓',label:s,color:'#8899AA'};
-        return '<div title="'+si.label+'" style="font-size:'+(d.sessions.length>1?'14':'18')+'px;line-height:1">'+si.icon+'</div>';
-      }).join('');
-      sesHtml='<div style="display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:3px">'+iconsHtml+'</div>';
-      // Etiqueta tipo (seguidas/separadas) para 2 sesiones
-      if(d.sessions.length>1 && d.tipo){
-        var tipoLabel=d.tipo==='seguidas'?'seguidas':'separadas';
-        var tipoCol=d.tipo==='seguidas'?'#FF6B35':'#AB47BC';
-        sesHtml+='<div style="font-size:8px;color:'+tipoCol+';font-weight:700;margin-top:2px;white-space:nowrap">'+tipoLabel+'</div>';
-      }
+    // Icono sesión (solo la más intensa)
+    var sesIcon='';
+    if(d.sessions.length>0&&!d.sessions.every(function(s){return s==='descanso';})){
+      var si=SESSION_INFO[primarySes]||{icon:'💪'};
+      sesIcon='<div style="font-size:11px;line-height:1;margin-top:1px">'+si.icon+'</div>';
+    } else if(d.fitDayName){
+      sesIcon='<div style="font-size:9px;color:#4D9FFF;font-weight:700;margin-top:1px;text-align:center;overflow:hidden;max-width:100%;text-overflow:ellipsis;white-space:nowrap">'+d.fitDayName.substring(0,3)+'</div>';
     }
 
-    // "HOY" badge
-    var badge=isHoy?'<div style="font-size:8px;font-weight:900;background:#0055FF;color:#fff;border-radius:3px;padding:1px 5px;margin-bottom:2px;letter-spacing:.5px">HOY</div>':'';
-
-    // Día y número
-    var dayName=DIAS_SHORT[d.dow];
-    var dayNum=d.dt.getDate();
-
-    var idx=weekOrder.indexOf(d.dow);
-    return '<div onclick="abrirDiaModal('+idx+')" style="flex:1;min-width:42px;max-width:60px;background:'+bgCol+';border:1.5px solid '+borderCol+
-      ';border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;'+
-      'cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent" '+
-      'onmouseenter="this.style.borderColor=\'#0055FF\'" onmouseleave="this.style.borderColor=\''+borderCol+'\'">'+
-      badge+atrDot+
-      '<div style="font-size:10px;font-weight:700;color:'+textCol+';text-transform:uppercase;letter-spacing:.5px">'+dayName+'</div>'+
-      '<div style="font-size:16px;font-weight:900;color:'+numCol+';line-height:1.1;margin-bottom:2px">'+dayNum+'</div>'+
-      sesHtml+
+    calHtml+='<div onclick="abrirDiaModal('+_didx+')" style="'+
+      'background:'+bgCol+';border:1.5px solid '+borderCol+';border-radius:7px;'+
+      'padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;'+
+      'cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;min-height:44px">'+
+      (isHoy?'<div style="font-size:7px;font-weight:900;background:#0055FF;color:#fff;border-radius:2px;padding:1px 4px;margin-bottom:1px;letter-spacing:.3px">HOY</div>':'<div style="height:11px"></div>')+
+      '<div style="font-size:14px;font-weight:900;color:'+numCol+';line-height:1">'+d.dt.getDate()+'</div>'+
+      sesIcon+
     '</div>';
-  }).join('');
+  });
+  calHtml+='</div>';
 
-  // Próximos días con entrenamientos (para clientes combate)
-  var proximosHtml='';
-  if(planObj){
-    var proximos=dias.filter(function(d){ return d.isFuturo && d.sessions.length>0 && !d.sessions.includes('descanso'); }).slice(0,3);
-    if(proximos.length){
-      proximosHtml='<div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">';
-      proximos.forEach(function(d){
-        var s1=SESSION_INFO[d.sessions[0]]||{icon:'❓',label:d.sessions[0],color:'#8899AA'};
-        var s2=d.sessions[1]?SESSION_INFO[d.sessions[1]]||{icon:'❓',label:d.sessions[1],color:'#8899AA'}:null;
-        var diasHasta=Math.round((d.dt-today)/(24*3600*1000));
-        var cuandoLabel=diasHasta===1?'mañana':diasHasta===2?'pasado mañana':'en '+diasHasta+' días';
-        proximosHtml+=
-          '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:8px 12px">'+
-            '<div style="font-size:18px">'+s1.icon+(s2?' '+s2.icon:'')+'</div>'+
-            '<div style="flex:1">'+
-              '<div style="font-size:12px;font-weight:800;color:#F0F4FF">'+
-                d.sessions.map(function(s){ return (SESSION_INFO[s]||{label:s}).label; }).join(' + ')+
-              '</div>'+
-              '<div style="font-size:11px;color:#4A5568">'+DIAS_FULL[d.dow]+' · '+cuandoLabel+'</div>'+
-            '</div>'+
-            '<div style="font-size:11px;color:#8899AA;font-weight:700">'+d.dt.getDate()+'/'+String(d.dt.getMonth()+1).padStart(2,'0')+'</div>'+
-          '</div>';
-      });
-      proximosHtml+='</div>';
-    }
-  }
+  var cardsHtml=calHtml;
 
   el.innerHTML=
     '<div class="card">'+
-      '<div class="ch">📅 Mi semana'+
-        '<div style="margin-left:auto;font-size:11px;color:#4A5568">'+semLabel+'</div>'+
+      '<div class="ch">📅 Mi mes'+
+        '<div style="margin-left:auto;font-size:11px;color:#4A5568">'+mesLabel+'</div>'+
       '</div>'+
       '<div class="cb">'+
-        ((!planObj && c.tipo_cliente!=='combate')?
-          // Fitness sin plan: mostrar leyenda neutra
-          '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">'+cardsHtml+'</div>'
+        (!planObj && c.tipo_cliente==='combate'?
+          // Combate sin plan semanal
+          '<div style="font-size:12px;color:#4A5568;text-align:center;padding:12px 0">'+
+            'Tu entrenador aún no ha publicado la planificación semanal'+
+          '</div>'+
+          cardsHtml
           :
-          (!planObj?
-            // Combate sin plan semanal
-            '<div style="font-size:12px;color:#4A5568;text-align:center;padding:12px 0">'+
-              'Tu entrenador aún no ha publicado la planificación semanal'+
-            '</div>'+
-            '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">'+cardsHtml+'</div>'
-            :
-            // Con plan semanal
-            '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">'+cardsHtml+'</div>'+
+          // Con plan (o fitness)
+          cardsHtml+
+          (planObj?
             '<div style="display:flex;gap:10px;margin-top:8px;justify-content:center;flex-wrap:wrap">'+
-              '<span style="font-size:10px;color:#4A5568">🔴 Neural (fuerza/potencia)</span>'+
-              '<span style="font-size:10px;color:#4A5568">🟢 Energético (cardio/glucolítico)</span>'+
+              '<span style="font-size:10px;color:#4A5568">🔴 Neural</span>'+
+              '<span style="font-size:10px;color:#4A5568">🟢 Energético</span>'+
               '<span style="font-size:10px;color:#4A5568">🟡 Recuperación</span>'+
-            '</div>'+
-            proximosHtml
+            '</div>':''
           )
         )+
       '</div>'+
@@ -14407,31 +14342,41 @@ async function loadEntrenoCombate(){
           '<div style="font-size:16px;font-weight:800;margin-bottom:.25rem">'+_ngl2.title+'</div>'+
           '<div style="font-size:12px;color:var(--text-2)">'+_ngl2.msg+'</div>'+
         '</div></div>';
-        _contEl.innerHTML=_h2; return;
+      } else {
+        // Descanso
+        document.getElementById('e-dia').textContent='Descanso';
+        var _nextN2=_dias2.length>0?(_dias2[(_hoyIdx2+1)%_dias2.length]&&_dias2[(_hoyIdx2+1)%_dias2.length].nombre||''):'';
+        _h2+='<div class="card"><div class="cb" style="text-align:center;padding:1.5rem">'+
+          '<div style="font-size:40px;margin-bottom:.5rem">🛌</div>'+
+          '<div style="font-size:16px;font-weight:800;margin-bottom:.25rem">Día de descanso</div>'+
+          '<div style="font-size:12px;color:var(--text-2);margin-bottom:.75rem">Recuperación activa: movilidad suave, caminata</div>'+
+          (_nextN2?'<div style="font-size:12px;color:var(--gold);font-weight:700">Próxima sesión: '+_nextN2+'</div>':'')+
+        '</div></div>';
       }
-      // Descanso
-      document.getElementById('e-dia').textContent='Descanso';
-      var _nextN2=_dias2.length>0?(_dias2[(_hoyIdx2+1)%_dias2.length]&&_dias2[(_hoyIdx2+1)%_dias2.length].nombre||''):'';
-      _h2+='<div class="card"><div class="cb" style="text-align:center;padding:1.5rem">'+
-        '<div style="font-size:40px;margin-bottom:.5rem">🛌</div>'+
-        '<div style="font-size:16px;font-weight:800;margin-bottom:.25rem">Día de descanso</div>'+
-        '<div style="font-size:12px;color:var(--text-2);margin-bottom:.75rem">Recuperación activa: movilidad suave, caminata</div>'+
-        (_nextN2?'<div style="font-size:12px;color:var(--gold);font-weight:700">Próxima sesión: '+_nextN2+'</div>':'')+
-      '</div></div>';
-      _contEl.innerHTML=_h2; return;
+      // Si no hay sesiones de gym en el plan: terminar aquí
+      if(!_dias2.length){ _contEl.innerHTML=_h2; return; }
+      // Si hay sesiones en el plan: seguir para mostrar browser de rutina
     }
 
-    var _diaHoy2=_dias2[_diHoy2];
-    // Mostrar nombre combinado si hay sesión extra (técnica + gym)
-    var _diaLabel2=_diaHoy2.nombre||'Entrenamiento';
-    var _EXTRA_LABELS2={tecnica:'🥋 Técnica deportiva',sparring:'🥊 Sparring',acondicionamiento:'🏃 Acondicionamiento',cardio:'🏃 Cardio'};
-    if(_extraSesType2&&_EXTRA_LABELS2[_extraSesType2]) _diaLabel2=_EXTRA_LABELS2[_extraSesType2]+' + '+_diaLabel2;
-    document.getElementById('e-dia').textContent=_diaLabel2;
-    // Banner de sesión deportiva adicional (antes de los ejercicios de gym)
-    if(_extraSesType2){
-      var _EX_STYLE2={tecnica:{col:'255,179,0',icon:'🥋',lbl:'Técnica deportiva'},sparring:{col:'255,107,53',icon:'🥊',lbl:'Sparring'},acondicionamiento:{col:'0,229,255',icon:'🏃',lbl:'Acondicionamiento'},cardio:{col:'0,229,255',icon:'🏃',lbl:'Cardio'}};
-      var _es2=_EX_STYLE2[_extraSesType2]||{col:'255,179,0',icon:'💪',lbl:_extraSesType2};
-      _h2+='<div style="background:rgba('+_es2.col+',.08);border:1px solid rgba('+_es2.col+',.25);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:13px;font-weight:700;color:rgba('+_es2.col+',1)">'+_es2.icon+' '+_es2.lbl+' (sesión deportiva — registra también en tatami)</div>';
+    // ── Vista de sesión seleccionada (tabs Día A/B/C...) ─────────
+    var _viewDiaIdx2=(window._entrenoSesIdx!==null&&_dias2[window._entrenoSesIdx]!=null)?window._entrenoSesIdx:
+                    (_diHoy2!==null&&_dias2[_diHoy2]?_diHoy2:0);
+    var _viewDia2=_dias2[_viewDiaIdx2]||null;
+    var _isViewingToday2=(_viewDiaIdx2===_diHoy2 && _diHoy2!==null);
+
+    // Setup etiqueta día actual (solo cuando hoy es día de gym)
+    if(_diHoy2!==null&&_dias2[_diHoy2]){
+      var _diaHoy2=_dias2[_diHoy2];
+      var _diaLabel2=_diaHoy2.nombre||'Entrenamiento';
+      var _EXTRA_LABELS2={tecnica:'🥋 Técnica deportiva',sparring:'🥊 Sparring',acondicionamiento:'🏃 Acondicionamiento',cardio:'🏃 Cardio'};
+      if(_extraSesType2&&_EXTRA_LABELS2[_extraSesType2]) _diaLabel2=_EXTRA_LABELS2[_extraSesType2]+' + '+_diaLabel2;
+      document.getElementById('e-dia').textContent=_diaLabel2;
+      // Banner de sesión deportiva adicional (antes de los ejercicios de gym)
+      if(_extraSesType2){
+        var _EX_STYLE2={tecnica:{col:'255,179,0',icon:'🥋',lbl:'Técnica deportiva'},sparring:{col:'255,107,53',icon:'🥊',lbl:'Sparring'},acondicionamiento:{col:'0,229,255',icon:'🏃',lbl:'Acondicionamiento'},cardio:{col:'0,229,255',icon:'🏃',lbl:'Cardio'}};
+        var _es2=_EX_STYLE2[_extraSesType2]||{col:'255,179,0',icon:'💪',lbl:_extraSesType2};
+        _h2+='<div style="background:rgba('+_es2.col+',.08);border:1px solid rgba('+_es2.col+',.25);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:13px;font-weight:700;color:rgba('+_es2.col+',1)">'+_es2.icon+' '+_es2.lbl+' (sesión deportiva — registra también en tatami)</div>';
+      }
     }
 
     // Semana completa — lista con iconos y estado completado
@@ -14479,11 +14424,30 @@ async function loadEntrenoCombate(){
     }
     _h2+='</div></div></div>';
 
-    // Tarjeta ejercicios del día
-    _h2+='<div class="card" style="margin-bottom:.75rem"><div class="ch">💪 '+(_diaHoy2.nombre||'Entrenamiento')+'</div><div class="cb">';
+    // ── Tabs de sesiones (Día A / Día B / Día C...) ─────────────
+    if(_dias2.length>1){
+      _h2+='<div style="display:flex;gap:6px;margin-bottom:.75rem;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch">';
+      _dias2.forEach(function(_td,_ti){
+        var _tSel=(_ti===_viewDiaIdx2);
+        var _tIsToday=(_ti===_diHoy2);
+        var _tLbl=_td.nombre||('Día '+(_ti+1));
+        _h2+='<button onclick="switchEntrenoSes('+_ti+')" style="flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;'+
+          'background:'+(_tSel?'rgba(77,159,255,.15)':'rgba(255,255,255,.04)')+';'+
+          'border:1.5px solid '+(_tSel?'rgba(77,159,255,.6)':'rgba(255,255,255,.1)')+';'+
+          'color:'+(_tSel?'#4D9FFF':'#4A5568')+'">'+
+          (_tIsToday?'⭐ ':'')+_tLbl+'</button>';
+      });
+      _h2+='</div>';
+    }
+
+    // Tarjeta ejercicios de la sesión seleccionada
+    if(!_viewDia2){ _contEl.innerHTML=_h2; return; }
+    var _viewLabel2=_viewDia2.nombre||'Entrenamiento';
+    var _notHoyNote2=(!_isViewingToday2&&_diHoy2!==null)?'<span style="font-size:10px;font-weight:600;color:#4A5568;margin-left:6px">(no es hoy)</span>':'';
+    _h2+='<div class="card" style="margin-bottom:.75rem"><div class="ch">💪 '+_viewLabel2+_notHoyNote2+'</div><div class="cb">';
 
     // ── Sección calentamiento (lista simple, sin inputs de registro) ──
-    var _ejsAll2=_diaHoy2.ejercicios||[];
+    var _ejsAll2=_viewDia2.ejercicios||[];
     var _ejsWarm2=_ejsAll2.filter(function(e){return e.tipo==='Calentamiento';});
     var _ejsMain2=_ejsAll2.filter(function(e){return e.tipo!=='Calentamiento';});
     if(_ejsWarm2.length>0){
@@ -14500,53 +14464,79 @@ async function loadEntrenoCombate(){
       '</div>';
     }
 
-    // ── Ejercicios principales (con inputs de registro) ──
+    // ── Ejercicios principales ──
     var _ejG2=0;
-    _ejsMain2.forEach(function(_ej){
-      var _ejN2=_ej.nombre||'Ejercicio';
-      var _ejId2='mcej-'+_ejG2; _ejG2++;
-      var _ns2=parseInt(_ej.series)||3;
-      var _nsAdj2=_isPeak2?Math.max(1,Math.round(_ns2*0.5)):_ns2;
-      var _sarr2=buildSeriesArr(_ejN2,_nsAdj2,_ej.reps);
-      var _allD2=_sarr2.length>0&&_sarr2.every(function(s){return s.done;});
-      var _hasG2=!!getGuiaEj(_ejN2);
-      var _gid2='gm-'+_ejG2;
-      _h2+=
-        '<div style="background:var(--surface-2);border-radius:10px;padding:10px 12px;margin-bottom:8px;'+(_allD2?'opacity:.65;':'')+
-        'border:1.5px solid '+(_allD2?'#00C853':'transparent')+'" id="'+_ejId2+'-block">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">'+
-          '<div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">'+
-            (_allD2?'<span style="color:#00C853;font-size:14px">✅</span>':'')+
-            '<div style="font-size:13px;font-weight:700;color:var(--text)">'+_ejN2+'</div>'+
-            (_hasG2?'<button id="guia-btn-'+_gid2+'" onclick="toggleGuiaEj(\''+_gid2+'\')" style="flex-shrink:0;background:transparent;border:none;font-size:14px;cursor:pointer;opacity:.5;padding:0">ℹ️</button>':'')+
+    if(_isViewingToday2){
+      // Vista interactiva (sesión de hoy — permite marcar series)
+      _ejsMain2.forEach(function(_ej){
+        var _ejN2=_ej.nombre||'Ejercicio';
+        var _ejId2='mcej-'+_ejG2; _ejG2++;
+        var _ns2=parseInt(_ej.series)||3;
+        var _nsAdj2=_isPeak2?Math.max(1,Math.round(_ns2*0.5)):_ns2;
+        var _sarr2=buildSeriesArr(_ejN2,_nsAdj2,_ej.reps);
+        var _allD2=_sarr2.length>0&&_sarr2.every(function(s){return s.done;});
+        var _hasG2=!!getGuiaEj(_ejN2);
+        var _gid2='gm-'+_ejG2;
+        _h2+=
+          '<div style="background:var(--surface-2);border-radius:10px;padding:10px 12px;margin-bottom:8px;'+(_allD2?'opacity:.65;':'')+
+          'border:1.5px solid '+(_allD2?'#00C853':'transparent')+'" id="'+_ejId2+'-block">'+
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">'+
+            '<div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">'+
+              (_allD2?'<span style="color:#00C853;font-size:14px">✅</span>':'')+
+              '<div style="font-size:13px;font-weight:700;color:var(--text)">'+_ejN2+'</div>'+
+              (_hasG2?'<button id="guia-btn-'+_gid2+'" onclick="toggleGuiaEj(\''+_gid2+'\')" style="flex-shrink:0;background:transparent;border:none;font-size:14px;cursor:pointer;opacity:.5;padding:0">ℹ️</button>':'')+
+            '</div>'+
+            '<div style="display:flex;gap:3px;flex-shrink:0">'+
+              (_ej.reps?'<span style="background:rgba(255,179,0,.12);color:#FFB300;border-radius:5px;padding:3px 8px;font-size:12px;font-weight:700">'+_ej.reps+'</span>':'')+
+              ((_ej.rir!=null&&_ej.rir!=='')?'<span style="background:rgba(0,200,83,.1);color:#00C853;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:600">RIR '+_ej.rir+(_isPeak2?' → 4-5':'')+'</span>':'')+
+            '</div>'+
           '</div>'+
-          '<div style="display:flex;gap:3px;flex-shrink:0">'+
-            (_ej.reps?'<span style="background:rgba(255,179,0,.12);color:#FFB300;border-radius:5px;padding:3px 8px;font-size:12px;font-weight:700">'+_ej.reps+'</span>':'')+
-            ((_ej.rir!=null&&_ej.rir!=='')?'<span style="background:rgba(0,200,83,.1);color:#00C853;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:600">RIR '+_ej.rir+(_isPeak2?' → 4-5':'')+'</span>':'')+
+          (_ej.nota?'<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">'+_ej.nota+'</div>':'')+
+          (_ej.descanso?'<div style="font-size:10px;color:#4A5568;margin-bottom:4px">⏱ '+_ej.descanso+' descanso</div>':'')+
+          renderGuiaEjHTML(_ejN2,_gid2)+
+          '<div id="'+_ejId2+'-series" style="display:flex;flex-direction:column;gap:5px">';
+        _sarr2.forEach(function(_s2,_si2){
+          var _nr2=renderSerieRow(0,_ejG2,_si2,_s2,0,'combate',_ejN2,_ej.rir);
+          var _ne2=_ejN2.replace(/'/g,"\\'");
+          _h2+='<div id="'+_ejId2+'-s'+_si2+'" style="padding:5px 8px;background:'+(_s2.done?'rgba(0,200,83,.06)':'rgba(0,0,0,.2)')+
+            ';border:1px solid '+(_s2.done?'rgba(0,200,83,.4)':'rgba(255,255,255,.05)')+';border-radius:7px">'+
+            _nr2+
+            '<div style="display:flex;justify-content:flex-end;margin-top:4px">'+
+              '<button onclick="marcarSerieCombate(\''+_ne2+'\','+_si2+',\''+_ejId2+'\')" id="'+_ejId2+'-done-'+_si2+'" '+
+                'style="padding:5px 16px;border-radius:7px;border:1.5px solid '+(_s2.done?'#00C853':'rgba(255,255,255,.1)')+
+                ';background:'+(_s2.done?'rgba(0,200,83,.15)':'rgba(255,255,255,.04)')+
+                ';color:'+(_s2.done?'#00C853':'#6E8090')+';font-size:12px;cursor:pointer;font-weight:700">'+
+                (_s2.done?'✅ Hecha':'Marcar')+'</button>'+
+            '</div>'+
+          '</div>';
+        });
+        _h2+='</div></div>';
+      });
+    } else {
+      // Vista de consulta (otra sesión — solo muestra info sin marcar)
+      if(_ejsMain2.length===0){
+        _h2+='<div style="text-align:center;padding:16px;font-size:12px;color:#4A5568">Sin ejercicios en esta sesión</div>';
+      }
+      _ejsMain2.forEach(function(_ej){
+        var _ns2=parseInt(_ej.series)||3;
+        var _repsLbl=_ej.reps?_ns2+'×'+_ej.reps:(_ns2+' series');
+        _h2+='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;margin-bottom:5px">'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="font-size:12px;font-weight:700;color:#F0F4FF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(_ej.nombre||'Ejercicio')+'</div>'+
+            (_ej.nota?'<div style="font-size:10px;color:#4A5568;margin-top:2px">'+_ej.nota+'</div>':'')+
           '</div>'+
-        '</div>'+
-        (_ej.nota?'<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">'+_ej.nota+'</div>':'')+
-        (_ej.descanso?'<div style="font-size:10px;color:#4A5568;margin-bottom:4px">⏱ '+_ej.descanso+' descanso</div>':'')+
-        renderGuiaEjHTML(_ejN2,_gid2)+
-        '<div id="'+_ejId2+'-series" style="display:flex;flex-direction:column;gap:5px">';
-      _sarr2.forEach(function(_s2,_si2){
-        var _nr2=renderSerieRow(0,_ejG2,_si2,_s2,0,'combate',_ejN2,_ej.rir);
-        var _ne2=_ejN2.replace(/'/g,"\\'");
-        _h2+='<div id="'+_ejId2+'-s'+_si2+'" style="padding:5px 8px;background:'+(_s2.done?'rgba(0,200,83,.06)':'rgba(0,0,0,.2)')+
-          ';border:1px solid '+(_s2.done?'rgba(0,200,83,.4)':'rgba(255,255,255,.05)')+';border-radius:7px">'+
-          _nr2+
-          '<div style="display:flex;justify-content:flex-end;margin-top:4px">'+
-            '<button onclick="marcarSerieCombate(\''+_ne2+'\','+_si2+',\''+_ejId2+'\')" id="'+_ejId2+'-done-'+_si2+'" '+
-              'style="padding:5px 16px;border-radius:7px;border:1.5px solid '+(_s2.done?'#00C853':'rgba(255,255,255,.1)')+
-              ';background:'+(_s2.done?'rgba(0,200,83,.15)':'rgba(255,255,255,.04)')+
-              ';color:'+(_s2.done?'#00C853':'#6E8090')+';font-size:12px;cursor:pointer;font-weight:700">'+
-              (_s2.done?'✅ Hecha':'Marcar')+'</button>'+
+          '<div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px;flex-wrap:wrap;justify-content:flex-end">'+
+            '<span style="background:rgba(255,179,0,.12);color:#FFB300;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:700">'+_repsLbl+'</span>'+
+            ((_ej.rir!=null&&_ej.rir!=='')?'<span style="background:rgba(0,200,83,.1);color:#00C853;border-radius:5px;padding:3px 7px;font-size:11px;font-weight:600">RIR '+_ej.rir+'</span>':'')+
+            (_ej.descanso?'<span style="background:rgba(255,255,255,.06);color:#4A5568;border-radius:5px;padding:3px 7px;font-size:11px">⏱ '+_ej.descanso+'</span>':'')+
           '</div>'+
         '</div>';
       });
-      _h2+='</div></div>';
-    });
+    }
     _h2+='</div></div>';
+
+    // Badge/Tatami/Molestias solo cuando hoy es día de gym
+    if(_diHoy2!==null&&_dias2[_diHoy2]){
 
     // Badge sesión completada
     if(_reC&&_reC.completado){
@@ -14589,6 +14579,8 @@ async function loadEntrenoCombate(){
       '</div>'+
       '<button onclick="guardarMolestia()" style="width:100%;padding:8px;background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.25);color:#FFB300;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px">💾 Guardar</button>'+
     '</div></div>';
+
+    } // end if(_diHoy2!==null&&_dias2[_diHoy2])
 
     _contEl.innerHTML=_h2;
     renderEncuesta();
@@ -15459,9 +15451,14 @@ async function enviarCheckinCombate(existingId,semNum){
   }catch(e){toast('Error: '+e.message,'err');}
 }
 
+function switchEntrenoSes(idx){
+  window._entrenoSesIdx=idx;
+  loadEntrenoCombate();
+}
+
 async function loadEntreno(){
   var c=S.user, f=S.fecha;
-  if(c.tipo_cliente==='combate'){loadEntrenoCombate();return;}
+  if(c.tipo_cliente==='combate'){window._entrenoSesIdx=null;loadEntrenoCombate();return;}
   try{
     var results=await Promise.all([
       db.get('planes','cliente_id=eq.'+c.id+'&tipo=eq.entreno&activo=eq.true&limit=1'),
