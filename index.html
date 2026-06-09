@@ -16263,25 +16263,6 @@ async function loadProgCombate(){
       var fp=new Date(c.fecha_pelea),hD=new Date();hD.setHours(0,0,0,0);
       diasPelea=Math.max(0,Math.ceil((fp-hD)/(24*3600*1000)));
     }
-    html+='<div style="background:rgba('+faseP.color+',.1);border:1px solid rgba('+faseP.color+',.3);border-radius:12px;padding:1rem;margin-bottom:.75rem">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center">'+
-        '<div>'+
-          '<div style="font-size:10px;font-weight:800;color:rgba('+faseP.color+',1);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Fase actual</div>'+
-          '<div style="font-size:17px;font-weight:900;color:#F0F4FF">'+faseP.label+'</div>'+
-          '<div style="font-size:11px;color:var(--text-3);margin-top:2px">Vol: '+faseP.vol+' · '+faseP.rir+'</div>'+
-        '</div>'+
-        (diasPelea!==null?
-          '<div style="text-align:right">'+
-            '<div style="font-size:32px;font-weight:900;color:rgba('+faseP.color+',1);line-height:1">'+
-              (diasPelea===0?'¡HOY!':diasPelea)+'</div>'+
-            '<div style="font-size:10px;color:#4A5568;text-transform:uppercase;font-weight:700">'+
-              (diasPelea===0?'⚔️ PELEA':'días para pelea')+
-            '</div>'+
-            (c.fecha_pelea?'<div style="font-size:10px;color:#4A5568;margin-top:2px">'+c.fecha_pelea+'</div>':'')+
-          '</div>':'')+
-      '</div>'+
-    '</div>';
-
     // ── 2. STATS RÁPIDOS ───────────────────────────────────────
     var sesionesTotal=entrenos.filter(function(e){return e.completado;}).length;
     var pesoActual=pesos[0]&&pesos[0].peso||null;
