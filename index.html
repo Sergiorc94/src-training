@@ -8063,16 +8063,53 @@ async function adminTab(tab,btn){
   }
   else if(tab==='bien'){
     try{
-      const wRecs=await db.get('registros_entreno',
-        'cliente_id=eq.'+c.id+'&order=fecha.desc&limit=20');
+      var _bienCutoff=new Date();_bienCutoff.setDate(_bienCutoff.getDate()-13);
+      var _bienCutStr=_bienCutoff.toISOString().split('T')[0];
+      var _bienHoy=new Date().toISOString().split('T')[0];
+      const [wRecs, _bienNutri] = await Promise.all([
+        db.get('registros_entreno','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=20'),
+        db.get('registros_nutricion','cliente_id=eq.'+c.id+'&fecha=gte.'+_bienCutStr+'&fecha=lte.'+_bienHoy+'&order=fecha.asc&limit=14'),
+      ]);
       var SUE_E=['','😵','😕','😐','😊','😴'];
       var FAT_E=['','😩','😓','😐','😊','⚡'];
       var EST_E=['','😤','😟','😐','😌','🧘'];
       var SUE_C=['','#FF1744','#FF6B35','#FFB300','#4D9FFF','#00C853'];
       var FAT_C=['','#FF1744','#FF6B35','#FFB300','#4D9FFF','#00C853'];
       var EST_C=['','#FF1744','#FF6B35','#FFB300','#4D9FFF','#00C853'];
+      var hace7d2=new Date();hace7d2.setDate(hace7d2.getDate()-6);var hace7dias=hace7d2.toISOString().split('T')[0];
+      // ── Adherencia 14 días (entreno + dieta) ──────────────────────
+      var _adhrHtml='<div class="card" style="margin-bottom:.75rem"><div class="ch">📊 Adherencia — últimos 14 días</div><div class="cb" style="padding-top:.5rem">';
+      _adhrHtml+='<div style="display:grid;grid-template-columns:repeat(14,1fr);gap:3px;margin-bottom:8px">';
+      for(var _ai=13;_ai>=0;_ai--){
+        var _aDate=new Date(_bienCutoff);_aDate.setDate(_aDate.getDate()+13-_ai);
+        var _aStr=_aDate.toISOString().split('T')[0];
+        var _aRe=(wRecs||[]).find(function(r){return r.fecha===_aStr;});
+        var _aNu=(_bienNutri||[]).find(function(r){return r.fecha===_aStr;});
+        var _aEDone=_aRe&&_aRe.completado;var _aNDone=_aNu&&_aNu.completado;
+        var _aIsHoy=_aStr===_bienHoy;
+        var _aBg=_aEDone&&_aNDone?'#00C853':_aEDone||_aNDone?'#FFB300':'#1A2A40';
+        var _aDLabel=new Date(_aStr+'T12:00:00').getDate();
+        _adhrHtml+='<div style="text-align:center;cursor:default" title="'+_aStr+(_aEDone?' ✓Entreno':'')+(_aNDone?' ✓Dieta':'')+'">'+
+          '<div style="height:28px;border-radius:4px;background:'+_aBg+';opacity:'+(_aIsHoy?'1':'.8')+';border:'+(_aIsHoy?'1.5px solid #4D9FFF':'none')+'"></div>'+
+          '<div style="font-size:8px;color:#4A5568;margin-top:2px">'+_aDLabel+'</div>'+
+        '</div>';
+      }
+      _adhrHtml+='</div>';
+      var _eTot=(wRecs||[]).filter(function(r){return r.completado&&r.fecha>=_bienCutStr;}).length;
+      var _nTot=(_bienNutri||[]).filter(function(r){return r.completado;}).length;
+      _adhrHtml+='<div style="display:flex;gap:16px;font-size:11px;flex-wrap:wrap">';
+      _adhrHtml+='<div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#00C853;display:inline-block"></span><span style="color:#A0B0C0">Ambos completados</span></div>';
+      _adhrHtml+='<div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#FFB300;display:inline-block"></span><span style="color:#A0B0C0">Solo 1</span></div>';
+      _adhrHtml+='<div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#1A2A40;display:inline-block"></span><span style="color:#4A5568">Sin datos</span></div>';
+      _adhrHtml+='</div>';
+      _adhrHtml+='<div style="display:flex;gap:16px;margin-top:8px;font-size:12px">';
+      _adhrHtml+='<div>💪 Entrenos: <strong style="color:#4D9FFF">'+_eTot+'</strong>/14</div>';
+      _adhrHtml+='<div>🥗 Dietas: <strong style="color:#00C853">'+_nTot+'</strong>/14</div>';
+      _adhrHtml+='</div>';
+      _adhrHtml+='</div></div>';
+
       if(!wRecs||!wRecs.length){
-        cont.innerHTML='<div class="card"><div class="cb"><div class="empty">Sin datos de bienestar aún — el cliente necesita reportar sueño/energía/estrés al entrenar</div></div></div>';
+        cont.innerHTML=_adhrHtml+'<div class="card"><div class="cb"><div class="empty">Sin datos de bienestar aún — el cliente necesita reportar sueño/energía/estrés al entrenar</div></div></div>';
         return;
       }
       // Promedios
@@ -8257,7 +8294,7 @@ async function adminTab(tab,btn){
         }
       }catch(e3){console.warn('horas_sueno no disponible:',e3.message);}
 
-      cont.innerHTML=html;
+      cont.innerHTML=_adhrHtml+html;
     }catch(e){cont.innerHTML='<div class="empty">Error: '+e.message+'</div>';}
   }
   else if(tab==='plan'){
@@ -11439,6 +11476,7 @@ async function loadNutri(){
       S.peNutri=_pnArr&&_pnArr[0]||null; // cached para el modal de "Mi semana"
       var _nutriManual=S.peNutri&&S.peNutri.contenido||null;
       if(_nutriManual){
+        window._ncv=null; // reset: vuelve al color de hoy al recargar
         renderNutriPlanManual(c,_nutriManual,S.rn);
         return;
       }
@@ -11580,16 +11618,19 @@ function renderNutriPlanManual(c, planManual, rn){
     if(_ps){var _dp=parseDiaPlan(_ps[String(dow)]),_SATRL={fuerza:'red',fisico:'red',gym:'red',sparring:'red',tecnica:'yellow',acondicionamiento:'green',cardio:'green'},_ps2=(_dp.sessions||[]).filter(function(s){return s!=='descanso';})[0]||null,_dck=_ps2?(_SATRL[_ps2]||null):null;if(_dck){dcInfo=_DCOL[_dck];_todayColorKey=_dck;}else{_todayColorKey='green';dcInfo=_DCOL['green'];}} // descanso → verde
   }catch(e){}
 
+  // Color a mostrar: respeta selección del usuario (window._ncv) o usa el de hoy
+  var _viewColor = (window._ncv && planManual.porColor && planManual.porColor[window._ncv] && (planManual.porColor[window._ncv].comidas||[]).length) ? window._ncv : (_todayColorKey || 'yellow');
+
   // Seleccionar comidas según formato del plan (nuevo porColor vs legado)
   var comidas=[];
   if(planManual.porColor){
-    var _cData=planManual.porColor[_todayColorKey||'yellow']||planManual.porColor['yellow']||null;
+    var _cData=planManual.porColor[_viewColor]||planManual.porColor[_todayColorKey||'yellow']||planManual.porColor['yellow']||null;
     comidas=(_cData&&_cData.comidas)||[];
     if(!comidas.length){
       cont.innerHTML='<div class="card"><div class="cb" style="text-align:center;padding:1.5rem">'+
         '<div style="font-size:2rem;margin-bottom:.5rem">⏳</div>'+
-        '<div style="color:#4A5568;font-size:13px">Sin plan de nutrición para el día de hoy.</div>'+
-        '<div style="color:#6E8090;font-size:11px;margin-top:.25rem">El entrenador asignará la dieta de este color pronto.</div>'+
+        '<div style="color:#4A5568;font-size:13px">Sin plan de nutrición para la dieta '+_viewColor+'.</div>'+
+        '<div style="color:#6E8090;font-size:11px;margin-top:.25rem">El entrenador asignará esta dieta pronto.</div>'+
       '</div></div>';
       return;
     }
@@ -11611,8 +11652,33 @@ function renderNutriPlanManual(c, planManual, rn){
   S.nutriPlanObj={k:Math.round(totKObj),p:Math.round(totPObj),c:Math.round(totCObj),g:Math.round(totGObj)};
 
   var html='';
+
+  // Tabs de color (si hay dietas porColor)
+  if(planManual.porColor){
+    var _cTabDefs=[
+      {k:'red',   icon:'🔴',label:'Rojo',   sel:'rgba(255,23,68,.12)',  bord:'rgba(255,23,68,.45)',  col:'#FF1744'},
+      {k:'yellow',icon:'🟡',label:'Amarillo',sel:'rgba(255,214,0,.12)',  bord:'rgba(255,214,0,.45)', col:'#FFD600'},
+      {k:'green', icon:'🟢',label:'Verde',  sel:'rgba(0,200,83,.12)',   bord:'rgba(0,200,83,.45)',   col:'#00C853'},
+    ];
+    html+='<div style="display:flex;gap:6px;margin-bottom:.75rem">';
+    _cTabDefs.forEach(function(t){
+      var _isAct=_viewColor===t.k,_isHoy=_todayColorKey===t.k;
+      var _hasDiet=planManual.porColor[t.k]&&(planManual.porColor[t.k].comidas||[]).length>0;
+      html+='<button onclick="switchNutriColorView(\''+t.k+'\')" style="flex:1;padding:8px 4px;border-radius:8px;'+
+        'border:1.5px solid '+(_isAct?t.bord:'rgba(255,255,255,.07)')+';'+
+        'background:'+(_isAct?t.sel:'rgba(255,255,255,.02)')+';'+
+        'color:'+(_isAct?t.col:(_hasDiet?'#6E8090':'#2A3A50'))+';'+
+        'font-size:11px;font-weight:'+(_isAct?'800':'600')+';cursor:pointer;'+
+        'display:flex;flex-direction:column;align-items:center;gap:2px;opacity:'+(_hasDiet?'1':'.4')+'">';
+      html+='<span style="font-size:14px">'+t.icon+'</span>';
+      html+='<span>'+t.label+(_isHoy?' ★':'')+' </span>';
+      html+='</button>';
+    });
+    html+='</div>';
+  }
+
   // Badge día color
-  if(dcInfo)html+='<div style="background:'+dcInfo.bg+';border:1px solid '+dcInfo.border+';border-radius:8px;padding:6px 12px;margin-bottom:.75rem;font-size:13px;font-weight:700">'+dcInfo.label+'</div>';
+  if(dcInfo&&_viewColor===_todayColorKey)html+='<div style="background:'+dcInfo.bg+';border:1px solid '+dcInfo.border+';border-radius:8px;padding:6px 12px;margin-bottom:.75rem;font-size:13px;font-weight:700">'+dcInfo.label+'</div>';
 
   // Barra progreso macros
   var pctP=totPObj>0?Math.round(totP/totPObj*100):0,pctC=totCObj>0?Math.round(totC/totCObj*100):0,pctG=totGObj>0?Math.round(totG/totGObj*100):0;
@@ -11659,6 +11725,25 @@ function renderNutriPlanManual(c, planManual, rn){
   });
 
   cont.innerHTML=html;
+
+  // Actualizar botón "Marcar dieta completada" según estado
+  var _btnNC2=document.getElementById('btn-ncompleto');
+  if(_btnNC2){
+    var _dietaDone=rn&&rn.completado;
+    _btnNC2.textContent=_dietaDone?'✅ Dieta de hoy completada':'○ Marcar dieta de hoy completada';
+    _btnNC2.style.background=_dietaDone?'rgba(0,200,83,.12)':'';
+    _btnNC2.style.color=_dietaDone?'#00C853':'';
+    _btnNC2.style.borderColor=_dietaDone?'rgba(0,200,83,.35)':'';
+  }
+}
+
+async function switchNutriColorView(color){
+  window._ncv=color;
+  try{
+    var _pnA=await db.get('planes','cliente_id=eq.'+S.user.id+'&tipo=eq.nutricion&activo=eq.true&limit=1');
+    var _pN=_pnA&&_pnA[0]&&_pnA[0].contenido||null;
+    if(_pN) renderNutriPlanManual(S.user,_pN,S.rn);
+  }catch(e){}
 }
 
 async function toggleComidaCompletada(ci){
@@ -14230,7 +14315,7 @@ async function loadEntrenoCombate(){
             var _extras2=_allSes2.filter(function(s){return s!=='fuerza'&&s!=='gym'&&s!=='fisico'&&s!=='descanso';});
             if(_extras2.length>0) _extraSesType2=_extras2[0];
           } else if(_isDescanso2){
-            _nonGymType2='descanso'; // descanso explícito — evita que el fallback muestre gym
+            _nonGymType2='descanso'; // descanso: evita que el fallback asigne gym
           } else {
             _nonGymType2=_firstSes2; // día puro de técnica/sparring/acond
           }
@@ -14238,7 +14323,7 @@ async function loadEntrenoCombate(){
       }
     }catch(_eU2){}
 
-    // Fallback al schedule legacy (solo si plan_semanal no tiene entrada para hoy)
+    // Fallback al schedule legacy (sin fallback secuencial — sin plan_semanal = descanso)
     if(_diHoy2===null&&_nonGymType2===null){
       if(_sch2&&_sch2[_hoyIdx2]!==undefined&&_sch2[_hoyIdx2]!==null&&_sch2[_hoyIdx2]!==''){
         _diHoy2=parseInt(_sch2[_hoyIdx2]);
@@ -14249,14 +14334,20 @@ async function loadEntrenoCombate(){
 
     // ── Cargar registros ────────────────────────────────────────
     var _fHoy2=new Date().toISOString().split('T')[0];
-    var _reC=null,_reHist2=[];
+    // Semana actual (lunes→domingo) para marcar completados
+    var _wM2=new Date(_fHoy2+'T12:00:00');var _wd2=_wM2.getDay();_wM2.setDate(_wM2.getDate()-(_wd2===0?6:_wd2-1));
+    var _wS2=new Date(_wM2);_wS2.setDate(_wS2.getDate()+6);
+    var _wMonStr2=_wM2.toISOString().split('T')[0],_wSunStr2=_wS2.toISOString().split('T')[0];
+    var _reC=null,_reHist2=[],_weekRecs2=[];
     try{
       var _rr=await Promise.all([
         db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=eq.'+_fHoy2),
         db.get('registros_entreno','cliente_id=eq.'+c.id+'&completado=eq.true&order=fecha.desc&limit=3'),
+        db.get('registros_entreno','cliente_id=eq.'+c.id+'&fecha=gte.'+_wMonStr2+'&fecha=lte.'+_wSunStr2+'&order=fecha.asc'),
       ]);
       _reC=_rr[0]&&_rr[0][0]||null;
       _reHist2=_rr[1]||[];
+      _weekRecs2=_rr[2]||[];
     }catch(_e2){}
     if(!S.reCombate||S.reCombate.fecha!==_fHoy2)S.reCombate={fecha:_fHoy2,ejercicios:{}};
     if(_reC&&_reC.ejercicios)Object.assign(S.reCombate.ejercicios,_reC.ejercicios);
@@ -14343,30 +14434,48 @@ async function loadEntrenoCombate(){
       _h2+='<div style="background:rgba('+_es2.col+',.08);border:1px solid rgba('+_es2.col+',.25);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:13px;font-weight:700;color:rgba('+_es2.col+',1)">'+_es2.icon+' '+_es2.lbl+' (sesión deportiva — registra también en tatami)</div>';
     }
 
-    // Tira semanal
+    // Semana completa — lista con iconos y estado completado
     var _DS2=['L','M','X','J','V','S','D'];
-    _h2+='<div class="card" style="margin-bottom:.75rem"><div class="ch" style="font-size:12px">📅 Esta semana</div><div class="cb" style="padding-top:.25rem"><div style="display:flex;gap:5px;overflow-x:auto;padding-bottom:2px">';
     var _psStrip2={};try{var _pss2=c.plan_semanal;_psStrip2=typeof _pss2==='string'?JSON.parse(_pss2):(_pss2||{});}catch(e){}
-    var _SICO2={tecnica:'🥋',sparring:'🥊',acondicionamiento:'🏃',cardio:'🏃',fuerza:'💪',fisico:'💪',gym:'💪',descanso:'🛌'};
+    var _SCOLS2={tecnica:'255,179,0',sparring:'255,107,53',acondicionamiento:'0,229,255',cardio:'0,229,255',fuerza:'77,159,255',fisico:'77,159,255',gym:'77,159,255',descanso:'74,85,104'};
+    var _SICN2={tecnica:'🥋',sparring:'🥊',acondicionamiento:'🏃',cardio:'🏃',fuerza:'💪',fisico:'💪',gym:'💪',descanso:'🛌'};
+    _h2+='<div class="card" style="margin-bottom:.75rem"><div class="ch" style="font-size:12px">📅 Esta semana</div><div class="cb" style="padding-top:.25rem"><div style="display:flex;flex-direction:column;gap:4px">';
     for(var _di2=0;_di2<7;_di2++){
       var _isTd2=_di2===_hoyIdx2;
-      var _stripDow2=_di2===6?0:_di2+1; // hoyIdx(Mon=0..Sun=6) → getDay()
+      var _stripDow2=_di2===6?0:_di2+1; // Mon=0..Sun=6 → getDay()
+      var _wDate2=new Date(_wM2);_wDate2.setDate(_wDate2.getDate()+_di2);
+      var _wDateStr2=_wDate2.toISOString().split('T')[0];
+      var _wRec2=_weekRecs2.find(function(r){return r.fecha===_wDateStr2;});
+      var _wDone2=!!(_wRec2&&_wRec2.completado);
       var _stripEntry2=_psStrip2[String(_stripDow2)];
-      var _dnom2='🛌';
-      if(_stripEntry2){
-        var _sdp2=parseDiaPlan(_stripEntry2),_sse2=(_sdp2.sessions||[])[0]||'descanso';
-        if(_sse2==='fuerza'&&_stripEntry2.gym_dia_idx!==undefined){
-          var _sdia2=_dias2[_stripEntry2.gym_dia_idx];
-          _dnom2=_sdia2?_sdia2.nombre.slice(0,5):'💪';
-        } else {_dnom2=_SICO2[_sse2]||'•';}
-      } else if(_sch2){
-        var _dv2=_sch2[_di2];
-        if(_dv2!==null&&_dv2!==undefined&&_dv2!=='') _dnom2=(_dias2[parseInt(_dv2)]&&_dias2[parseInt(_dv2)].nombre.slice(0,5))||'💪';
+      var _wSdp2=_stripEntry2?parseDiaPlan(_stripEntry2):{sessions:[],tipo:null};
+      var _wSes2=_wSdp2.sessions||[];
+      var _wIsGym2=_wSes2.some(function(s){return s==='fuerza'||s==='gym'||s==='fisico';});
+      var _wIsDesc2=!_wSes2.length||_wSes2.every(function(s){return s==='descanso';});
+      var _wIco2,_wLbl2,_wCol2;
+      if(_wIsDesc2){
+        _wIco2='🛌';_wLbl2='Descanso';_wCol2='74,85,104';
+      } else if(_wIsGym2){
+        var _wExSes2=_wSes2.filter(function(s){return s!=='fuerza'&&s!=='gym'&&s!=='fisico'&&s!=='descanso';});
+        var _wGymIdx2=_stripEntry2&&_stripEntry2.gym_dia_idx!==undefined?parseInt(_stripEntry2.gym_dia_idx):null;
+        var _wGymObj2=_wGymIdx2!==null&&_wGymIdx2>=0&&_dias2[_wGymIdx2]?_dias2[_wGymIdx2]:null;
+        _wIco2='💪';_wLbl2=_wGymObj2?(_wGymObj2.nombre||'Gym'):'Gym';_wCol2='77,159,255';
+        if(_wExSes2.length>0){var _wEI2={tecnica:'🥋',sparring:'🥊',acondicionamiento:'🏃',cardio:'🏃'};_wLbl2=(_wEI2[_wExSes2[0]]||'💪')+' + '+_wLbl2;}
+      } else {
+        var _wFirst2=_wSes2.filter(function(s){return s!=='descanso';})[0]||'descanso';
+        _wIco2=_SICN2[_wFirst2]||'💪';
+        _wLbl2=({tecnica:'Técnica',sparring:'Sparring',acondicionamiento:'Acondicionamiento',cardio:'Cardio'}[_wFirst2])||_wFirst2;
+        _wCol2=_SCOLS2[_wFirst2]||'255,255,255';
       }
-      _h2+='<div style="flex-shrink:0;text-align:center;padding:5px 7px;border-radius:7px;min-width:36px;background:rgba('+(_isTd2?'0,85,255':'255,255,255')+',.08);border:1px solid rgba('+(_isTd2?'0,85,255':'255,255,255')+',.12)">'+
-        '<div style="font-size:9px;font-weight:900;color:'+(_isTd2?'#4D9FFF':'#4A5568')+'">'+_DS2[_di2]+'</div>'+
-        '<div style="font-size:9px;color:'+(_isTd2?'#F0F4FF':'#6E8090')+';margin-top:2px;max-width:36px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_dnom2+'</div>'+
-      '</div>';
+      var _wBg2=_isTd2?'rgba('+_wCol2+',.15)':(_wDone2?'rgba(0,200,83,.06)':'rgba('+_wCol2+',.04)');
+      var _wBord2=_isTd2?'rgba('+_wCol2+',.5)':(_wDone2?'rgba(0,200,83,.25)':'rgba('+_wCol2+',.1)');
+      _h2+='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:'+_wBg2+';border:1px solid '+_wBord2+'">';
+      _h2+='<div style="font-size:10px;font-weight:900;color:rgba('+_wCol2+','+((_isTd2||_wDone2)?'1':'.6')+');width:20px;flex-shrink:0;text-align:center">'+_DS2[_di2]+'</div>';
+      _h2+='<div style="font-size:16px;flex-shrink:0">'+(_wDone2?'✅':_wIco2)+'</div>';
+      _h2+='<div style="font-size:12px;font-weight:'+(_isTd2?'800':'600')+';color:rgba('+_wCol2+','+((_isTd2||_wDone2)?'1':'.7')+');flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_wLbl2+'</div>';
+      if(_isTd2)_h2+='<div style="font-size:9px;font-weight:900;color:rgba('+_wCol2+',1);background:rgba('+_wCol2+',.2);padding:2px 8px;border-radius:4px;flex-shrink:0">HOY</div>';
+      else if(_wDone2)_h2+='<div style="font-size:9px;font-weight:800;color:#00C853;padding:2px 6px;flex-shrink:0">hecho</div>';
+      _h2+='</div>';
     }
     _h2+='</div></div></div>';
 
