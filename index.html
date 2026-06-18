@@ -9162,6 +9162,25 @@ function _nutriLoadTab(color){
   var _ncEl=document.getElementById('plan-nc');
   var nc=(_ncEl?parseInt(_ncEl.value):0)||(S.ca&&S.ca.n_comidas)||5;
   var data=window._nutriByColor&&window._nutriByColor[color];
+  // Auto-expandir filas si los datos tienen más comidas que las que muestra el formulario
+  var _dataNc=data&&data.comidas&&data.comidas.length||0;
+  if(_dataNc>nc){
+    nc=Math.min(6,_dataNc);
+    if(_ncEl) _ncEl.value=String(nc);
+    var _rowsCont2=document.getElementById('nutri-rows-container');
+    if(_rowsCont2){
+      _rowsCont2.innerHTML=Array.from({length:nc},function(_,i){
+        return '<div style="background:#0D1528;border-radius:8px;padding:.75rem;margin-bottom:.75rem;border:1px solid #1A2A40">'+
+          '<div class="field"><label>Comida '+(i+1)+'</label><input type="text" id="pn-'+i+'" value="'+(CN&&CN[i]?CN[i]:'Comida '+(i+1))+'"></div>'+
+          '<div style="display:grid;grid-template-columns:1fr 55px 45px 40px 40px 40px auto;gap:3px;font-size:9px;color:#4A5568;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">'+
+            '<span>Alimento</span><span>Gramos</span><span>Kcal</span><span>P</span><span>C</span><span>G</span><span></span>'+
+          '</div>'+
+          '<div id="pnl-'+i+'"></div>'+
+          '<button class="btn bg bsm" style="margin-top:4px;font-size:11px" onclick="addAl('+i+')">+ Alimento</button>'+
+        '</div>';
+      }).join('');
+    }
+  }
   Array.from({length:nc},function(_,i){
     var nomEl=document.getElementById('pn-'+i);
     if(nomEl) nomEl.value=(data&&data.comidas&&data.comidas[i]&&data.comidas[i].nombre)||(CN&&CN[i])||'Comida '+(i+1);
