@@ -1638,6 +1638,13 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
   </div>
 </div>
 
+<div class="modal" id="m-cambio-dia" onclick="if(event.target===this)hideM('m-cambio-dia')">
+  <div class="mbox" style="max-width:420px">
+    <div class="mhdr"><div class="mt">🔄 Cambiar día de hoy</div><button class="mclose" onclick="hideM('m-cambio-dia')">✕</button></div>
+    <div class="mbody" id="m-cambio-dia-body"></div>
+  </div>
+</div>
+
 <!-- BOTTOM NAV MÓVIL -->
 <nav class="mob-nav" id="mob-nav">
   <button class="mob-nav-btn mob-active" id="mn-inicio" onclick="mobTab('inicio',this)">
@@ -3935,6 +3942,47 @@ const SYSTEM_PLANTILLAS = {
         {nombre:'Press hombro o banca (mancuernas)',series:'2',reps:'6',rir:'4',descanso:'90s',tipo:'Fuerza'},
         {nombre:'Dominadas o jalón al pecho',series:'2',reps:'6',rir:'4',descanso:'90s',tipo:'Fuerza'},
         {nombre:'Trote continuo Z2 (ritmo conversacional)',series:'1',reps:'15-20 min',rir:'-',descanso:'-',tipo:'Cardio',nota:'Ritmo suave, zona 2 aeróbica. Sin sprints. Conversacional.'}
+      ]}
+    ]}},
+    {id:'__hipertrofiaBloqueC__', nombre:'💪 Hipertrofia Bloque C (4 días)', contenido:{dias:[
+      {nombre:'Día 1 — Tren Superior + Core (MOD)', ejercicios:[
+        {nombre:'Pogos bilaterales',series:'1',reps:'15-20 seg',rir:'-',descanso:'-',tipo:'Pliometría'},
+        {nombre:'Press banca o máquina press pecho',series:'3,3,4,4',reps:'8-10',rir:'4,4,3-4,3',descanso:'90s',tipo:'Empuje'},
+        {nombre:'Press inclinado mancuerna o máquina',series:'3',reps:'10-12',rir:'4,4,3-4,3',descanso:'75s',tipo:'Empuje'},
+        {nombre:'Press hombro (mancuerna o máquina)',series:'3',reps:'10-12',rir:'4,4,3-4,3',descanso:'75s',tipo:'Empuje'},
+        {nombre:'Remo (barra, mancuerna o máquina)',series:'3,3,4,4',reps:'8-10',rir:'4,4,3-4,3',descanso:'90s',tipo:'Tracción'},
+        {nombre:'Jalón al pecho / Dominadas asistidas',series:'3',reps:'10-12',rir:'4,4,3-4,3',descanso:'75s',tipo:'Tracción'},
+        {nombre:'Curl bíceps',series:'3',reps:'12-15',rir:'4,3-4,3-4,3',descanso:'60s',tipo:'Brazos'},
+        {nombre:'Extensión tríceps',series:'3',reps:'12-15',rir:'4,3-4,3-4,3',descanso:'60s',tipo:'Brazos'},
+        {nombre:'Plank',series:'3',reps:'30-40 seg',rir:'-',descanso:'45s',tipo:'Core'},
+        {nombre:'Band Neck ISO (4 direcciones)',series:'2',reps:'15 seg c/u',rir:'-',descanso:'-',tipo:'Core'}
+      ]},
+      {nombre:'Día 2 — Tren Inferior (HIGH)', ejercicios:[
+        {nombre:'Box Jump (parado, submáximo)',series:'2',reps:'3',rir:'-',descanso:'90s',tipo:'Pliometría'},
+        {nombre:'Goblet Squat / Trap Bar Deadlift',series:'3,3,4,4',reps:'8-10',rir:'4,4,3-4,3',descanso:"2'",tipo:'Piernas'},
+        {nombre:'Prensa o Front Squat',series:'3',reps:'10-12',rir:'4,4,3-4,3',descanso:'90s',tipo:'Piernas'},
+        {nombre:'RDL',series:'3',reps:'10-12',rir:'4,4,3-4,3',descanso:'90s',tipo:'Piernas'},
+        {nombre:'Hip Thrust',series:'3',reps:'10-12',rir:'4,4,3-4,3',descanso:'90s',tipo:'Piernas'},
+        {nombre:'SL Hamstring ISO Hold',series:'2',reps:'15 seg/lado',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'Dead Bug',series:'2',reps:'10/lado',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'Band Neck ISO (4 direcciones)',series:'2',reps:'15 seg c/u',rir:'-',descanso:'-',tipo:'Core'}
+      ]},
+      {nombre:'Día 3 — Full Body + Técnica ligera opcional (LOW)', ejercicios:[
+        {nombre:'Line / Ladder Hops',series:'1',reps:'20 seg',rir:'-',descanso:'-',tipo:'Pliometría'},
+        {nombre:'Goblet Squat',series:'3',reps:'10',rir:'4-5,4,4,3-4',descanso:'75s',tipo:'Full Body'},
+        {nombre:'Press banca o máquina',series:'3',reps:'10',rir:'4-5,4,4,3-4',descanso:'75s',tipo:'Full Body'},
+        {nombre:'Remo',series:'3',reps:'10',rir:'4-5,4,4,3-4',descanso:'75s',tipo:'Full Body'},
+        {nombre:'Shuffle lateral / Hip Turn / Drop Step (solo si te apetece)',series:'2',reps:'8 m',rir:'-',descanso:'-',tipo:'Técnica',nota:'Opcional, sin presión. No urgente sin tatami cerca — solo si te apetece'},
+        {nombre:'Dead Bug',series:'2',reps:'10/lado',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'Band Neck ISO (4 direcciones)',series:'2',reps:'15 seg c/u',rir:'-',descanso:'-',tipo:'Core'}
+      ]},
+      {nombre:'Día 4 — Tren Superior · Volumen extra (MOD)', ejercicios:[
+        {nombre:'Press inclinado (mancuerna o máquina)',series:'3',reps:'10-12',rir:'4,4,3-4,3',descanso:'75s',tipo:'Empuje'},
+        {nombre:'Elevaciones laterales',series:'3',reps:'12-15',rir:'4,3-4,3-4,3',descanso:'60s',tipo:'Empuje'},
+        {nombre:'Remo unilateral o máquina',series:'3',reps:'10-12',rir:'4,4,3-4,3',descanso:'75s',tipo:'Tracción'},
+        {nombre:'Face Pull',series:'3',reps:'12-15',rir:'4,3-4,3-4,3',descanso:'60s',tipo:'Tracción'},
+        {nombre:'Curl + Extensión tríceps (superserie)',series:'3',reps:'12-15',rir:'4,3-4,3-4,3',descanso:'45s',tipo:'Brazos',nota:'Superserie'},
+        {nombre:'Band Neck ISO (4 direcciones)',series:'2',reps:'15 seg c/u',rir:'-',descanso:'-',tipo:'Core'}
       ]}
     ]}}
   ],
@@ -6692,6 +6740,13 @@ async function loadAdmin(){
 
     // ── ALERTAS
     var alertas = [];
+    // Prioridad máxima: clientes que han cambiado su día de entreno hoy
+    (regEntreno||[]).forEach(function(r){
+      if(!r.motivo_cambio) return;
+      var cli=S.todos.find(function(x){return x.id===r.cliente_id;});
+      var nom=cli?(cli.nombre+' '+(cli.apellido||'')):'Cliente';
+      alertas.push({tipo:'danger', color:'0,85,255', msg:'🔄 '+nom+' cambió su día de hoy: '+(r.dia_original_nombre||'?')+' → '+(r.dia_nombre||'?')+' · Motivo: '+r.motivo_cambio});
+    });
     activos.forEach(function(c){
       if(!nutriHoy[c.id] && !entrenoHoy[c.id]){
         alertas.push({tipo:'danger', color:'255,23,68', msg:'⚠️ '+c.nombre+' '+(c.apellido||'')+' — Sin actividad hoy'});
@@ -8745,10 +8800,24 @@ async function adminTab(tab,btn){
   }
   else if(tab==='prog'){
     try{
-      var [pr, _regsEj]=await Promise.all([
+      var [pr, _regsEj, _planEntArr]=await Promise.all([
         db.get('registros_progreso','cliente_id=eq.'+c.id+'&order=fecha.desc&limit=10'),
-        db.get('registros_entreno','cliente_id=eq.'+c.id+'&completado=eq.true&order=fecha.asc&limit=60').catch(function(){return [];})
+        db.get('registros_entreno','cliente_id=eq.'+c.id+'&completado=eq.true&order=fecha.asc&limit=200').catch(function(){return [];}),
+        db.get('planes','cliente_id=eq.'+c.id+'&tipo=eq.entreno&activo=eq.true&limit=1').catch(function(){return [];})
       ]);
+      // Mapa nombre ejercicio -> tipo, según el plan activo (para distinguir principales de accesorios)
+      var _tipoMap={};
+      var _planEnt=_planEntArr&&_planEntArr[0];
+      var _diasPlan=_planEnt&&_planEnt.contenido&&_planEnt.contenido.dias||[];
+      var _ordenPrincipal=[];
+      var PRINCIPAL_TIPOS={'Empuje':1,'Tracción':1,'Piernas':1,'Fuerza':1,'Full Body':1};
+      _diasPlan.forEach(function(d){
+        (d.ejercicios||[]).forEach(function(e){
+          if(!e.nombre) return;
+          if(!_tipoMap[e.nombre]) _tipoMap[e.nombre]=e.tipo||'';
+          if(PRINCIPAL_TIPOS[e.tipo]&&_ordenPrincipal.indexOf(e.nombre)===-1) _ordenPrincipal.push(e.nombre);
+        });
+      });
       // ── Tabla peso/medidas ─────────────────────────────────────
       var _pesoHtml='<div class="card" style="margin-bottom:.75rem"><div class="ch">📈 Evolución corporal</div><div class="cb">'+
         (!(pr&&pr.length)?'<div class="empty">Sin datos aún</div>':
@@ -8788,24 +8857,35 @@ async function adminTab(tab,btn){
           }
         });
       });
-      var _ejNames=Object.keys(_ejMap).filter(function(n){return _ejMap[n].length>=2;})
+      var _ejConDatos=Object.keys(_ejMap).filter(function(n){return _ejMap[n].length>=2;});
+      // Principales: ejercicios compuestos del plan activo (Empuje/Tracción/Piernas/Fuerza/Full Body), en el orden del plan
+      var _principales=_ordenPrincipal.filter(function(n){return _ejConDatos.indexOf(n)!==-1;});
+      // Resto: cualquier otro ejercicio con datos, ordenado por nº de sesiones registradas
+      var _resto=_ejConDatos.filter(function(n){return _principales.indexOf(n)===-1;})
         .sort(function(a,b){return _ejMap[b].length-_ejMap[a].length;});
+      var _ejNames=_principales.concat(_resto);
       var _fuerzaHtml='';
       if(_ejNames.length){
         S._adminEjMap=_ejMap;
         S._adminEjNames=_ejNames;
         S._adminEjSel=_ejNames[0];
-        var _btnsSel=_ejNames.slice(0,8).map(function(n){
-          var act=n===_ejNames[0];
+        var _mkBtn=function(n,act){
           return '<button onclick="adminSelEj(\''+n.replace(/'/g,"\\'")+'\')" id="aej-btn-'+n.replace(/[^a-zA-Z0-9]/g,'_')+'" '+
             'style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid '+(act?'#4D9FFF':'#1A2A40')+';'+
             'background:'+(act?'rgba(77,159,255,.15)':'transparent')+';color:'+(act?'#4D9FFF':'#4A5568')+';cursor:pointer;white-space:nowrap">'+
             n.split(' ').slice(0,3).join(' ')+'</button>';
-        }).join('');
+        };
+        var _btnsPrincipales=_principales.map(function(n){return _mkBtn(n,n===_ejNames[0]);}).join('');
+        var _btnsResto=_resto.slice(0,10).map(function(n){return _mkBtn(n,n===_ejNames[0]);}).join('');
         _fuerzaHtml='<div class="card"><div class="ch">💪 Progreso de fuerza (1RM est.)</div><div class="cb">'+
-          '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.75rem">'+_btnsSel+'</div>'+
+          (_btnsPrincipales?
+            '<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">🏋️ Básicos del plan</div>'+
+            '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem">'+_btnsPrincipales+'</div>':'')+
+          (_btnsResto?
+            '<div style="font-size:10px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Otros ejercicios</div>'+
+            '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.75rem">'+_btnsResto+'</div>':'')+
           '<div id="admin-ej-chart" style="width:100%"></div>'+
-          '<div id="admin-ej-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:.5rem"></div>'+
+          '<div id="admin-ej-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:.5rem"></div>'+
         '</div></div>';
       } else {
         _fuerzaHtml='<div class="card"><div class="ch">💪 Progreso de fuerza</div><div class="cb"><div class="empty">Necesita al menos 2 sesiones completadas con kg registrados</div></div></div>';
@@ -13830,18 +13910,21 @@ function renderDiasEntreno(){
           'style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.2);color:#FF1744;border-radius:5px;cursor:pointer;padding:4px 8px;font-size:11px">✕</button>'+
       '</div>'+
       '<div style="display:grid;grid-template-columns:1fr 50px 55px 45px 50px 45px auto;gap:3px;font-size:9px;color:#4A5568;font-weight:700;text-transform:uppercase;margin-bottom:3px">'+
-        '<span>Ejercicio</span><span>Series</span><span>Reps</span><span>RIR</span><span>Desc</span><span style="color:#00C853">+kg</span><span></span>'+
+        '<span>Ejercicio</span><span title="Progresión por semana: escribe 4 valores separados por coma, ej. 3,3,4,4">Series 💡</span>'+
+        '<span>Reps</span><span title="Progresión por semana: escribe 4 valores separados por coma, ej. 4,4,3-4,3">RIR 💡</span>'+
+        '<span>Desc</span><span style="color:#00C853">+kg</span><span></span>'+
       '</div>'+
+      '<div style="font-size:9px;color:#2A3A50;margin-bottom:4px">💡 En Series/Reps/RIR puedes poner 4 valores separados por coma (uno por semana) — ej. RIR "4,4,3-4,3" — y la app mostrará automáticamente el de la semana en curso.</div>'+
       '<div id="pel-'+i+'">'+
         dia.ejercicios.map(function(ej, j){
           return '<div style="display:grid;grid-template-columns:1fr 50px 55px 45px 50px 45px auto;gap:3px;margin-bottom:3px;align-items:center" id="ej-'+i+'-'+j+'">'+
             '<input type="text" value="'+ej.nombre+'" class="isml" '+
               'oninput="window._diasEntreno['+i+'].ejercicios['+j+'].nombre=this.value">'+
-            '<input type="text" value="'+ej.series+'" class="isml" style="text-align:center" '+
+            '<input type="text" value="'+ej.series+'" class="isml" title="Ej: 3,3,4,4 (una por semana)" style="text-align:center" '+
               'oninput="window._diasEntreno['+i+'].ejercicios['+j+'].series=this.value">'+
-            '<input type="text" value="'+ej.reps+'" class="isml" style="text-align:center" '+
+            '<input type="text" value="'+ej.reps+'" class="isml" title="Ej: 8-10,8-10,10-12,10-12 (una por semana)" style="text-align:center" '+
               'oninput="window._diasEntreno['+i+'].ejercicios['+j+'].reps=this.value">'+
-            '<input type="text" value="'+ej.rir+'" class="isml" style="text-align:center;color:#FFB300" '+
+            '<input type="text" value="'+ej.rir+'" class="isml" title="Ej: 4,4,3-4,3 (una por semana)" style="text-align:center;color:#FFB300" '+
               'oninput="window._diasEntreno['+i+'].ejercicios['+j+'].rir=this.value">'+
             '<input type="text" value="'+ej.descanso+'" class="isml" style="text-align:center;color:#4A5568" '+
               'oninput="window._diasEntreno['+i+'].ejercicios['+j+'].descanso=this.value">'+
@@ -14314,7 +14397,8 @@ document.getElementById('btn-ecompleto').onclick=async function(){
     var dmap={1:0,2:1,3:2,4:3,5:4,6:5,0:6};
     var hoyDow=dmap[new Date().getDay()];
     var di=hoyDow%Math.max(dias.length,1);
-    diaNom=dias[di]&&dias[di].nombre||'Entrenamiento';
+    var cambio=S._diaCambio;
+    diaNom=(cambio?cambio.diaNuevoNombre:(dias[di]&&dias[di].nombre))||'Entrenamiento';
     showSav();
     var payload={
       cliente_id:c.id,fecha:f,
@@ -14326,11 +14410,17 @@ document.getElementById('btn-ecompleto').onclick=async function(){
     if(S.eSueno) payload.sueno=S.eSueno;
     if(S.eFatiga) payload.fatiga_percibida=S.eFatiga;
     if(S.eEstres) payload.estres=S.eEstres;
-    await db.upsert('registros_entreno',payload,'cliente_id,fecha');
+    var payloadCambio={motivo_cambio:cambio?cambio.motivo:null,dia_original_nombre:cambio?cambio.diaOriginalNombre:null};
+    try{
+      await db.upsert('registros_entreno',Object.assign({},payload,payloadCambio),'cliente_id,fecha');
+    }catch(e1){
+      // Columnas de cambio de día aún no existen en Supabase — guardar sin ellas
+      await db.upsert('registros_entreno',payload,'cliente_id,fecha');
+    }
     okSav();
     // Borrar borrador local al guardar
     try{localStorage.removeItem('re_draft_'+c.id+'_'+f);}catch(e){}
-    S.eSueno=null;S.eFatiga=null;S.eEstres=null;renderEncuesta();
+    S.eSueno=null;S.eFatiga=null;S.eEstres=null;S._diaCambio=null;renderEncuesta();
     toast('✅ Sesión guardada — '+diaNom,'ok');
     loadEntreno();
   }catch(e){toast('Error: '+e.message,'err');}
@@ -15788,7 +15878,7 @@ async function loadEntreno(){
     // ── DIA ACTIVO (hoy por defecto)
     htmlSemana+='<div id="entreno-dia-content">';
     var ejDataLast=S.reLast&&S.reLast.ejercicios||{};
-    htmlSemana+=renderDiaEntreno(diaHoy, diHoy!==null?diHoy:0, ejData, ejDataLast);
+    htmlSemana+=renderDiaEntreno(resolverDiaSemana(diaHoy,S.pe&&S.pe.semana_inicio), diHoy!==null?diHoy:0, ejData, ejDataLast);
     htmlSemana+='</div>';
 
     cont.innerHTML=htmlSemana;
@@ -16832,7 +16922,7 @@ function drawStrengthChart(ejNom){
 function adminSelEj(nom){
   S._adminEjSel=nom;
   var names=S._adminEjNames||[];
-  names.slice(0,8).forEach(function(n){
+  names.forEach(function(n){
     var btn=document.getElementById('aej-btn-'+n.replace(/[^a-zA-Z0-9]/g,'_'));
     if(!btn) return;
     var act=n===nom;
@@ -16892,15 +16982,19 @@ function adminDrawEj(ejNom){
     '<path d="'+area+'" fill="url(#adm-sg)"/>'+
     '<path d="'+line+'" fill="none" stroke="#4D9FFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
     dots+'</svg>';
-  // Stats
-  var first=vals[0], last=vals[vals.length-1], best=Math.max.apply(null,vals);
+  // Stats — usar histórico completo (no solo la ventana de 20 del gráfico) para "vs inicio" real
+  var todos=S._adminEjMap[ejNom]||data;
+  var todosVals=todos.map(function(d){return d.e1rm;});
+  var first=todosVals[0], last=vals[vals.length-1], best=Math.max.apply(null,todosVals);
   var diff=Math.round((last-first)*10)/10;
+  var diffPct=first>0?Math.round((diff/first)*1000)/10:0;
   var diffStr=(diff>0?'+':'')+diff+'kg';
+  var diffPctStr=(diffPct>0?'+':'')+diffPct+'%';
   var diffCol=diff>0?'#00C853':diff<0?'#FF1744':'#4A5568';
-  var lastD=data[data.length-1];
   if(stats) stats.innerHTML=
     _mst(last+'kg','1RM actual','#4D9FFF')+
-    _mst(diffStr,'vs inicio',diffCol)+
+    _mst(diffStr,'vs inicio ('+todos.length+' ses.)',diffCol)+
+    _mst(diffPctStr,'mejora %',diffCol)+
     _mst(best+'kg','récord personal','#FFB300');
 }
 
@@ -17084,7 +17178,7 @@ function detectTipoEjercicio(nombre){
   return 'fuerza';
 }
 
-function renderSerieRow(diaIdx, ei, si, s, lastMax, diaType, ejNom, ejRir){
+function renderSerieRow(diaIdx, ei, si, s, lastMax, diaType, ejNom, ejRir, lastSerie){
   // diaType: 'fitness' | 'combate'
   var rpe=parseInt(s.rpe)||0;
   var rpeColor=rpe>=9?'#FF1744':rpe>=8?'#FF6B35':rpe>=7?'#FFB300':rpe>=6?'#00C853':'#4A5568';
@@ -17164,7 +17258,14 @@ function renderSerieRow(diaIdx, ei, si, s, lastMax, diaType, ejNom, ejRir){
           '-webkit-tap-highlight-color:transparent">'+
           (isDone?'✓':'○')+
         '</button>':'')+
-    '</div>';
+    '</div>'+
+    // Hint "última vez" para esta serie concreta
+    (lastSerie&&(parseFloat(lastSerie.kg)||0)>0&&!isDone?
+      '<div style="font-size:10px;color:#2A3A50;margin-top:2px;margin-left:27px">'+
+        'Última: <span style="color:#4A5568;font-weight:700">'+lastSerie.kg+'kg × '+(lastSerie.reps||'?')+'rep</span>'+
+        (lastSerie.rpe?'<span style="color:#2A3A50"> · RPE '+lastSerie.rpe+'</span>':'')+
+      '</div>':
+    '');
   }
 
   // ── FILA RPE ─────────────────────────────────────────────────
@@ -17247,6 +17348,12 @@ function playTick(){ playBeep(440,0.06,0.15,'square'); }
 // ═══════════════════════════════════════
 // S._fs = { diaIdx, ejIdx, serieIdx, timerSeg, timerTotal, timerInt }
 
+// Devuelve el día del plan (índice diaIdx) con el RIR ya resuelto a la semana actual del bloque
+function diaFocusedActual(diaIdx){
+  var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[diaIdx];
+  return resolverDiaSemana(dia, S.pe&&S.pe.semana_inicio);
+}
+
 function iniciarSesionFocused(diaIdx){
   var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[diaIdx];
   if(!dia||!dia.ejercicios||!dia.ejercicios.length) return;
@@ -17273,7 +17380,7 @@ function cerrarFocused(){
 function renderFocused(){
   var fs=S._fs;
   if(!fs) return;
-  var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[fs.diaIdx];
+  var dia=diaFocusedActual(fs.diaIdx);
   if(!dia) return;
   var ejercicios=dia.ejercicios||[];
   var ej=ejercicios[fs.ejIdx];
@@ -17428,7 +17535,7 @@ function renderFocused(){
 function updateFocusedInput(campo,val){
   var fs=S._fs;
   if(!fs) return;
-  var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[fs.diaIdx];
+  var dia=diaFocusedActual(fs.diaIdx);
   if(!dia) return;
   var ej=dia.ejercicios&&dia.ejercicios[fs.ejIdx];
   if(!ej) return;
@@ -17444,7 +17551,7 @@ function updateFocusedInput(campo,val){
 function serieFocusedHecha(){
   var fs=S._fs;
   if(!fs) return;
-  var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[fs.diaIdx];
+  var dia=diaFocusedActual(fs.diaIdx);
   if(!dia) return;
   var ej=dia.ejercicios&&dia.ejercicios[fs.ejIdx];
   if(!ej) return;
@@ -17521,7 +17628,7 @@ function serieFocusedHecha(){
 function avanzarFocused(){
   var fs=S._fs;
   if(!fs) return;
-  var dia=S.pe&&S.pe.contenido&&S.pe.contenido.dias&&S.pe.contenido.dias[fs.diaIdx];
+  var dia=diaFocusedActual(fs.diaIdx);
   if(!dia) return;
   var ej=dia.ejercicios&&dia.ejercicios[fs.ejIdx];
   var ejTotal=ej?parseInt(ej.series)||3:0;
@@ -17612,6 +17719,28 @@ function completarSesion(){
   if(btn) btn.click();
 }
 
+function showPRBadge(ejNom, kg, reps, e1rm){
+  var badge=document.createElement('div');
+  badge.innerHTML='🏆 ¡NUEVO RÉCORD! '+ejNom+' · '+kg+'kg×'+reps+' rep (1RM est. '+e1rm+'kg)';
+  badge.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);'+
+    'background:linear-gradient(135deg,#FFB300,#FF6B35);color:#fff;font-size:13px;font-weight:800;'+
+    'padding:10px 18px;border-radius:12px;z-index:9999;box-shadow:0 4px 20px rgba(255,179,0,.4);'+
+    'text-align:center;max-width:90vw;animation:prBadgeIn .3s ease-out';
+  if(!document.getElementById('pr-badge-style')){
+    var st=document.createElement('style');
+    st.id='pr-badge-style';
+    st.textContent='@keyframes prBadgeIn{from{opacity:0;transform:translateX(-50%) scale(.85)}to{opacity:1;transform:translateX(-50%) scale(1)}}';
+    document.head.appendChild(st);
+  }
+  document.body.appendChild(badge);
+  if(navigator.vibrate) navigator.vibrate([50,30,50,30,100]);
+  setTimeout(function(){
+    badge.style.transition='opacity .4s';
+    badge.style.opacity='0';
+    setTimeout(function(){badge.remove();},400);
+  },3500);
+}
+
 function marcarSerieFit(diaIdx, ei, si, ejNom, descansoSeg){
   if(!S.re) S.re={ejercicios:{}};
   if(!S.re.ejercicios) S.re.ejercicios={};
@@ -17619,6 +17748,27 @@ function marcarSerieFit(diaIdx, ei, si, ejNom, descansoSeg){
   if(!S.re.ejercicios[ejNom].series[si]) S.re.ejercicios[ejNom].series[si]={};
   var done=!S.re.ejercicios[ejNom].series[si].done;
   S.re.ejercicios[ejNom].series[si].done=done;
+
+  // PR check cuando se marca como hecha
+  if(done){
+    var _sr=S.re.ejercicios[ejNom].series[si];
+    var _kg=parseFloat(_sr.kg)||0;
+    var _reps=parseFloat(_sr.reps)||0;
+    if(_kg>0&&_reps>0){
+      var _e1rm=_kg*(1+_reps/30);
+      var _histMax=0;
+      (S.reHistory||[]).forEach(function(r){
+        var _sers=(r.ejercicios&&r.ejercicios[ejNom]&&r.ejercicios[ejNom].series)||[];
+        _sers.forEach(function(sr2){
+          var _k2=parseFloat(sr2.kg)||0,_r2=parseFloat(sr2.reps)||0;
+          if(_k2>0&&_r2>0) _histMax=Math.max(_histMax,_k2*(1+_r2/30));
+        });
+      });
+      if(_histMax>0&&_e1rm>_histMax*1.005){
+        showPRBadge(ejNom,_kg,_reps,Math.round(_e1rm*10)/10);
+      }
+    }
+  }
   // Haptic feedback en móviles
   if(done&&navigator.vibrate) navigator.vibrate(done?[30,10,30]:20);
 
@@ -17767,6 +17917,48 @@ function getDescansoFitness(nombre, rir){
   return rir2<=2?120:rir2<=4?90:60;
 }
 
+// ── Progresión semanal (RIR/RPE, series, reps) ──────────────────────────
+// El admin puede escribir cualquiera de estos campos como "4,4,3-4,3" (un valor por semana,
+// separados por coma) en vez de un valor fijo. La app detecta la coma y muestra automáticamente
+// el de la semana correspondiente, calculada desde la fecha de inicio del plan (semana_inicio).
+function semanaActualPlan(semanaInicio){
+  if(!semanaInicio) return null;
+  var dias=Math.floor((new Date(hoy()+'T00:00:00')-new Date(semanaInicio+'T00:00:00'))/86400000);
+  if(isNaN(dias)||dias<0) return 1;
+  return Math.floor(dias/7)+1;
+}
+function getValorSemanaActual(raw, semanaInicio){
+  if(!raw||typeof raw!=='string'||raw.indexOf(',')===-1) return raw;
+  var partes=raw.split(',').map(function(s){return s.trim();}).filter(Boolean);
+  if(!partes.length) return raw;
+  var semNum=semanaActualPlan(semanaInicio);
+  if(!semNum) return partes[0];
+  var wk=Math.max(0,Math.min(partes.length-1,semNum-1));
+  return partes[wk];
+}
+var getRirSemanaActual=getValorSemanaActual; // alias retrocompatible
+var CAMPOS_PROGRESION=['series','reps','rir'];
+function resolverDiaSemana(dia, semanaInicio){
+  if(!dia) return dia;
+  var huboProgresion=false;
+  var ejs=(dia.ejercicios||[]).map(function(ej){
+    var tieneComas=CAMPOS_PROGRESION.some(function(k){return ej[k]&&typeof ej[k]==='string'&&ej[k].indexOf(',')!==-1;});
+    if(!tieneComas) return ej;
+    huboProgresion=true;
+    var clone=Object.assign({},ej);
+    CAMPOS_PROGRESION.forEach(function(k){
+      if(ej[k]&&typeof ej[k]==='string'&&ej[k].indexOf(',')!==-1){
+        clone[k]=getValorSemanaActual(ej[k],semanaInicio);
+        clone['_'+k+'Patron']=ej[k];
+      }
+    });
+    return clone;
+  });
+  var out=Object.assign({},dia,{ejercicios:ejs});
+  if(huboProgresion) out._semanaActual=semanaActualPlan(semanaInicio);
+  return out;
+}
+
 function renderDiaEntreno(dia, diaIdx, ejData, ejDataLast){
   if(!dia) return '<div class="empty">Sin sesión asignada</div>';
   var ejercicios=dia.ejercicios||[];
@@ -17787,11 +17979,17 @@ function renderDiaEntreno(dia, diaIdx, ejData, ejDataLast){
 
   var html='<div class="card" style="margin-bottom:.75rem">'+
     '<div class="ch">💪 '+dia.nombre+
+      (dia._semanaActual?'<span style="font-size:10px;font-weight:800;color:#4D9FFF;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.3);border-radius:6px;padding:2px 7px;margin-left:8px">SEM '+dia._semanaActual+'</span>':'')+
       '<span style="margin-left:auto;display:flex;align-items:center;gap:6px">'+
         '<span style="font-size:11px;color:#4A5568">'+ejercicios.length+' ej.</span>'+
         '<span style="font-size:11px;font-weight:700;color:'+(pct===100?'#00C853':pct>0?'#FFB300':'#4A5568')+'">'+
           (pct===100?'✅ Completo':doneSeries+'/'+totalSeries+' series')+
         '</span>'+
+        '<button onclick="abrirCambioDia('+diaIdx+')" '+
+          'style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:8px;border:1px solid #1A2A40;'+
+          'background:transparent;color:#4A5568;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent">'+
+          '🔄 Cambiar'+
+        '</button>'+
         '<button onclick="iniciarSesionFocused('+diaIdx+')" '+
           'style="font-size:11px;font-weight:800;padding:5px 12px;border-radius:8px;border:none;'+
           'background:'+(pct===100?'#00C853':'#0055FF')+';color:#fff;cursor:pointer;'+
@@ -17894,7 +18092,7 @@ function renderDiaEntreno(dia, diaIdx, ejData, ejDataLast){
     }
     html+='<div id="series-list-'+diaIdx+'-'+ei+'">';
     seriesArr.forEach(function(s,si){
-      html+=renderSerieRow(diaIdx,ei,si,s,lastMax,'fitness',ejNom,ej.rir||'3');
+      html+=renderSerieRow(diaIdx,ei,si,s,lastMax,'fitness',ejNom,ej.rir||'3',lastSeries[si]||null);
     });
     html+='</div>';
     html+='<button onclick="addSerie('+diaIdx+','+ei+')" style="font-size:11px;color:#4D9FFF;background:none;border:1px dashed #1A2A40;border-radius:6px;padding:4px 10px;cursor:pointer;margin-top:4px;-webkit-tap-highlight-color:transparent">+ Serie</button>';
@@ -18006,9 +18204,90 @@ function verDiaEntreno(diaIdx){
   var ejData=S.re&&S.re.ejercicios||{};
   var ejDataLast=S.reLast&&S.reLast.ejercicios||{};
   var cont=document.getElementById('entreno-dia-content');
-  if(cont) cont.innerHTML=renderDiaEntreno(dia,diaIdx,ejData,ejDataLast);
+  if(cont) cont.innerHTML=renderDiaEntreno(resolverDiaSemana(dia,S.pe&&S.pe.semana_inicio),diaIdx,ejData,ejDataLast);
   // Scroll to content
   if(cont) cont.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── Cambio de día (cliente no puede hacer el día programado hoy) ──────────
+var MOTIVOS_CAMBIO_DIA=[
+  {id:'lesion',label:'🤕 Lesión / molestia'},
+  {id:'viaje',label:'✈️ Viaje'},
+  {id:'cansancio',label:'😴 Cansancio / mala recuperación'},
+  {id:'tiempo',label:'⏱️ Falta de tiempo'},
+  {id:'otro',label:'❓ Otro motivo'}
+];
+
+function abrirCambioDia(diaActualIdx){
+  var dias=S.pe&&S.pe.contenido&&S.pe.contenido.dias||[];
+  if(!dias.length) return;
+  var cambio=S._diaCambio;
+  var yaEsCambiado=cambio&&cambio.diaNuevoIdx===diaActualIdx;
+  // Si ya estamos viendo el día original programado (sin cambio activo), se usa como referencia para el mensaje
+  var diaRefIdx=yaEsCambiado?cambio.diaOriginalIdx:diaActualIdx;
+  var diaRef=dias[diaRefIdx];
+  var opciones=dias.map(function(d,i){
+    if(i===diaActualIdx) return '';
+    if(yaEsCambiado&&i===cambio.diaOriginalIdx) return '';
+    return '<button onclick="seleccionarDiaCambio('+diaRefIdx+','+i+')" '+
+      'style="width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;background:#0D1528;border:1.5px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:13px;font-weight:700;cursor:pointer">'+
+      d.nombre+' <span style="color:#4A5568;font-weight:400;font-size:11px">('+(d.ejercicios||[]).length+' ej.)</span>'+
+      '</button>';
+  }).join('');
+  var volverBtn=yaEsCambiado?
+    '<button onclick="revertirCambioDia()" '+
+      'style="width:100%;text-align:left;padding:10px 12px;margin-bottom:10px;background:rgba(0,85,255,.08);border:1.5px solid rgba(0,85,255,.35);border-radius:8px;color:#7AB8FF;font-size:13px;font-weight:800;cursor:pointer">'+
+      '↩️ Volver a lo programado: '+cambio.diaOriginalNombre+
+    '</button>':'';
+  document.getElementById('m-cambio-dia-body').innerHTML=
+    (yaEsCambiado?
+      '<div style="font-size:12px;color:#4A5568;margin-bottom:10px">Hoy estás entrenando <strong style="color:#F0F4FF">'+dias[diaActualIdx].nombre+'</strong> en lugar de <strong style="color:#F0F4FF">'+cambio.diaOriginalNombre+'</strong>. Puedes volver a lo programado o elegir otro día:</div>':
+      '<div style="font-size:12px;color:#4A5568;margin-bottom:10px">Tenías programado <strong style="color:#F0F4FF">'+(diaRef?diaRef.nombre:'')+'</strong>. Elige qué día entrenas en su lugar hoy:</div>')+
+    volverBtn+
+    opciones+
+    '<button onclick="hideM(\'m-cambio-dia\')" style="width:100%;text-align:center;padding:8px;margin-top:6px;background:none;border:none;color:#4A5568;font-size:12px;cursor:pointer">Cancelar</button>';
+  showM('m-cambio-dia');
+}
+
+function revertirCambioDia(){
+  var cambio=S._diaCambio;
+  if(!cambio) return;
+  var originalIdx=cambio.diaOriginalIdx;
+  S._diaCambio=null;
+  hideM('m-cambio-dia');
+  toast('↩️ Vuelto a lo programado: '+(S.pe.contenido.dias[originalIdx]&&S.pe.contenido.dias[originalIdx].nombre),'ok');
+  verDiaEntreno(originalIdx);
+}
+
+function seleccionarDiaCambio(diaOriginalIdx, diaNuevoIdx){
+  var dias=S.pe&&S.pe.contenido&&S.pe.contenido.dias||[];
+  var diaOriginal=dias[diaOriginalIdx];
+  var motivosHtml=MOTIVOS_CAMBIO_DIA.map(function(m){
+    return '<button onclick="confirmarCambioDia('+diaOriginalIdx+','+diaNuevoIdx+',\''+m.id+'\')" '+
+      'style="width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;background:#0D1528;border:1.5px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:13px;font-weight:600;cursor:pointer">'+m.label+'</button>';
+  }).join('');
+  document.getElementById('m-cambio-dia-body').innerHTML=
+    '<div style="font-size:12px;color:#4A5568;margin-bottom:10px">¿Por qué cambias <strong style="color:#F0F4FF">'+(diaOriginal?diaOriginal.nombre:'tu día')+'</strong> de hoy?</div>'+
+    motivosHtml+
+    '<button onclick="abrirCambioDia('+diaOriginalIdx+')" style="width:100%;text-align:center;padding:8px;margin-top:6px;background:none;border:none;color:#4A5568;font-size:12px;cursor:pointer">← Volver</button>';
+}
+
+function confirmarCambioDia(diaOriginalIdx, diaNuevoIdx, motivoId){
+  var dias=S.pe&&S.pe.contenido&&S.pe.contenido.dias||[];
+  var diaOriginal=dias[diaOriginalIdx];
+  var diaNuevo=dias[diaNuevoIdx];
+  if(!diaNuevo) return;
+  var motivo=MOTIVOS_CAMBIO_DIA.find(function(m){return m.id===motivoId;});
+  S._diaCambio={
+    diaOriginalIdx:diaOriginalIdx,
+    diaOriginalNombre:diaOriginal?diaOriginal.nombre:'',
+    diaNuevoIdx:diaNuevoIdx,
+    diaNuevoNombre:diaNuevo.nombre,
+    motivo:motivo?motivo.label:motivoId
+  };
+  hideM('m-cambio-dia');
+  toast('✅ Cambiaste a: '+diaNuevo.nombre,'ok');
+  verDiaEntreno(diaNuevoIdx);
 }
 
 async function guardarSchedule(){
