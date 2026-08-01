@@ -14608,8 +14608,9 @@ async function loadEntrenoCombate(){
 
     // Setup etiqueta día actual (solo cuando hoy es día de gym)
     if(_diHoy2!==null&&_dias2[_diHoy2]){
-      var _diaHoy2=_cambioActivo2?_dias2[S._diaCambio.diaNuevoIdx]:_dias2[_diHoy2];
-      var _diaLabel2=(_diaHoy2&&_diaHoy2.nombre)||'Entrenamiento';
+      var _esDescansoHoy2=_cambioActivo2&&S._diaCambio.esDescanso;
+      var _diaHoy2=(_cambioActivo2&&!_esDescansoHoy2)?_dias2[S._diaCambio.diaNuevoIdx]:_dias2[_diHoy2];
+      var _diaLabel2=_esDescansoHoy2?'🛌 Descanso':((_diaHoy2&&_diaHoy2.nombre)||'Entrenamiento');
       var _EXTRA_LABELS2={tecnica:'🥋 Técnica deportiva',sparring:'🥊 Sparring',acondicionamiento:'🏃 Acondicionamiento',cardio:'🏃 Cardio'};
       if(_extraSesType2&&_EXTRA_LABELS2[_extraSesType2]) _diaLabel2=_EXTRA_LABELS2[_extraSesType2]+' + '+_diaLabel2;
       document.getElementById('e-dia').textContent=_diaLabel2;
@@ -14680,6 +14681,13 @@ async function loadEntrenoCombate(){
           (_tIsToday?'⭐ ':'')+_tLbl+'</button>';
       });
       _h2+='</div>';
+    }
+
+    // Si hoy quedó marcado como descanso (cambio de día), mostrar tarjeta de descanso en vez de ejercicios
+    if(_cambioActivo2&&S._diaCambio.esDescanso){
+      _h2+=renderDescansoCard(_diHoy2,S._diaCambio.diaOriginalNombre,S._diaCambio.motivo);
+      _contEl.innerHTML=_h2;
+      return;
     }
 
     // Tarjeta ejercicios de la sesión seleccionada
@@ -17970,6 +17978,10 @@ function resolverDiaSemana(dia, semanaInicio){
 
 function renderDiaEntreno(dia, diaIdx, ejData, ejDataLast){
   if(!dia) return '<div class="empty">Sin sesión asignada</div>';
+  var _cambioR=S._diaCambio;
+  if(_cambioR&&_cambioR.esDescanso&&_cambioR.diaOriginalIdx===diaIdx){
+    return renderDescansoCard(diaIdx,_cambioR.diaOriginalNombre,_cambioR.motivo);
+  }
   var ejercicios=dia.ejercicios||[];
   if(!ejercicios.length) return '<div class="empty">Este día no tiene ejercicios</div>';
 
@@ -18231,28 +18243,45 @@ function abrirCambioDia(diaActualIdx){
   var dias=S.pe&&S.pe.contenido&&S.pe.contenido.dias||[];
   if(!dias.length) return;
   var cambio=S._diaCambio;
-  var yaEsCambiado=cambio&&cambio.diaNuevoIdx===diaActualIdx;
+  var yaEsCambiado=cambio&&!cambio.esDescanso&&cambio.diaNuevoIdx===diaActualIdx;
+  var enDescanso=cambio&&cambio.esDescanso&&cambio.diaOriginalIdx===diaActualIdx;
   // Si ya estamos viendo el día original programado (sin cambio activo), se usa como referencia para el mensaje
-  var diaRefIdx=yaEsCambiado?cambio.diaOriginalIdx:diaActualIdx;
+  var diaRefIdx=(yaEsCambiado||enDescanso)?cambio.diaOriginalIdx:diaActualIdx;
   var diaRef=dias[diaRefIdx];
   var opciones=dias.map(function(d,i){
     if(i===diaActualIdx) return '';
-    if(yaEsCambiado&&i===cambio.diaOriginalIdx) return '';
+    if((yaEsCambiado||enDescanso)&&i===cambio.diaOriginalIdx) return '';
     return '<button onclick="seleccionarDiaCambio('+diaRefIdx+','+i+')" '+
       'style="width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;background:#0D1528;border:1.5px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:13px;font-weight:700;cursor:pointer">'+
       d.nombre+' <span style="color:#4A5568;font-weight:400;font-size:11px">('+(d.ejercicios||[]).length+' ej.)</span>'+
       '</button>';
   }).join('');
-  var volverBtn=yaEsCambiado?
-    '<button onclick="revertirCambioDia()" '+
+  var volverBtn='';
+  if(yaEsCambiado){
+    volverBtn='<button onclick="revertirCambioDia()" '+
       'style="width:100%;text-align:left;padding:10px 12px;margin-bottom:10px;background:rgba(0,85,255,.08);border:1.5px solid rgba(0,85,255,.35);border-radius:8px;color:#7AB8FF;font-size:13px;font-weight:800;cursor:pointer">'+
       '↩️ Volver a lo programado: '+cambio.diaOriginalNombre+
+    '</button>';
+  } else if(enDescanso){
+    volverBtn='<button onclick="revertirCambioDia()" '+
+      'style="width:100%;text-align:left;padding:10px 12px;margin-bottom:10px;background:rgba(0,200,83,.08);border:1.5px solid rgba(0,200,83,.35);border-radius:8px;color:#00C853;font-size:13px;font-weight:800;cursor:pointer">'+
+      '↩️ Sí quiero entrenar: '+cambio.diaOriginalNombre+
+    '</button>';
+  }
+  // Descansar hoy: no se ofrece si ya estás descansando
+  var descansoBtn=!enDescanso?
+    '<button onclick="seleccionarDescansoDia('+diaRefIdx+')" '+
+      'style="width:100%;text-align:left;padding:10px 12px;margin-bottom:10px;background:rgba(255,255,255,.03);border:1.5px dashed #2A3A50;border-radius:8px;color:#8090A0;font-size:13px;font-weight:700;cursor:pointer">'+
+      '🛌 Descansar hoy (sin entrenar)'+
     '</button>':'';
   document.getElementById('m-cambio-dia-body').innerHTML=
     (yaEsCambiado?
       '<div style="font-size:12px;color:#4A5568;margin-bottom:10px">Hoy estás entrenando <strong style="color:#F0F4FF">'+dias[diaActualIdx].nombre+'</strong> en lugar de <strong style="color:#F0F4FF">'+cambio.diaOriginalNombre+'</strong>. Puedes volver a lo programado o elegir otro día:</div>':
-      '<div style="font-size:12px;color:#4A5568;margin-bottom:10px">Tenías programado <strong style="color:#F0F4FF">'+(diaRef?diaRef.nombre:'')+'</strong>. Elige qué día entrenas en su lugar hoy:</div>')+
+     enDescanso?
+      '<div style="font-size:12px;color:#4A5568;margin-bottom:10px">Hoy marcaste descanso en lugar de <strong style="color:#F0F4FF">'+cambio.diaOriginalNombre+'</strong>. Puedes volver a entrenar o elegir otro día:</div>':
+      '<div style="font-size:12px;color:#4A5568;margin-bottom:10px">Tenías programado <strong style="color:#F0F4FF">'+(diaRef?diaRef.nombre:'')+'</strong>. Elige qué día entrenas en su lugar hoy, o descansa:</div>')+
     volverBtn+
+    descansoBtn+
     opciones+
     '<button onclick="hideM(\'m-cambio-dia\')" style="width:100%;text-align:center;padding:8px;margin-top:6px;background:none;border:none;color:#4A5568;font-size:12px;cursor:pointer">Cancelar</button>';
   showM('m-cambio-dia');
@@ -18264,13 +18293,20 @@ function verDiaSegunTipo(diaIdx){
   else verDiaEntreno(diaIdx);
 }
 
-function revertirCambioDia(){
+async function revertirCambioDia(){
   var cambio=S._diaCambio;
   if(!cambio) return;
   var originalIdx=cambio.diaOriginalIdx;
+  var eraDescanso=cambio.esDescanso;
   S._diaCambio=null;
   hideM('m-cambio-dia');
   toast('↩️ Vuelto a lo programado: '+(S.pe.contenido.dias[originalIdx]&&S.pe.contenido.dias[originalIdx].nombre),'ok');
+  if(eraDescanso&&S.user){
+    // El descanso se guarda al instante — hay que deshacer ese guardado también
+    var _limpio={cliente_id:S.user.id,fecha:hoy(),dia_nombre:null,motivo_cambio:null,dia_original_nombre:null,completado:false};
+    try{ await db.upsert('registros_entreno',_limpio,'cliente_id,fecha'); }
+    catch(e1){ try{ await db.upsert('registros_entreno',{cliente_id:S.user.id,fecha:hoy(),dia_nombre:null,completado:false},'cliente_id,fecha'); }catch(e2){} }
+  }
   verDiaSegunTipo(originalIdx);
 }
 
@@ -18303,6 +18339,62 @@ function confirmarCambioDia(diaOriginalIdx, diaNuevoIdx, motivoId){
   hideM('m-cambio-dia');
   toast('✅ Cambiaste a: '+diaNuevo.nombre,'ok');
   verDiaSegunTipo(diaNuevoIdx);
+}
+
+// ── Descansar hoy en vez de entrenar ────────────────────────────────────
+function seleccionarDescansoDia(diaOriginalIdx){
+  var dias=S.pe&&S.pe.contenido&&S.pe.contenido.dias||[];
+  var diaOriginal=dias[diaOriginalIdx];
+  var motivosHtml=MOTIVOS_CAMBIO_DIA.map(function(m){
+    return '<button onclick="confirmarDescansoDia('+diaOriginalIdx+',\''+m.id+'\')" '+
+      'style="width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;background:#0D1528;border:1.5px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:13px;font-weight:600;cursor:pointer">'+m.label+'</button>';
+  }).join('');
+  document.getElementById('m-cambio-dia-body').innerHTML=
+    '<div style="font-size:12px;color:#4A5568;margin-bottom:10px">¿Por qué descansas hoy en vez de <strong style="color:#F0F4FF">'+(diaOriginal?diaOriginal.nombre:'tu día')+'</strong>?</div>'+
+    motivosHtml+
+    '<button onclick="abrirCambioDia('+diaOriginalIdx+')" style="width:100%;text-align:center;padding:8px;margin-top:6px;background:none;border:none;color:#4A5568;font-size:12px;cursor:pointer">← Volver</button>';
+}
+
+async function confirmarDescansoDia(diaOriginalIdx, motivoId){
+  var dias=S.pe&&S.pe.contenido&&S.pe.contenido.dias||[];
+  var diaOriginal=dias[diaOriginalIdx];
+  var motivo=MOTIVOS_CAMBIO_DIA.find(function(m){return m.id===motivoId;});
+  S._diaCambio={
+    diaOriginalIdx:diaOriginalIdx,
+    diaOriginalNombre:diaOriginal?diaOriginal.nombre:'',
+    diaNuevoIdx:null,
+    diaNuevoNombre:'🛌 Descanso',
+    motivo:motivo?motivo.label:motivoId,
+    esDescanso:true
+  };
+  hideM('m-cambio-dia');
+  toast('🛌 Hoy descansas','ok');
+  // El descanso no tiene "guardar sesión" propio — se registra al instante para que te llegue el aviso ya
+  var c=S.user;
+  if(c){
+    var ejerciciosPrevios=(c.tipo_cliente==='combate'?(S.reCombate&&S.reCombate.ejercicios):(S.re&&S.re.ejercicios))||{};
+    var payload={cliente_id:c.id,fecha:hoy(),ejercicios:ejerciciosPrevios,completado:true,dia_nombre:'🛌 Descanso'};
+    var payloadCambio={motivo_cambio:S._diaCambio.motivo,dia_original_nombre:S._diaCambio.diaOriginalNombre};
+    try{
+      showSav();
+      try{ await db.upsert('registros_entreno',Object.assign({},payload,payloadCambio),'cliente_id,fecha'); }
+      catch(e1){ await db.upsert('registros_entreno',payload,'cliente_id,fecha'); }
+      okSav();
+    }catch(e){toast('Error: '+e.message,'err');}
+  }
+  verDiaSegunTipo(diaOriginalIdx);
+}
+
+function renderDescansoCard(diaOriginalIdx, diaOriginalNombre, motivo){
+  return '<div class="card" style="margin-bottom:.75rem">'+
+    '<div class="ch">🛌 Descanso'+
+      '<button onclick="abrirCambioDia('+diaOriginalIdx+')" style="margin-left:auto;font-size:11px;font-weight:700;padding:5px 10px;border-radius:8px;border:1px solid #1A2A40;background:transparent;color:#4A5568;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent">🔄 Cambiar</button>'+
+    '</div>'+
+    '<div class="cb" style="text-align:center;padding:1.5rem">'+
+      '<div style="font-size:40px;margin-bottom:.5rem">🛌</div>'+
+      '<div style="font-size:16px;font-weight:800;margin-bottom:.25rem">Hoy descansas</div>'+
+      '<div style="font-size:12px;color:#4A5568">En vez de: '+(diaOriginalNombre||'')+(motivo?' · '+motivo:'')+'</div>'+
+    '</div></div>';
 }
 
 async function guardarSchedule(){
