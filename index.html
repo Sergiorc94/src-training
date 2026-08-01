@@ -9166,7 +9166,7 @@ async function respCI(id){
 
 // PLAN FORM
 let ai=0,ei=0;
-function renderPlanForm(){
+async function renderPlanForm(){
   const tipo=document.getElementById('plan-tipo').value;
   const nc=S.ca&&S.ca.n_comidas||5;
   ai=0;ei=0;
@@ -9229,6 +9229,7 @@ function renderPlanForm(){
       rutinaOpts+='<option value="'+i+'">'+r.nombre+' ('+r.ndias+' días)</option>';
     });
     _formHtml=
+      '<div id="plan-editing-banner"></div>'+
       '<details style="margin-bottom:.75rem">'+
         '<summary style="cursor:pointer;font-size:11px;font-weight:700;color:#4A5568;padding:8px 10px;background:#0D1528;border-radius:7px;border:1px solid #1A2A40;list-style:none;display:flex;align-items:center;gap:6px">'+
           '<span>🏋️ Rutinas base predefinidas</span>'+
@@ -9236,7 +9237,7 @@ function renderPlanForm(){
         '</summary>'+
         '<div style="padding:.75rem;background:#0D1528;border:1px solid #1A2A40;border-top:0;border-radius:0 0 7px 7px">'+
           '<select id="rutina-sel" class="isml" style="width:100%;padding:8px;font-size:12px" onchange="cargarRutinaPredef(this.value)">'+rutinaOpts+'</select>'+
-          '<div style="font-size:10px;color:#4A5568;margin-top:4px">Selecciona para pre-cargar ejercicios y editar</div>'+
+          '<div style="font-size:10px;color:#4A5568;margin-top:4px">Selecciona para reemplazar por una rutina base (esto sí reinicia la semana 1)</div>'+
         '</div>'+
       '</details>'+
       '<div id="dias-entreno-container"></div>'+
@@ -9255,13 +9256,38 @@ function renderPlanForm(){
     window._nutriActiveColor='yellow';
     Array.from({length:nc},(_,i)=>addAl(i));
   } else {
-    window._diasEntreno=[];
-    // Cargar primera rutina base por defecto (en el contenedor, no toca el bloque de plantillas)
-    if(RUTINAS&&RUTINAS.length>0){
-      setTimeout(function(){
-        var sel=document.getElementById('rutina-sel');
-        if(sel){sel.value='0';cargarRutinaPredef('0');}
-      },50);
+    // Si el cliente ya tiene un plan de entreno activo, lo cargamos para EDITAR en vez de partir de cero
+    window._editingPlanId=null;
+    window._editingPlanSemanaInicio=null;
+    var _planActual=null;
+    try{
+      var _arr=await db.get('planes','cliente_id=eq.'+S.ca.id+'&tipo=eq.entreno&activo=eq.true&limit=1');
+      _planActual=_arr&&_arr[0]||null;
+    }catch(e){}
+    var _banner=document.getElementById('plan-editing-banner');
+    if(_planActual&&_planActual.contenido&&_planActual.contenido.dias&&_planActual.contenido.dias.length){
+      window._editingPlanId=_planActual.id;
+      window._editingPlanSemanaInicio=_planActual.semana_inicio;
+      window._diasEntreno=(_planActual.contenido.dias||[]).map(function(d){return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).map(function(e){return Object.assign({},e);})};});
+      if(_banner) _banner.innerHTML=
+        '<div style="background:rgba(0,200,83,.08);border:1px solid rgba(0,200,83,.3);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:12px;color:#00C853;font-weight:700">'+
+          '✏️ Editando el plan actual de '+(S.ca.nombre||'')+' — los cambios se guardan sobre este mismo plan, sin resetear la semana en curso.'+
+        '</div>';
+      renderDiasEntreno();
+      renderSchedEditor(window._diasEntreno);
+    } else {
+      window._diasEntreno=[];
+      if(_banner) _banner.innerHTML=
+        '<div style="background:rgba(77,159,255,.08);border:1px solid rgba(77,159,255,.3);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:12px;color:#4D9FFF;font-weight:700">'+
+          '🆕 '+(S.ca.nombre||'')+' no tiene plan de entreno activo — creando uno nuevo.'+
+        '</div>';
+      // Cargar primera rutina base por defecto (en el contenedor, no toca el bloque de plantillas)
+      if(RUTINAS&&RUTINAS.length>0){
+        setTimeout(function(){
+          var sel=document.getElementById('rutina-sel');
+          if(sel){sel.value='0';cargarRutinaPredef('0');}
+        },50);
+      }
     }
   }
 }
@@ -9514,8 +9540,11 @@ document.getElementById('btn-guardar-plan').onclick=async function(){
         // Primera vez: crear plan nuevo
         await db.post('planes',{cliente_id:c.id,tipo:'nutricion',contenido:contenido,activo:true,semana_inicio:hoy()});
       }
+    } else if(window._editingPlanId){
+      // ENTRENO: edición en sitio del plan activo — se conserva el id y la semana_inicio (no reinicia la progresión)
+      await db.patch('planes','id=eq.'+window._editingPlanId,{contenido:contenido});
     } else {
-      // ENTRENO: desactivar anterior y crear nuevo (comportamiento existente)
+      // ENTRENO: sin plan previo o reemplazo explícito por otro (rutina/plantilla/copia) — crea uno nuevo
       await db.patch('planes','cliente_id=eq.'+c.id+'&tipo=eq.'+tipo,{activo:false}).catch(()=>{});
       await db.post('planes',{cliente_id:c.id,tipo,contenido,activo:true,semana_inicio:hoy()});
     }
@@ -9525,7 +9554,7 @@ document.getElementById('btn-guardar-plan').onclick=async function(){
       await db.patch('clientes','id=eq.'+c.id,{plan_semanal:_psStr}).catch(function(){});
       if(S.ca) S.ca.plan_semanal=_psStr;
     }
-    hideM('m-plan');toast('✅ Plan asignado','ok');
+    hideM('m-plan');toast(tipo==='entreno'&&window._editingPlanId?'✅ Plan actualizado':'✅ Plan asignado','ok');
   }catch(e){toast('Error: '+e.message,'err');}
 };
 
@@ -9565,6 +9594,7 @@ async function cargarPlantillaSeleccionada(){
     var tipo=p.tipo, contenido=p.contenido;
     if(tipo==='entreno'){
       window._diasEntreno=(contenido.dias||[]).map(function(d){return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).map(function(e){return Object.assign({},e);})};});
+      marcarPlanComoNuevo();
       renderDiasEntreno();
       renderSchedEditor(window._diasEntreno);
     } else {
@@ -9631,6 +9661,7 @@ async function abrirCopiarDeCliente(){
     var cont=planesArr[0].contenido;
     if(tipo==='entreno'){
       window._diasEntreno=(cont.dias||[]).map(function(d){return{nombre:d.nombre,ejercicios:(d.ejercicios||[]).map(function(e){return Object.assign({},e);})};});
+      marcarPlanComoNuevo();
       renderDiasEntreno();
     } else {
       // Nutrición
@@ -13831,8 +13862,20 @@ function cargarRutinaPredef(idx){
   window._diasEntreno = rutina.plan.map(function(d,i){
     return { nombre: d.nombre, ejercicios: d.ejercicios.map(function(e){ return Object.assign({},e); }) };
   });
+  marcarPlanComoNuevo();
   renderDiasEntreno();
   renderSchedEditor(window._diasEntreno);
+}
+
+// Al reemplazar el contenido por una rutina/plantilla/copia distinta ya no es una edición del plan actual
+function marcarPlanComoNuevo(){
+  window._editingPlanId=null;
+  window._editingPlanSemanaInicio=null;
+  var _banner=document.getElementById('plan-editing-banner');
+  if(_banner) _banner.innerHTML=
+    '<div style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.3);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:12px;color:#FFB300;font-weight:700">'+
+      '🔄 Vas a reemplazar el plan actual por uno nuevo — al guardar se reinicia la semana 1.'+
+    '</div>';
 }
 
 function addDiaEntreno(){

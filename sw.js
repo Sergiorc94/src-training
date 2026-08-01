@@ -1,7 +1,7 @@
 // SRC Training – Service Worker
 // Estrategia: Cache First para assets estáticos, Network First para API
 
-const CACHE_NAME = 'src-training-v45';
+const CACHE_NAME = 'src-training-v46';
 const STATIC_ASSETS = [
   '/src-training/',
   '/src-training/index.html',
