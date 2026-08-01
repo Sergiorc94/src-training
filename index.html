@@ -14600,13 +14600,16 @@ async function loadEntrenoCombate(){
     // ── Vista de sesión seleccionada (tabs Día A/B/C...) ─────────
     var _viewDiaIdx2=(window._entrenoSesIdx!==null&&_dias2[window._entrenoSesIdx]!=null)?window._entrenoSesIdx:
                     (_diHoy2!==null&&_dias2[_diHoy2]?_diHoy2:0);
-    var _viewDia2=_dias2[_viewDiaIdx2]||null;
-    var _isViewingToday2=(_viewDiaIdx2===_diHoy2 && _diHoy2!==null);
+    S._entrenoViewDiaIdx=_viewDiaIdx2;
+    var _viewDia2=resolverDiaSemana(_dias2[_viewDiaIdx2]||null, S.pe&&S.pe.semana_inicio);
+    // "Hoy" también cuenta si el cliente cambió su sesión de hoy y está viendo la sustituta
+    var _cambioActivo2=S._diaCambio&&S._diaCambio.diaOriginalIdx===_diHoy2;
+    var _isViewingToday2=(_viewDiaIdx2===_diHoy2 && _diHoy2!==null)||(_cambioActivo2&&_viewDiaIdx2===S._diaCambio.diaNuevoIdx);
 
     // Setup etiqueta día actual (solo cuando hoy es día de gym)
     if(_diHoy2!==null&&_dias2[_diHoy2]){
-      var _diaHoy2=_dias2[_diHoy2];
-      var _diaLabel2=_diaHoy2.nombre||'Entrenamiento';
+      var _diaHoy2=_cambioActivo2?_dias2[S._diaCambio.diaNuevoIdx]:_dias2[_diHoy2];
+      var _diaLabel2=(_diaHoy2&&_diaHoy2.nombre)||'Entrenamiento';
       var _EXTRA_LABELS2={tecnica:'🥋 Técnica deportiva',sparring:'🥊 Sparring',acondicionamiento:'🏃 Acondicionamiento',cardio:'🏃 Cardio'};
       if(_extraSesType2&&_EXTRA_LABELS2[_extraSesType2]) _diaLabel2=_EXTRA_LABELS2[_extraSesType2]+' + '+_diaLabel2;
       document.getElementById('e-dia').textContent=_diaLabel2;
@@ -14683,7 +14686,10 @@ async function loadEntrenoCombate(){
     if(!_viewDia2){ _contEl.innerHTML=_h2; return; }
     var _viewLabel2=_viewDia2.nombre||'Entrenamiento';
     var _notHoyNote2=(!_isViewingToday2&&_diHoy2!==null)?'<span style="font-size:10px;font-weight:600;color:#4A5568;margin-left:6px">(no es hoy)</span>':'';
-    _h2+='<div class="card" style="margin-bottom:.75rem"><div class="ch">💪 '+_viewLabel2+_notHoyNote2+'</div><div class="cb">';
+    var _semBadge2=_viewDia2._semanaActual?'<span style="font-size:10px;font-weight:800;color:#4D9FFF;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.3);border-radius:6px;padding:2px 7px;margin-left:8px">SEM '+_viewDia2._semanaActual+'</span>':'';
+    _h2+='<div class="card" style="margin-bottom:.75rem"><div class="ch">💪 '+_viewLabel2+_notHoyNote2+_semBadge2+
+      (_isViewingToday2?'<button onclick="abrirCambioDia('+_viewDiaIdx2+')" style="margin-left:auto;font-size:11px;font-weight:700;padding:5px 10px;border-radius:8px;border:1px solid #1A2A40;background:transparent;color:#4A5568;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent">🔄 Cambiar</button>':'')+
+      '</div><div class="cb">';
 
     // ── Sección calentamiento (lista simple, sin inputs de registro) ──
     var _ejsAll2=_viewDia2.ejercicios||[];
@@ -15493,14 +15499,11 @@ async function guardarEntrenoCombate(){
   var c=S.user,fHoy=new Date().toISOString().split('T')[0];
   var sens=parseInt(document.getElementById('e-sens')&&document.getElementById('e-sens').value)||7;
   var notas=(document.getElementById('e-notas')&&document.getElementById('e-notas').value)||'';
-  var fase=getFaseCombate(c);
-  var diasKey='d'+(c.dias_prep_fisica||3);
-  if(!RUTINAS_COMBATE[diasKey]) diasKey='d3';
-  var dow=new Date().getDay();
-  var sesionLetra=COMBATE_DIAS_MAP[diasKey]?COMBATE_DIAS_MAP[diasKey][dow]:null;
-  var sesiones=RUTINAS_COMBATE[diasKey];
-  var sesion=sesionLetra?sesiones.find(function(s){return s.id===sesionLetra;}):null;
-  var diaNom=sesion?(sesion.emoji+' Sesión '+sesion.id+' — '+sesion.nombre):'Entreno combate';
+  var dias=S.pe&&S.pe.contenido&&S.pe.contenido.dias||[];
+  var cambio=S._diaCambio;
+  var viewIdx=(S._entrenoViewDiaIdx!=null)?S._entrenoViewDiaIdx:0;
+  var diaActual=dias[viewIdx];
+  var diaNom=(cambio?cambio.diaNuevoNombre:(diaActual&&diaActual.nombre))||'Entreno combate';
   try{
     showSav();
     var payload={
@@ -15513,9 +15516,15 @@ async function guardarEntrenoCombate(){
     if(S.eSueno) payload.sueno=S.eSueno;
     if(S.eFatiga) payload.fatiga_percibida=S.eFatiga;
     if(S.eEstres) payload.estres=S.eEstres;
-    await db.upsert('registros_entreno',payload,'cliente_id,fecha');
+    var payloadCambio={motivo_cambio:cambio?cambio.motivo:null,dia_original_nombre:cambio?cambio.diaOriginalNombre:null};
+    try{
+      await db.upsert('registros_entreno',Object.assign({},payload,payloadCambio),'cliente_id,fecha');
+    }catch(e1){
+      // Columnas de cambio de día aún no existen en Supabase — guardar sin ellas
+      await db.upsert('registros_entreno',payload,'cliente_id,fecha');
+    }
     okSav();
-    S.eSueno=null;S.eFatiga=null;S.eEstres=null;renderEncuesta();
+    S.eSueno=null;S.eFatiga=null;S.eEstres=null;S._diaCambio=null;renderEncuesta();
     toast('✅ '+diaNom+' guardada','ok');
     loadEntrenoCombate();
   }catch(e){toast('Error: '+e.message,'err');}
@@ -18249,6 +18258,12 @@ function abrirCambioDia(diaActualIdx){
   showM('m-cambio-dia');
 }
 
+// Refresca la vista del día tras un cambio, según el tipo de cliente (fitness usa renderDiaEntreno, combate su propio flujo)
+function verDiaSegunTipo(diaIdx){
+  if(S.user&&S.user.tipo_cliente==='combate'){ window._entrenoSesIdx=diaIdx; loadEntrenoCombate(); }
+  else verDiaEntreno(diaIdx);
+}
+
 function revertirCambioDia(){
   var cambio=S._diaCambio;
   if(!cambio) return;
@@ -18256,7 +18271,7 @@ function revertirCambioDia(){
   S._diaCambio=null;
   hideM('m-cambio-dia');
   toast('↩️ Vuelto a lo programado: '+(S.pe.contenido.dias[originalIdx]&&S.pe.contenido.dias[originalIdx].nombre),'ok');
-  verDiaEntreno(originalIdx);
+  verDiaSegunTipo(originalIdx);
 }
 
 function seleccionarDiaCambio(diaOriginalIdx, diaNuevoIdx){
@@ -18287,7 +18302,7 @@ function confirmarCambioDia(diaOriginalIdx, diaNuevoIdx, motivoId){
   };
   hideM('m-cambio-dia');
   toast('✅ Cambiaste a: '+diaNuevo.nombre,'ok');
-  verDiaEntreno(diaNuevoIdx);
+  verDiaSegunTipo(diaNuevoIdx);
 }
 
 async function guardarSchedule(){
