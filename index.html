@@ -1486,7 +1486,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         </div>
 
         <!-- SECCIÓN 5: MACROS COMBATE -->
-        <div style="font-size:10px;font-weight:800;color:#00C853;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-top:1px solid rgba(0,200,83,.2);padding-top:.75rem">⚡ Macros (UFC Performance Institute)</div>
+        <div style="font-size:10px;font-weight:800;color:#00C853;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-top:1px solid rgba(0,200,83,.2);padding-top:.75rem">⚡ Macros (Método SRC)</div>
         <button onclick="calcularMacrosAuto()" style="width:100%;padding:10px;background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.3);color:#00C853;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:.75rem">
           ⚡ Calcular macros automáticamente
         </button>
@@ -12443,96 +12443,136 @@ function renderCortePeso(c){
   return html;
 }
 
-// ── MACROS COMBATE — UFC Performance Institute + ISSN 2023 ──────────
-// Fuente: Charles St-Martin (Director Nutrición UFC PI) + ISSN Position Statement 2023
-// Metodología: g/kg peso corporal por fase ATR — no ratios calóricos.
-// Déficit máximo en camp: 500 kcal/día (más destruye el rendimiento).
+// ── MOTOR DE NUTRICIÓN SRC — método validado (ver especificación) ───
+// Principio: proteína y grasa son FIJAS (g/kg) — no dependen del balance energético
+// (reparación muscular / función hormonal). El carbohidrato es la variable que se
+// ajusta según el color de día y absorbe el ajuste calórico ("por diferencia").
+// Fuentes citadas en el documento de especificación: ISSN Position Statement 2023,
+// Evans et al. (Liverpool John Moores, principio 3-2-1, 8 semanas taekwondo).
+var SRC_NUTRI_TABLAS={
+  fueraDeCamp:{
+    // Color de día = demanda energética de ESE día, no el calendario
+    rojo:    {carbGkg:6.5, rangoCarb:[6,7],   factorActividad:1.7},   // doble entreno / intensidad muy alta
+    amarillo:{carbGkg:5.0, rangoCarb:[5,5],   factorActividad:1.435}, // sesión única / intensidad media
+    verde:   {carbGkg:4.0, rangoCarb:[4,4],   factorActividad:1.26},  // descanso / actividad muy suave (factor sin documentar, calibrado para no disparar aviso en mantenimiento)
+    protGkg:1.65,  // dentro de 1.5-1.8 g/kg (fija, igual en los 3 colores)
+    grasGkg:0.7    // dentro de 0.6-0.8 g/kg (fija, igual en los 3 colores)
+  },
+  camp:{
+    // Principio 3-2-1 (Evans) — descenso activo de peso en camp
+    rojo:    {carbGkg:4.0, rangoCarb:[4,4],   factorActividad:1.7},
+    amarillo:{carbGkg:3.5, rangoCarb:[3.5,3.5],factorActividad:1.45},
+    verde:   {carbGkg:3.0, rangoCarb:[3,3],   factorActividad:1.3},
+    protGkg:2.0,   // fija — suelo absoluto ISSN 1.2g/kg
+    grasGkg:1.0    // fija — suelo absoluto ISSN 0.5g/kg
+  },
+  fightWeek:{
+    // Última semana: único dato confirmado con exactitud, <3g/kg de carbohidrato
+    rojo:    {carbGkg:2.5, rangoCarb:[0,3],   factorActividad:1.5},
+    amarillo:{carbGkg:2.5, rangoCarb:[0,3],   factorActividad:1.4},
+    verde:   {carbGkg:2.0, rangoCarb:[0,3],   factorActividad:1.3},
+    protGkg:2.0, grasGkg:1.0 // sin estandarizar en el documento — se mantienen niveles de camp
+  },
+  postPesaje:{
+    // Recuperación post-pesaje, horas 6-12: único tramo con número exacto (8-12 g/kg)
+    rojo:    {carbGkg:10, rangoCarb:[8,12], factorActividad:1.3},
+    amarillo:{carbGkg:10, rangoCarb:[8,12], factorActividad:1.3},
+    verde:   {carbGkg:10, rangoCarb:[8,12], factorActividad:1.2},
+    protGkg:2.0, grasGkg:1.0
+  }
+};
+var SRC_SUELOS_ISSN={protGkg:1.2, grasGkg:0.5, carbGkg:3.0}; // nunca cruzar los 3 a la vez en camp (ISSN 2023)
+
+// Motor central: BMR (Mifflin-St Jeor) + factor de actividad + carbohidrato "por diferencia"
+function calcularMacrosSRC(opts){
+  var peso=parseFloat(opts.peso)||75;
+  var altura=parseInt(opts.altura)||175;
+  var edad=parseInt(opts.edad)||25;
+  var sexo=(opts.sexo||'H').toUpperCase();
+  var color=opts.color||'amarillo';
+  var tablaKey=opts.tabla||'fueraDeCamp'; // 'fueraDeCamp' | 'camp' | 'fightWeek' | 'postPesaje'
+  var ajusteManualKcal=parseFloat(opts.ajusteManualKcal)||0;
+
+  var tabla=SRC_NUTRI_TABLAS[tablaKey]||SRC_NUTRI_TABLAS.fueraDeCamp;
+  var t=tabla[color]||tabla.amarillo;
+
+  var bmr=(sexo==='M'||sexo==='MUJER'||sexo==='F')
+    ? (10*peso+6.25*altura-5*edad-161)
+    : (10*peso+6.25*altura-5*edad+5);
+
+  var kcal=Math.round(bmr*t.factorActividad)+ajusteManualKcal;
+
+  // Proteína y grasa: fijas por g/kg, con suelo absoluto ISSN 2023 (nunca por debajo)
+  var prot=Math.max(Math.round(peso*tabla.protGkg), Math.round(peso*SRC_SUELOS_ISSN.protGkg));
+  var gras=Math.max(Math.round(peso*tabla.grasGkg), Math.round(peso*SRC_SUELOS_ISSN.grasGkg));
+
+  // Carbohidrato por diferencia — la variable que absorbe el ajuste calórico
+  var carb=Math.max(0,Math.round((kcal-prot*4-gras*9)/4));
+  var kcalFinal=Math.round(prot*4+carb*4+gras*9);
+
+  var carbGkgResultante=Math.round((carb/peso)*100)/100;
+  var rango=t.rangoCarb||[t.carbGkg,t.carbGkg];
+  var fueraDeRango=carbGkgResultante<rango[0]-0.15||carbGkgResultante>rango[1]+0.15;
+  var bajoSueloIssn=carbGkgResultante<SRC_SUELOS_ISSN.carbGkg&&tablaKey==='camp';
+
+  return {
+    k:kcalFinal, p:prot, c:carb, g:gras,
+    bmr:Math.round(bmr), factorActividad:t.factorActividad,
+    protGkg:tabla.protGkg, carbGkgResultante:carbGkgResultante, rangoCarb:rango,
+    color:color, tabla:tablaKey,
+    avisoRango:fueraDeRango, avisoSueloIssn:bajoSueloIssn,
+    // Compat con el render existente (etiquetas antiguas "deficit"/"issn_warn")
+    deficit:0, deficitWarn:false,
+    issn_warn:bajoSueloIssn?['suelo_issn']:[],
+    carbsEntrenoGkg:carbGkgResultante
+  };
+}
+
+// Traduce fase de combate (getFaseCombate) → tabla de macros SRC
+function tablaSRCPorFase(fase){
+  if(fase==='fight_week') return 'fightWeek';
+  if(fase==='post_pesaje') return 'postPesaje';
+  if(fase==='camp_cronico'||fase==='peaking') return 'camp';
+  return 'fueraDeCamp'; // base, post_pelea
+}
+
+// Traduce tipo de sesión (selector actual) → color de día SRC, según la guía del documento:
+// rojo = doble entreno/intensidad muy alta · amarillo = sesión única/media · verde = descanso
+var SRC_TIPO_A_COLOR={sparring:'rojo', ambos:'rojo', tecnica:'amarillo', gym:'amarillo', cardio:'amarillo', descanso:'verde'};
+
 function calcMacrosCombate(c){
   var qd=c.cuestionario_datos||{};
   var peso=parseFloat(c.peso_inicial||qd.peso)||75;
   var altura=parseInt(c.altura||qd.altura)||175;
   var edad=parseInt(c.edad||qd.edad)||25;
   var sexo=(c.sexo||qd.sexo||'H').toUpperCase();
-  var horasTec=parseFloat(c.horas_tecnica||qd.horas_tecnica)||1.5;
   var fase=getFaseCombate(c);
+  var tablaKey=tablaSRCPorFase(fase);
 
-  // BMR Mifflin-St Jeor
-  var bmr=(sexo==='M'||sexo==='MUJER'||sexo==='F')
-    ?(10*peso+6.25*altura-5*edad-161)
-    :(10*peso+6.25*altura-5*edad+5);
-
-  // TDEE base (sin actividad de entrenamiento)
-  var trabajoTipo=c.trabajo_tipo||qd.trabajo_tipo||'sedentario';
-  var neatMult={sedentario:1.2,moderado:1.35,activo:1.5}[trabajoTipo]||1.25;
-  var tdeeBase=Math.round(bmr*neatMult);
-
-  // Kcal quemadas por sesión (para calcular déficit real)
-  var calTec=Math.round(peso*horasTec*7);   // ~7 kcal/kg/h artes marciales
-  var calGym=Math.round(peso*1.0*5);        // ~5 kcal/kg/h pesas
-  var calSparring=Math.round(peso*1.5*8);   // ~8 kcal/kg/h sparring × 1.5h
-  var calCardio=Math.round(peso*1.0*7);     // ~7 kcal/kg/h cardio × 1h
-
-  // ── UFC PI — Carbohidratos g/kg por fase ATR ─────────────────────
-  // Principio: los carbos se manipulan según la demanda de glucógeno de cada fase.
-  // La proteína se mantiene alta siempre. La grasa cubre el resto hasta el objetivo calórico.
-  var CARBS_GKG={
-    base:            {entreno:4.5, descanso:2.5},
-    camp_cronico:    {entreno:4.0, descanso:2.0},  // déficit moderado — no recortar carbos masivamente
-    peaking:         {entreno:3.5, descanso:1.5},
-    fight_week:      {entreno:1.5, descanso:1.0},  // depletion + corte hídrico
-    post_pesaje:     {entreno:10,  descanso:8},     // recarga agresiva — 8-12 g/kg ISSN
-    post_pelea:      {entreno:5.0, descanso:3.5}   // superávit recuperación
-  };
-
-  // ── UFC PI — Proteína g/kg por fase ──────────────────────────────
-  // En camp (déficit) → 2.0g/kg. En base → 1.8g/kg. Fight week → 2.2g/kg (preservar músculo).
-  var PROT_GKG={
-    base:1.8, camp_cronico:2.0, peaking:1.9,
-    fight_week:2.2, post_pesaje:1.8, post_pelea:1.8
-  };
-
-  // Grasa mínima: 0.8g/kg (función hormonal — no negociable)
-  var GRASAS_GKG=0.8;
-
-  var cgk=CARBS_GKG[fase]||CARBS_GKG.base;
-  var protGkg=PROT_GKG[fase]||1.8;
-
-  // Función de macros: calcula desde g/kg (UFC PI) en lugar de ratios
-  function macros(tipoCarbs, calActividad){
-    var p=Math.round(peso*protGkg);
-    var carbs=Math.round(peso*cgk[tipoCarbs]);
-    var grasas=Math.round(peso*GRASAS_GKG);
-    var kcalMacros=Math.round(p*4+carbs*4+grasas*9);
-    // Déficit vs TDEE+actividad del día
-    var tdeeConActiv=tdeeBase+(calActividad||0);
-    var deficit=Math.round(tdeeConActiv-kcalMacros);
-    // Aviso si déficit supera 500 kcal (UFC PI: más destruye el rendimiento)
-    var defWarn=deficit>500;
-    // issn_warn para compatibilidad con el render existente
-    var issn_warn=defWarn?['deficit_alto']:[];
-    return {k:kcalMacros,p:p,c:carbs,g:grasas,deficit:deficit,deficitWarn:defWarn,issn_warn:issn_warn};
+  var base={peso:peso,altura:altura,edad:edad,sexo:sexo,tabla:tablaKey};
+  function porTipo(tipo){
+    return calcularMacrosSRC(Object.assign({},base,{color:SRC_TIPO_A_COLOR[tipo]||'amarillo'}));
   }
 
   // phaseData compat — mantenemos el campo que usa el render de colores/label
   var phaseData={
-    base:         {mult:1.00, carbRatioEntren:0.62, carbRatioDesc:0.40},
-    camp_cronico: {mult:0.90, carbRatioEntren:0.60, carbRatioDesc:0.38},
-    peaking:      {mult:0.96, carbRatioEntren:0.62, carbRatioDesc:0.42},
-    fight_week:   {mult:1.00, carbRatioEntren:0.28, carbRatioDesc:0.25},
-    post_pesaje:  {mult:1.10, carbRatioEntren:0.72, carbRatioDesc:0.70},
-    post_pelea:   {mult:1.08, carbRatioEntren:0.58, carbRatioDesc:0.42}
+    base:         {mult:1.00},
+    camp_cronico: {mult:0.90},
+    peaking:      {mult:0.96},
+    fight_week:   {mult:1.00},
+    post_pesaje:  {mult:1.10},
+    post_pelea:   {mult:1.08}
   };
   var pd=phaseData[fase]||phaseData.base;
 
   return {
-    sparring: macros('entreno', calSparring),
-    ambos:    macros('entreno', calTec+calGym),
-    tecnica:  macros('entreno', calTec),
-    cardio:   macros('entreno', calCardio),
-    gym:      macros('entreno', calGym),
-    descanso: macros('descanso', 0),
-    fase:fase, phaseData:pd, tdeeBase:tdeeBase,
-    protGkg:protGkg, carbsEntrenoGkg:cgk.entreno, carbsDescGkg:cgk.descanso
+    sparring: porTipo('sparring'),
+    ambos:    porTipo('ambos'),
+    tecnica:  porTipo('tecnica'),
+    cardio:   porTipo('cardio'),
+    gym:      porTipo('gym'),
+    descanso: porTipo('descanso'),
+    fase:fase, phaseData:pd, tabla:tablaKey
   };
 }
 
@@ -12575,22 +12615,22 @@ function calcMacrosCampComida(ingredientes){
 }
 
 function renderNutricionCamp(c, modo){
-  var m=S.combatMacros||calcMacrosCombate(c);
-  var peso=c.peso||75;
-  // Macros objetivo en campamento: alto en proteína, carbos moderados, calorías mantenimiento
-  var objetivo={
-    k: modo==='precamp'?Math.round(m.tecnica.k*1.1):Math.round(m.tecnica.k*0.95),
-    p: modo==='precamp'?Math.round(peso*2.2):Math.round(peso*2.0),
-    c: modo==='precamp'?Math.round(m.tecnica.c*1.1):Math.round(m.tecnica.c*0.9),
-    g: Math.round(m.tecnica.g)
-  };
+  var qd=c.cuestionario_datos||{};
+  var peso=parseFloat(c.peso_inicial||qd.peso)||75;
+  var altura=parseInt(c.altura||qd.altura)||175;
+  var edad=parseInt(c.edad||qd.edad)||25;
+  var sexo=(c.sexo||qd.sexo||'H').toUpperCase();
+  // Toggle manual (independiente de la fase automática por fecha): 'camp' usa la tabla 3-2-1 (Evans);
+  // 'precamp' no es una fase del documento — se usa la tabla fuera de camp como referencia de mantenimiento.
+  var objetivoM=calcularMacrosSRC({peso:peso,altura:altura,edad:edad,sexo:sexo,color:'amarillo',tabla:modo==='camp'?'camp':'fueraDeCamp'});
+  var objetivo={k:objetivoM.k, p:objetivoM.p, c:objetivoM.c, g:objetivoM.g};
 
   var html='';
 
   // Banner informativo
   var infoBanner=modo==='camp'?
-    'Comidas simples, batch cooking, para entrenar 2 veces/día. Alto en proteína y carbos.':
-    'Fase pre-campamento: sube proteína, ajusta calorías, simplifica la preparación.';
+    'Comidas simples, batch cooking, para entrenar 2 veces/día. Principio 3-2-1: proteína y grasa fijas, carbohidrato por color de día.':
+    'Pre-campamento: no es una fase con tabla propia en el método SRC — se muestra la referencia de mantenimiento (fuera de camp, día amarillo).';
   html+='<div style="background:rgba(77,159,255,.07);border:1px solid rgba(77,159,255,.2);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:#A0B0C0;line-height:1.5">'+
     (modo==='camp'?'🏕️':'⚡')+' <b style="color:#4D9FFF">'+(modo==='camp'?'Modo Campamento':'Modo Pre-Camp')+'</b><br>'+infoBanner+
   '</div>';
@@ -12740,27 +12780,24 @@ function renderTipoDiaCombate(){
 
   // ══ BLOQUE 2: MACROS DEL DÍA ══════════════════════════════════
   // Siempre visible. Cuatro números grandes, clara y directa.
-  var issnW=dm.issn_warn&&dm.issn_warn.length>0;
-  var defWarnHigh=dm.deficitWarn;
-  html+='<div style="background:#0D1528;border-radius:10px;padding:10px 12px;border:1px solid '+(defWarnHigh?'rgba(255,23,68,.35)':'#1A2A40')+'">';
+  var sueloIssnW=dm.avisoSueloIssn;
+  var rangoW=dm.avisoRango;
+  html+='<div style="background:#0D1528;border-radius:10px;padding:10px 12px;border:1px solid '+(sueloIssnW?'rgba(255,23,68,.35)':'#1A2A40')+'">';
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
   html+='<div style="font-size:10px;font-weight:700;color:rgba('+faseP.color+',1)">'+faseP.icon+' '+faseP.label+'</div>';
-  if(defWarnHigh) html+='<div style="font-size:9px;color:#FF1744;background:rgba(255,23,68,.1);padding:2px 6px;border-radius:5px">⚠️ Déficit >500 kcal</div>';
-  else if(issnW) html+='<div style="font-size:9px;color:#FFB300;background:rgba(255,179,0,.1);padding:2px 6px;border-radius:5px">⚡ Déficit alto activo</div>';
+  if(sueloIssnW) html+='<div style="font-size:9px;color:#FF1744;background:rgba(255,23,68,.1);padding:2px 6px;border-radius:5px">⚠️ Bajo suelo ISSN (3g/kg)</div>';
+  else if(rangoW) html+='<div style="font-size:9px;color:#FFB300;background:rgba(255,179,0,.1);padding:2px 6px;border-radius:5px">⚡ Fuera de rango — revisar</div>';
   html+='</div>';
   html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center">';
   [['Kcal',dm.k,'#7986CB'],['Proteína',dm.p+'g','#00E5FF'],['Carbos',dm.c+'g','#FFB300'],['Grasas',dm.g+'g','#F48FB1']].forEach(function(x){
     html+='<div><div style="font-size:16px;font-weight:900;color:'+x[2]+'">'+x[1]+'</div><div style="font-size:9px;color:#4A5568;margin-top:1px">'+x[0]+'</div></div>';
   });
   html+='</div>';
-  // Fuente + déficit real
-  if(dm.deficit!==undefined){
-    var defCol=dm.deficitWarn?'#FF1744':dm.deficit>0?'#FFB300':'#00C853';
-    html+='<div style="display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)">';
-    html+='<div style="font-size:9px;color:#4A5568">UFC PI · '+dm.protGkg+'g prot/kg · '+dm.carbsEntrenoGkg+'g CH/kg entreno</div>';
-    html+='<div style="font-size:9px;font-weight:700;color:'+defCol+'">'+(dm.deficit>0?'−'+dm.deficit:'+'+Math.abs(dm.deficit||0))+' kcal</div>';
-    html+='</div>';
-  }
+  // Fuente: método SRC — color de día + g/kg resultantes
+  var _colorEmoji={rojo:'🔴',amarillo:'🟡',verde:'🟢'}[dm.color]||'';
+  html+='<div style="display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)">';
+  html+='<div style="font-size:9px;color:#4A5568">SRC '+_colorEmoji+' · '+dm.protGkg+'g prot/kg · '+dm.carbGkgResultante+'g CH/kg</div>';
+  html+='</div>';
   html+='</div>';
 
   // ══ BLOQUE 3: ALERTA DE PESO ══════════════════════════════════
@@ -18956,35 +18993,27 @@ function calcularMacrosAuto(){
   var kcal,prot,carb,gras,kcalD,protD,carbD,grasD,tdee;
 
   if(isCombate){
-    // Método UFC Performance Institute
-    // Calcular fase desde fecha de pelea si existe
+    // Motor de nutrición SRC — ver especificación (BMR + factor actividad + carbohidrato por diferencia)
     var fase='base';
     var fpVal=document.getElementById('nc-fecha-pelea')&&document.getElementById('nc-fecha-pelea').value;
     if(fpVal){
       var diasPF=Math.ceil((new Date(fpVal)-new Date())/(24*3600*1000));
-      fase=diasPF>=112?'base':diasPF>=56?'camp_cronico':diasPF>=28?'peaking':'fight_week';
+      fase=diasPF>=112?'base':diasPF>=56?'camp_cronico':diasPF>=28?'peaking':diasPF<=7?'fight_week':'peaking';
     }
-    var diasEnt=parseInt(document.getElementById('nc-dias-ent')&&document.getElementById('nc-dias-ent').value)||3;
-    // g/kg según fase
-    var faseParams={base:{prot:1.8,carb:5.0,gras:1.2},camp_cronico:{prot:2.0,carb:5.5,gras:1.0},peaking:{prot:2.2,carb:4.5,gras:0.9},fight_week:{prot:2.2,carb:3.5,gras:0.8}};
-    var fp=faseParams[fase]||faseParams['base'];
-    prot=Math.round(peso*fp.prot);
-    carb=Math.round(peso*fp.carb);
-    gras=Math.round(peso*fp.gras);
-    kcal=Math.round(prot*4+carb*4+gras*9);
-    // Descanso: -20% carbs
-    var carbDR=Math.round(carb*0.8);
-    var grasDR=Math.round(gras*1.1);
-    kcalD=Math.round(prot*4+carbDR*4+grasDR*9);
-    protD=prot; carbD=carbDR; grasD=grasDR;
-    // Aviso déficit
-    var bmr2=sexo==='H'?(10*peso+6.25*alt-5*edad+5):(10*peso+6.25*alt-5*edad-161);
-    tdee=Math.round(bmr2*({2:1.55,3:1.65,4:1.725}[diasEnt]||1.65));
+    var tablaKey=tablaSRCPorFase(fase);
+    var baseOpts={peso:peso,altura:alt,edad:edad,sexo:sexo,tabla:tablaKey};
+    // Día amarillo (sesión única/media) para el objetivo de entreno, verde (descanso) para el de descanso
+    var mEnt=calcularMacrosSRC(Object.assign({},baseOpts,{color:'amarillo'}));
+    var mDesc=calcularMacrosSRC(Object.assign({},baseOpts,{color:'verde'}));
+    prot=mEnt.p; carb=mEnt.c; gras=mEnt.g; kcal=mEnt.k;
+    protD=mDesc.p; carbD=mDesc.c; grasD=mDesc.g; kcalD=mDesc.k;
+    tdee=Math.round(mEnt.bmr*mEnt.factorActividad);
     var aviso=document.getElementById('nc-macros-aviso');
     if(aviso){
-      var deficit=tdee-kcal;
-      if(deficit>500){aviso.style.display='';aviso.textContent='⚠️ Déficit de '+deficit+' kcal — puede ser excesivo. Ajusta manualmente.';}
-      else{aviso.style.display='none';}
+      if(mEnt.avisoRango||mEnt.avisoSueloIssn){
+        aviso.style.display='';
+        aviso.textContent='⚠️ '+(mEnt.avisoSueloIssn?'Carbohidrato por debajo del suelo ISSN (3g/kg) en camp':'Carbohidrato resultante fuera del rango esperado ('+mEnt.rangoCarb[0]+'-'+mEnt.rangoCarb[1]+'g/kg)')+' — revisa manualmente.';
+      } else {aviso.style.display='none';}
     }
   } else {
     // Fitness — Mifflin-St Jeor + objetivo
