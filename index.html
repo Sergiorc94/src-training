@@ -317,6 +317,7 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
         <div style="font-size:20px;font-weight:900;letter-spacing:2px" id="vc-title"></div>
         <div style="margin-left:auto;display:flex;gap:8px">
           <button class="btn bg bsm" id="btn-plan">📋 Asignar plan</button>
+          <button class="btn bg bsm" onclick="abrirMetodoSRC()" style="background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.3);color:#00C853">🍽️ Método SRC</button>
           <button id="btn-archivar" class="btn bsm" style="background:rgba(255,107,53,.12);border:1px solid rgba(255,107,53,.35);color:#FF6B35" onclick="archivarCliente()">🗂 Archivar</button>
         </div>
       </div>
@@ -1614,6 +1615,31 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
   </div>
 </div>
 
+<!-- MODAL MÉTODO DE NUTRICIÓN SRC (banco de alimentos + plantilla por color) -->
+<div class="modal" id="m-src-nutri" onclick="if(event.target===this)hideM('m-src-nutri')">
+  <div class="mbox" style="max-width:420px">
+    <div class="mhdr"><div class="mt">🍽️ MÉTODO SRC — kcal por color</div><button class="mclose" onclick="hideM('m-src-nutri')">✕</button></div>
+    <div class="mbody">
+      <div style="font-size:11px;color:#4A5568;margin-bottom:.75rem;line-height:1.5">Introduce las kcal ya calculadas para cada color (fuera de la app). La app reparte esas kcal en las comidas de la plantilla validada y deja al cliente elegir alimento por ración — no calcula macros ni déficit.</div>
+      <div class="field"><label>🔴 Kcal día ROJO (doble sesión / muy alta)</label><input type="number" id="src-kcal-rojo" placeholder="2900"></div>
+      <div class="field"><label>🟡 Kcal día AMARILLO (sesión única)</label><input type="number" id="src-kcal-amarillo" placeholder="2500"></div>
+      <div class="field"><label>🟢 Kcal día VERDE (descanso)</label><input type="number" id="src-kcal-verde" placeholder="2200"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">
+        <button class="btn bg" onclick="hideM('m-src-nutri')">Cancelar</button>
+        <button class="btn bp" onclick="guardarMetodoSRC()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SELECCIÓN DE ALIMENTO (banco de alimentos SRC) -->
+<div class="modal" id="m-src-pick" onclick="if(event.target===this)hideM('m-src-pick')">
+  <div class="mbox" style="max-width:420px">
+    <div class="mhdr"><div class="mt" id="m-src-pick-title">Elige alimento</div><button class="mclose" onclick="hideM('m-src-pick')">✕</button></div>
+    <div class="mbody" id="m-src-pick-body"></div>
+  </div>
+</div>
+
 <!-- MODAL BIBLIOTECA DE EJERCICIOS -->
 <div class="modal" id="m-biblioteca" onclick="if(event.target===this)hideM('m-biblioteca')">
   <div class="mbox" style="max-width:600px">
@@ -1924,6 +1950,86 @@ const ALIM_CAMP = {
   "Yogur griego natural":                 [10,  4,  5, 100],
   "Leche semidesnatada":                  [ 3,  5,  2,  46],
   "Batido recuperador":                   [15, 40,  2, 240]
+};
+
+// ── MÉTODO DE NUTRICIÓN SRC — banco de alimentos + plantilla de comidas ──
+// La app NO calcula kcal/macros/déficit (eso se decide fuera, por Sergio).
+// Solo reparte raciones ya calculadas en comidas y deja elegir alimento por grupo.
+// kcal por ración: valores nutricionales estándar de partida (no de la guía SRC) — revisar/ajustar.
+const BANCO_ALIMENTOS_SRC = {
+  proteina: [
+    {nombre:'Pechuga de pollo o pavo', racion:'150g', kcal:170},
+    {nombre:'Conejo', racion:'150g', kcal:195},
+    {nombre:'Pescado blanco (merluza, lenguado)', racion:'150g', kcal:130},
+    {nombre:'Pescado azul (salmón, caballa)', racion:'150g', kcal:300},
+    {nombre:'Sepia o calamar', racion:'200g', kcal:170},
+    {nombre:'Gambas o pulpo', racion:'200g', kcal:175},
+    {nombre:'Huevo entero + claras', racion:'2 huevos + 150g claras', kcal:205},
+    {nombre:'Claras de huevo', racion:'300g', kcal:130},
+    {nombre:'Atún al natural', racion:'2 latas', kcal:175},
+    {nombre:'Ternera magra', racion:'150g', kcal:210},
+    {nombre:'Yogur proteico o queso fresco batido 0%', racion:'250g', kcal:140},
+    {nombre:'Queso tipo Burgos 0%', racion:'125g', kcal:90}
+  ],
+  hidratos_principales: [
+    {nombre:'Arroz blanco (crudo)', racion:'100g', kcal:350},
+    {nombre:'Pasta blanca (crudo)', racion:'100g', kcal:350},
+    {nombre:'Patata o boniato', racion:'400g', kcal:320},
+    {nombre:'Legumbres cocidas', racion:'250g', kcal:300},
+    {nombre:'Quinoa o cuscús (crudo)', racion:'100g', kcal:360},
+    {nombre:'Pan blanco o integral', racion:'140g', kcal:370},
+    {nombre:'Tortas de trigo (para fajitas)', racion:'120g', kcal:370},
+    {nombre:'Gnocchi', racion:'200g', kcal:320},
+    {nombre:'Tortas de arroz o maíz', racion:'100g', kcal:385}
+  ],
+  hidratos_rapidos: [
+    {nombre:'Plátano maduro', racion:'1 pieza', kcal:105},
+    {nombre:'Dátiles', racion:'4-5 piezas', kcal:110},
+    {nombre:'Zumo de fruta', racion:'300ml', kcal:135},
+    {nombre:'Miel o mermelada', racion:'30g', kcal:85},
+    {nombre:'Bebida isotónica', racion:'500ml', kcal:125},
+    {nombre:'Tortita de arroz + miel', racion:'1 unidad + 15g', kcal:80}
+  ],
+  grasas: [
+    {nombre:'Aceite de oliva', racion:'15ml', kcal:135},
+    {nombre:'Aguacate', racion:'60-100g', kcal:130},
+    {nombre:'Crema de frutos secos o frutos secos', racion:'20-30g', kcal:150},
+    {nombre:'Queso', racion:'60g', kcal:210},
+    {nombre:'Guacamole', racion:'40g', kcal:65},
+    {nombre:'Hummus', racion:'40g', kcal:70},
+    {nombre:'Coco rallado', racion:'30g', kcal:195}
+  ]
+  // Verdura: libre, sin restricción real (200-300g orientativos) — no necesita banco de opciones
+};
+const GRUPOS_SRC_LABEL = {
+  proteina:'Proteína', hidratos_principales:'Hidratos principales',
+  hidratos_rapidos:'Hidratos rápidos', grasas:'Grasas', verdura:'Verdura'
+};
+
+// Plantilla de comidas por color — estructura validada, igual para todos los atletas salvo
+// personalización explícita del coach (ej. cena completa en los 3 colores).
+const PLANTILLA_COMIDAS_SRC = {
+  rojo: [
+    {nombre:'Pre-entreno (2-3h antes)', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_principales',raciones:1.5}], nota:'+ verdura libre opcional'},
+    {nombre:'Pre-entreno (1h antes)', formula:[{grupo:'hidratos_rapidos',raciones:1}], nota:'Solo eso — sin proteína ni grasa'},
+    {nombre:'Entre sesiones / post-entreno (las 3R)', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_rapidos',raciones:0.75},{grupo:'hidratos_principales',raciones:0.75}], nota:'Rehidratar 150% del peso perdido en sudor'},
+    {nombre:'Comida principal', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_principales',raciones:1.5},{grupo:'grasas',raciones:1}], nota:'+ verdura libre'},
+    {nombre:'Merienda pre-2ª sesión', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_rapidos',raciones:1}], nota:'Batido + pizca de sal'},
+    {nombre:'Cena', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_principales',raciones:1},{grupo:'grasas',raciones:1}], nota:'+ verdura libre'}
+  ],
+  amarillo: [
+    {nombre:'Pre-entreno (2-3h antes)', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_principales',raciones:1}]},
+    {nombre:'Post-entreno (las 3R)', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_rapidos',raciones:1}]},
+    {nombre:'Comida principal', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_principales',raciones:1},{grupo:'grasas',raciones:1}], nota:'+ verdura libre'},
+    {nombre:'Merienda', formula:[{grupo:'hidratos_rapidos',raciones:0.5}], nota:'Opcional — + fruta', opcional:true},
+    {nombre:'Cena', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_principales',raciones:0.75},{grupo:'grasas',raciones:1}], nota:'+ verdura libre · postre opcional (0.5-1 ración hidratos)'}
+  ],
+  verde: [
+    {nombre:'Desayuno', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_principales',raciones:0.5}], nota:'+ fruta o verdura'},
+    {nombre:'Comida principal', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_principales',raciones:0.75},{grupo:'grasas',raciones:1}], nota:'+ verdura abundante (0.5-1 ración hidratos)'},
+    {nombre:'Merienda', formula:[{grupo:'grasas',raciones:1}], nota:'+ fruta (frutos secos)'},
+    {nombre:'Cena', formula:[{grupo:'proteina',raciones:1},{grupo:'hidratos_principales',raciones:0.5},{grupo:'grasas',raciones:1}], nota:'+ verdura abundante · postre opcional'}
+  ]
 };
 
 // Plantillas de comida para campamento
@@ -9558,6 +9664,49 @@ document.getElementById('btn-guardar-plan').onclick=async function(){
   }catch(e){toast('Error: '+e.message,'err');}
 };
 
+// ── MÉTODO DE NUTRICIÓN SRC (banco de alimentos + plantilla por color) ──
+async function abrirMetodoSRC(){
+  var c=S.ca;
+  if(!c) return;
+  if(c.tipo_cliente!=='combate'){toast('El Método SRC es solo para clientes de combate','warn');return;}
+  document.getElementById('src-kcal-rojo').value='';
+  document.getElementById('src-kcal-amarillo').value='';
+  document.getElementById('src-kcal-verde').value='';
+  try{
+    var arr=await db.get('planes','cliente_id=eq.'+c.id+'&tipo=eq.nutricion&activo=eq.true&limit=1');
+    var plan=arr&&arr[0];
+    var kcal=plan&&plan.contenido&&plan.contenido.srcNutricion&&plan.contenido.srcNutricion.kcal;
+    if(kcal){
+      document.getElementById('src-kcal-rojo').value=kcal.rojo||'';
+      document.getElementById('src-kcal-amarillo').value=kcal.amarillo||'';
+      document.getElementById('src-kcal-verde').value=kcal.verde||'';
+    }
+  }catch(e){}
+  showM('m-src-nutri');
+}
+
+async function guardarMetodoSRC(){
+  var c=S.ca;
+  if(!c) return;
+  var rojo=parseInt(document.getElementById('src-kcal-rojo').value)||0;
+  var amarillo=parseInt(document.getElementById('src-kcal-amarillo').value)||0;
+  var verde=parseInt(document.getElementById('src-kcal-verde').value)||0;
+  if(!rojo&&!amarillo&&!verde){toast('Rellena al menos un color','err');return;}
+  try{
+    var arr=await db.get('planes','cliente_id=eq.'+c.id+'&tipo=eq.nutricion&activo=eq.true&limit=1');
+    var plan=arr&&arr[0];
+    var srcNutricion={kcal:{rojo:rojo,amarillo:amarillo,verde:verde}};
+    if(plan){
+      var merged=Object.assign({},plan.contenido||{},{srcNutricion:srcNutricion});
+      await db.patch('planes','id=eq.'+plan.id,{contenido:merged});
+    } else {
+      await db.post('planes',{cliente_id:c.id,tipo:'nutricion',contenido:{srcNutricion:srcNutricion},activo:true,semana_inicio:hoy()});
+    }
+    hideM('m-src-nutri');
+    toast('✅ Método SRC guardado','ok');
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
 // ── PLANTILLAS ───────────────────────────────────────────────────────
 async function loadPlantillasDropdown(tipo){
   var sel=document.getElementById('plantilla-sel');
@@ -11670,6 +11819,11 @@ async function loadNutri(){
       var _pnArr=await db.get('planes','cliente_id=eq.'+c.id+'&tipo=eq.nutricion&activo=eq.true&limit=1').catch(function(){return [];});
       S.peNutri=_pnArr&&_pnArr[0]||null; // cached para el modal de "Mi semana"
       var _nutriManual=S.peNutri&&S.peNutri.contenido||null;
+      if(_nutriManual&&_nutriManual.srcNutricion){
+        window._ncv=null;
+        renderNutriSRC(c,_nutriManual,S.rn);
+        return;
+      }
       if(_nutriManual){
         window._ncv=null; // reset: vuelve al color de hoy al recargar
         renderNutriPlanManual(c,_nutriManual,S.rn);
@@ -11793,6 +11947,154 @@ function renderNutricionPendiente(c, diasEnApp){
 }
 
 // ── PLAN NUTRICIONAL MANUAL (desde tabla `planes`) ────────────────
+// ── MÉTODO DE NUTRICIÓN SRC — vista cliente ─────────────────────────────
+// Presenta la plantilla de comidas por color (sección 7) y el banco de alimentos
+// (sección 6.1). La app NO calcula kcal/macros — solo reparte raciones ya
+// calculadas (fuera de la app) en comidas, y deja elegir alimento por ración.
+function colorHoySRC(c){
+  var f=S.fecha,dow=new Date(f+'T12:00:00').getDay();
+  try{
+    var ps=c.plan_semanal?(typeof c.plan_semanal==='string'?JSON.parse(c.plan_semanal):c.plan_semanal):null;
+    if(ps){
+      var dp=parseDiaPlan(ps[String(dow)]);
+      var SATRL={fuerza:'rojo',fisico:'rojo',gym:'rojo',sparring:'rojo',tecnica:'amarillo',acondicionamiento:'verde',cardio:'verde'};
+      var s=(dp.sessions||[]).filter(function(x){return x!=='descanso';})[0]||null;
+      return s?(SATRL[s]||'amarillo'):'verde'; // descanso → verde
+    }
+  }catch(e){}
+  return 'amarillo';
+}
+
+function renderNutriSRC(c, planManual, rn){
+  var cont=document.getElementById('n-comidas');
+  var stickyEl=document.getElementById('n-sticky');
+  var nStatsEl=document.querySelector('#sec-nutri .g4');
+  if(stickyEl) stickyEl.style.display='none';
+  if(nStatsEl) nStatsEl.style.display='none';
+  if(!cont) return;
+
+  var kcalPorColor=(planManual.srcNutricion&&planManual.srcNutricion.kcal)||{};
+  var colorHoy=colorHoySRC(c);
+  var viewColor=window._ncv||colorHoy;
+  var kcalObjetivo=kcalPorColor[viewColor]||0;
+  var comidas=PLANTILLA_COMIDAS_SRC[viewColor]||[];
+  var sel=(rn&&rn.src_selecciones)||{};
+
+  var DCOL={
+    rojo:{label:'🔴 Día ROJO',bg:'rgba(255,23,68,.08)',border:'rgba(255,23,68,.25)',color:'#FF1744'},
+    amarillo:{label:'🟡 Día AMARILLO',bg:'rgba(255,214,0,.08)',border:'rgba(255,214,0,.25)',color:'#FFD600'},
+    verde:{label:'🟢 Día VERDE',bg:'rgba(0,200,83,.08)',border:'rgba(0,200,83,.25)',color:'#00C853'}
+  };
+  var dc=DCOL[viewColor];
+
+  var html='';
+
+  // Cabecera: color + kcal objetivo + selector manual de color
+  html+='<div class="card" style="margin-bottom:.75rem"><div class="cb">';
+  html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+  html+='<div style="font-size:15px;font-weight:900;color:'+dc.color+'">'+dc.label+'</div>';
+  if(viewColor===colorHoy) html+='<span style="font-size:9px;font-weight:800;color:#4A5568;background:rgba(255,255,255,.05);padding:2px 6px;border-radius:5px">HOY</span>';
+  html+='<div style="margin-left:auto;text-align:right"><div style="font-size:20px;font-weight:900;color:#7986CB">'+kcalObjetivo+'</div><div style="font-size:9px;color:#4A5568">kcal objetivo</div></div>';
+  html+='</div>';
+  html+='<div style="display:flex;gap:6px">';
+  ['rojo','amarillo','verde'].forEach(function(k){
+    var act=k===viewColor;
+    html+='<button onclick="window._ncv=\''+k+'\';renderNutriSRC(S.user,S.peNutri.contenido,S.rn)" '+
+      'style="flex:1;padding:6px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid '+(act?DCOL[k].color:'#1A2A40')+';'+
+      'background:'+(act?DCOL[k].bg:'transparent')+';color:'+(act?DCOL[k].color:'#4A5568')+'">'+DCOL[k].label.replace('Día ','')+'</button>';
+  });
+  html+='</div></div></div>';
+
+  if(!kcalObjetivo){
+    html+='<div class="card"><div class="cb" style="text-align:center;padding:1.5rem">'+
+      '<div style="font-size:2rem;margin-bottom:.5rem">⏳</div>'+
+      '<div style="color:#4A5568;font-size:13px">Tu entrenador aún no ha cargado las kcal del día '+viewColor+'.</div>'+
+    '</div></div>';
+    cont.innerHTML=html;
+    return;
+  }
+
+  // Comidas de la plantilla del color
+  var kcalTotal=0;
+  comidas.forEach(function(com,mi){
+    var comSel=sel[mi]||{};
+    html+='<div class="card" style="margin-bottom:.75rem"><div class="ch" style="font-size:13px">'+com.nombre+
+      (com.opcional?'<span style="font-size:9px;color:#4A5568;margin-left:6px;font-weight:400">(opcional)</span>':'')+
+      '</div><div class="cb">';
+    if(com.nota) html+='<div style="font-size:10px;color:#4A5568;margin-bottom:6px;font-style:italic">'+com.nota+'</div>';
+    com.formula.forEach(function(f,fi){
+      var elegido=comSel[fi];
+      var grupoLbl=GRUPOS_SRC_LABEL[f.grupo]||f.grupo;
+      var racLbl=(f.raciones===1?'1 ración':f.raciones+' raciones')+' '+grupoLbl;
+      if(elegido) kcalTotal+=(elegido.kcal||0)*f.raciones;
+      html+='<button onclick="abrirSelectorSRC('+mi+','+fi+',\''+f.grupo+'\','+f.raciones+')" '+
+        'style="width:100%;text-align:left;display:flex;align-items:center;gap:8px;padding:9px 10px;margin-bottom:5px;background:'+(elegido?'rgba(0,200,83,.06)':'#0D1528')+';'+
+        'border:1.5px solid '+(elegido?'rgba(0,200,83,.3)':'#1A2A40')+';border-radius:8px;color:#F0F4FF;font-size:12px;cursor:pointer">'+
+        '<span style="flex:1">'+
+          '<div style="font-weight:700;color:'+(elegido?'#00C853':'#F0F4FF')+'">'+(elegido?elegido.nombre:racLbl)+'</div>'+
+          (elegido?'<div style="font-size:10px;color:#4A5568">'+racLbl+' · '+elegido.racion+' · '+Math.round((elegido.kcal||0)*f.raciones)+' kcal</div>':'')+
+        '</span>'+
+        '<span style="color:#4A5568;font-size:11px">'+(elegido?'cambiar':'elegir ▸')+'</span>'+
+      '</button>';
+    });
+    html+='</div></div>';
+  });
+
+  // Verdura libre — nota informativa, sin selector (sin restricción real)
+  html+='<div style="font-size:10px;color:#2A3A50;text-align:center;margin-bottom:.75rem">🥦 Verdura libre en las comidas que la incluyen — 200-300g orientativos, sin restricción real</div>';
+
+  // Resumen kcal en vivo
+  var pct=kcalObjetivo?Math.min(100,Math.round(kcalTotal/kcalObjetivo*100)):0;
+  html+='<div class="card"><div class="cb">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
+      '<span style="font-size:11px;font-weight:700;color:#4A5568">Kcal elegidas hoy</span>'+
+      '<span style="font-size:14px;font-weight:900;color:#7986CB">'+Math.round(kcalTotal)+' / '+kcalObjetivo+'</span>'+
+    '</div>'+
+    '<div style="height:6px;background:#1A2A40;border-radius:3px;overflow:hidden">'+
+      '<div style="height:100%;width:'+pct+'%;background:'+(pct>105?'#FF6B35':'#00C853')+';border-radius:3px"></div>'+
+    '</div>'+
+  '</div></div>';
+
+  cont.innerHTML=html;
+}
+
+function abrirSelectorSRC(momentoIdx, formulaIdx, grupo, raciones){
+  var opciones=BANCO_ALIMENTOS_SRC[grupo]||[];
+  document.getElementById('m-src-pick-title').textContent=(GRUPOS_SRC_LABEL[grupo]||grupo)+' — elige uno';
+  var html=opciones.map(function(op){
+    var opEsc=op.nombre.replace(/'/g,"\\'");
+    return '<button onclick="elegirAlimentoSRC('+momentoIdx+','+formulaIdx+',\''+opEsc+'\')" '+
+      'style="width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;background:#0D1528;border:1.5px solid #1A2A40;border-radius:8px;color:#F0F4FF;font-size:13px;cursor:pointer">'+
+      '<div style="font-weight:700">'+op.nombre+'</div>'+
+      '<div style="font-size:10px;color:#4A5568;margin-top:2px">'+op.racion+' · '+op.kcal+' kcal/ración</div>'+
+    '</button>';
+  }).join('');
+  document.getElementById('m-src-pick-body').innerHTML=html+
+    '<button onclick="hideM(\'m-src-pick\')" style="width:100%;text-align:center;padding:8px;margin-top:4px;background:none;border:none;color:#4A5568;font-size:12px;cursor:pointer">Cancelar</button>';
+  showM('m-src-pick');
+}
+
+async function elegirAlimentoSRC(momentoIdx, formulaIdx, nombreAlimento){
+  var viewColor=window._ncv||colorHoySRC(S.user);
+  var comidas=PLANTILLA_COMIDAS_SRC[viewColor]||[];
+  var com=comidas[momentoIdx];
+  var f=com&&com.formula&&com.formula[formulaIdx];
+  if(!f) return;
+  var opciones=BANCO_ALIMENTOS_SRC[f.grupo]||[];
+  var alimento=opciones.find(function(o){return o.nombre===nombreAlimento;});
+  if(!alimento) return;
+  if(!S.rn) S.rn={};
+  var sel=Object.assign({},S.rn.src_selecciones||{});
+  sel[momentoIdx]=Object.assign({},sel[momentoIdx]||{});
+  sel[momentoIdx][formulaIdx]=alimento;
+  S.rn.src_selecciones=sel;
+  hideM('m-src-pick');
+  try{
+    await saveNutri({src_selecciones:sel});
+  }catch(e){}
+  renderNutriSRC(S.user,S.peNutri.contenido,S.rn);
+}
+
 function renderNutriPlanManual(c, planManual, rn){
   var cont=document.getElementById('n-comidas');
   var stickyEl=document.getElementById('n-sticky');
