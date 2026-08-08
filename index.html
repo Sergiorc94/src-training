@@ -18948,7 +18948,10 @@ function urlBase64ToUint8Array(base64String){
 }
 
 async function suscribirPushSRC(){
-  if(!('serviceWorker' in navigator)||!('PushManager' in window)){return;}
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)){
+    toast('⚠️ Este navegador no soporta notificaciones push (en iPhone: usa la app añadida a pantalla de inicio, no Safari normal)','err');
+    return;
+  }
   if(!S.user||!S.user.id) return;
   try{
     var reg=await navigator.serviceWorker.ready;
@@ -18960,14 +18963,16 @@ async function suscribirPushSRC(){
       });
     }
     var subJson=sub.toJSON();
-    await db.upsert('push_subscriptions',{
+    var ok=await db.upsert('push_subscriptions',{
       cliente_id:S.user.id,
       endpoint:subJson.endpoint,
       p256dh:subJson.keys&&subJson.keys.p256dh,
       auth:subJson.keys&&subJson.keys.auth
     },'endpoint');
+    toast('🔔 Suscripción push guardada','ok');
   }catch(e){
     console.warn('Push subscribe error:',e);
+    toast('❌ Error al suscribir push: '+(e&&e.message||e),'err');
   }
 }
 
