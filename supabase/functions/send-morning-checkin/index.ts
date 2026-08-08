@@ -1,7 +1,7 @@
-// Supabase Edge Function — envía el push matutino de check-in a todos los clientes activos.
+// Supabase Edge Function - envia el push matutino de check-in a todos los clientes activos.
 // Se ejecuta por un cron job de Postgres (ver README.md de esta carpeta), no manualmente.
 //
-// Requiere estos secrets en el proyecto (Project Settings → Edge Functions → Secrets):
+// Requiere estos secrets en el proyecto (Project Settings -> Edge Functions -> Secrets):
 //   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 // (SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY normalmente ya existen por defecto en todo proyecto)
 
@@ -18,7 +18,7 @@ webpush.setVapidDetails("mailto:sergio@src-training.app", vapidPublic, vapidPriv
 Deno.serve(async (_req) => {
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  // Suscripciones de clientes activos únicamente
+  // Suscripciones de clientes activos unicamente
   const { data: subs, error } = await supabase
     .from("push_subscriptions")
     .select("id, cliente_id, endpoint, p256dh, auth, clientes!inner(activo)")
@@ -32,8 +32,8 @@ Deno.serve(async (_req) => {
   }
 
   const payload = JSON.stringify({
-    title: "SRC Training 💪",
-    body: "Buenos días — rellena tu check-in de hoy antes de entrenar",
+    title: "SRC Training",
+    body: "Buenos dias - rellena tu check-in de hoy antes de entrenar",
     url: "/src-training/",
     tag: "checkin-matutino",
   });
@@ -51,7 +51,7 @@ Deno.serve(async (_req) => {
       sent++;
     } catch (e) {
       failed++;
-      // 404/410 = el navegador invalidó la suscripción (desinstaló la app, etc.) — limpiar
+      // 404/410 = el navegador invalido la suscripcion (desinstalo la app, etc.) - limpiar
       const statusCode = (e as { statusCode?: number }).statusCode;
       if (statusCode === 404 || statusCode === 410) toRemove.push(s.endpoint);
     }
