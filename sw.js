@@ -1,7 +1,7 @@
 // SRC Training – Service Worker
 // Estrategia: Cache First para assets estáticos, Network First para API
 
-const CACHE_NAME = 'src-training-v49';
+const CACHE_NAME = 'src-training-v50';
 const STATIC_ASSETS = [
   '/src-training/',
   '/src-training/index.html',
@@ -77,6 +77,39 @@ self.addEventListener('fetch', function(event) {
         }
         return response;
       });
+    })
+  );
+});
+
+// Push: mostrar notificación aunque la app esté cerrada
+self.addEventListener('push', function(event) {
+  var data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) {
+    data = { title: 'SRC Training', body: event.data ? event.data.text() : 'Tienes una notificación' };
+  }
+  var title = data.title || 'SRC Training 💪';
+  var options = {
+    body: data.body || '¿Ya has rellenado tu check-in de hoy?',
+    icon: '/src-training/icon-192.png',
+    badge: '/src-training/icon-192.png',
+    tag: data.tag || 'src-daily',
+    renotify: true,
+    data: { url: data.url || '/src-training/' }
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Click en la notificación: abrir (o enfocar) la app
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  var url = (event.notification.data && event.notification.data.url) || '/src-training/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      for (var i = 0; i < clientList.length; i++) {
+        var c = clientList[i];
+        if (c.url.indexOf('/src-training/') !== -1 && 'focus' in c) return c.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
     })
   );
 });

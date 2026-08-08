@@ -1697,6 +1697,8 @@ body{font-family:Arial,sans-serif;background:#05080F;color:#F0F4FF;min-height:10
 const SB='https://eqzyvutedejpstmpnfqr.supabase.co';
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxenl2dXRlZGVqcHN0bXBuZnFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3Njg4MjYsImV4cCI6MjA5MzM0NDgyNn0.zRztqXlKoGJ1MprzFsFlOK7n-6Xe8hx07Y4LyxnSiPo';
 const ADMIN='ADMIN_SRC';
+// Clave pública VAPID para notificaciones push (la privada vive solo en Supabase, nunca aquí)
+const VAPID_PUBLIC_KEY='BHMW4NhEZoLM06XqxHVfXiuduV2sdbV4ofQ0nlgH8SOmJ_Q7qxiqHSnatCtx9ylmFTlYczygX4_Zuow5nSB5suw';
 // ═══════════════════════════════════════════
 // BASE DE ALIMENTOS COMPLETA DE SERGIO
 // [nombre]: [P, C, G, Kcal] por 100g
@@ -18921,15 +18923,51 @@ async function setupNotificaciones(){
   if(Notification.permission==='granted'){
     toast('✅ Notificaciones ya activadas','ok');
     programarRecordatorio();
+    suscribirPushSRC();
     return;
   }
   var perm=await Notification.requestPermission();
   if(perm==='granted'){
-    new Notification('SRC Training 💪',{body:'¡Activadas! Te avisaremos para no olvidar registrar tu día.'});
+    new Notification('SRC Training 💪',{body:'¡Activadas! Te avisaremos cada mañana para el check-in.'});
     toast('✅ Notificaciones activadas','ok');
     programarRecordatorio();
+    suscribirPushSRC();
   }else{
     toast('Permisos denegados — actívalos en ajustes del navegador','err');
+  }
+}
+
+// ── Push real (llega aunque la app esté cerrada) — aviso matutino del check-in ──
+function urlBase64ToUint8Array(base64String){
+  var padding='='.repeat((4-base64String.length%4)%4);
+  var base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  var rawData=atob(base64);
+  var outputArray=new Uint8Array(rawData.length);
+  for(var i=0;i<rawData.length;i++) outputArray[i]=rawData.charCodeAt(i);
+  return outputArray;
+}
+
+async function suscribirPushSRC(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)){return;}
+  if(!S.user||!S.user.id) return;
+  try{
+    var reg=await navigator.serviceWorker.ready;
+    var sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      sub=await reg.pushManager.subscribe({
+        userVisibleOnly:true,
+        applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    var subJson=sub.toJSON();
+    await db.upsert('push_subscriptions',{
+      cliente_id:S.user.id,
+      endpoint:subJson.endpoint,
+      p256dh:subJson.keys&&subJson.keys.p256dh,
+      auth:subJson.keys&&subJson.keys.auth
+    },'endpoint');
+  }catch(e){
+    console.warn('Push subscribe error:',e);
   }
 }
 
