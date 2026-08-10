@@ -15440,7 +15440,7 @@ async function loadEntrenoCombate(){
   function detectTipoEjercicio(nombre){
     var n=(nombre||'').toLowerCase();
     if(/assault.?bike|air.?bike|echo.?bike|assault|airbike/i.test(n)) return 'bike';
-    if(/remo|rowing|erg\b|ergómetro/i.test(n)) return 'remo';
+    if(/máquina de remo|maquina de remo|ergómetro|ergometro|remo indoor|remoergómetro|concept.?2|erg\b/i.test(n)) return 'remo';
     if(/carrera|running|sprint|cinta|treadmill|correr/i.test(n)) return 'carrera';
     if(/cuerda|jump.?rope|comba|salto.*cuerda/i.test(n)) return 'cuerda';
     if(/sled|trineo|prowler/i.test(n)) return 'sled';
@@ -17755,7 +17755,7 @@ function calcProgresion(ejNom, reHistory, rirStr, repsStr){
 function detectTipoEjercicio(nombre){
   var n=(nombre||'').toLowerCase();
   if(/assault.?bike|air.?bike|echo.?bike|assault|airbike/i.test(n)) return 'bike';
-  if(/remo|rowing|erg\b|ergómetro/i.test(n)) return 'remo';
+  if(/máquina de remo|maquina de remo|ergómetro|ergometro|remo indoor|remoergómetro|concept.?2|erg\b/i.test(n)) return 'remo';
   if(/carrera|running|sprint|cinta|treadmill|correr/i.test(n)) return 'carrera';
   if(/cuerda|jump.?rope|comba|salto.*cuerda/i.test(n)) return 'cuerda';
   if(/sled|trineo|prowler/i.test(n)) return 'sled';
