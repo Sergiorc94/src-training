@@ -4019,6 +4019,19 @@ const RUTINAS_EXTRA = [
 // Combinamos todas las rutinas disponibles
 const TODAS_RUTINAS = RUTINAS.concat(RUTINAS_EXTRA);
 
+// Calentamiento común a los 4 días de Hipertrofia Bloque C v2 (idéntico cada día, sin progresión semanal)
+var PREP_SRC_V2=[
+  {nombre:'Respiración nasal diafragmática',series:'1',reps:'5 resp',rir:'-',descanso:'-',tipo:'Calentamiento'},
+  {nombre:'Box Breathing 4-4-4-4',series:'1',reps:'5 resp',rir:'-',descanso:'-',tipo:'Calentamiento'},
+  {nombre:'CARs (tobillo→cervical)',series:'1',reps:'1 vuelta',rir:'-',descanso:'-',tipo:'Calentamiento'},
+  {nombre:'Movilidad dinámica general',series:'1',reps:'1 vuelta',rir:'-',descanso:'-',tipo:'Calentamiento'},
+  {nombre:"Cadera: 90/90, world's greatest",series:'1',reps:'5/lado',rir:'-',descanso:'-',tipo:'Calentamiento'},
+  {nombre:'Tobillo: dorsiflexión',series:'1',reps:'8/lado',rir:'-',descanso:'-',tipo:'Calentamiento'},
+  {nombre:'Hombro: distracciones banda',series:'1',reps:'8/lado',rir:'-',descanso:'-',tipo:'Calentamiento'},
+  {nombre:'T-spine: rotaciones',series:'1',reps:'8/lado',rir:'-',descanso:'-',tipo:'Calentamiento'},
+  {nombre:'Activación glúteo (puente, banda)',series:'2',reps:'10',rir:'-',descanso:'-',tipo:'Calentamiento'}
+];
+
 // ── Plantillas del sistema (siempre disponibles en "Cargar plantilla") ────
 const SYSTEM_PLANTILLAS = {
   entreno: [
@@ -4092,6 +4105,62 @@ const SYSTEM_PLANTILLAS = {
         {nombre:'Curl + Extensión tríceps (superserie)',series:'3',reps:'12-15',rir:'4,3-4,3-4,3',descanso:'45s',tipo:'Brazos',nota:'Superserie'},
         {nombre:'Band Neck ISO (4 direcciones)',series:'2',reps:'15 seg c/u',rir:'-',descanso:'-',tipo:'Core'}
       ]}
+    ]}},
+    {id:'__hipertrofiaBloqueC_v2__', nombre:'💪 Hipertrofia Bloque C v2 — uso personal (4 días)', contenido:{dias:[
+      {nombre:'Día 1 — Tren Superior + Core (MOD)', ejercicios:PREP_SRC_V2.concat([
+        {nombre:'Pogos bilaterales',series:'1',reps:'15-20 seg',rir:'-',descanso:'-',tipo:'Pliometría'},
+        {nombre:'Skater Jump (sin carga)',series:'1',reps:'6-8/lado',rir:'-',descanso:'-',tipo:'Pliometría'},
+        {nombre:'Remo (barra, mancuerna o máquina)',series:'3,3,4,4',reps:'8-10',rir:'3-4,3-4,2-3,1-2',descanso:'90s',tipo:'Tracción',nota:'1-2 series de aproximación antes del peso de trabajo (no cuentan en el registro)'},
+        {nombre:'Jalón al pecho / Dominadas asistidas',series:'3',reps:'10-12',rir:'3-4,3-4,2-3,1-2',descanso:'75s',tipo:'Tracción'},
+        {nombre:'Face Pull (deltoide posterior/trapecio)',series:'3',reps:'12-15',rir:'-',descanso:'60s',tipo:'Tracción'},
+        {nombre:'Press banca o máquina press pecho',series:'3,3,4,4',reps:'8-10',rir:'3-4,3-4,2-3,1-2',descanso:'90s',tipo:'Empuje',nota:'1-2 series de aproximación antes del peso de trabajo (no cuentan en el registro)'},
+        {nombre:'Press inclinado mancuerna o máquina',series:'3',reps:'10-12',rir:'3-4,3-4,2-3,1-2',descanso:'75s',tipo:'Empuje'},
+        {nombre:'Press hombro (mancuerna o máquina)',series:'3',reps:'10-12',rir:'3-4,3-4,2-3,1-2',descanso:'75s',tipo:'Empuje'},
+        {nombre:'Curl bíceps',series:'3',reps:'12-15',rir:'2-3,1-2,0-1,0 (al fallo)',descanso:'60s',tipo:'Brazos'},
+        {nombre:'Extensión tríceps',series:'3',reps:'12-15',rir:'2-3,1-2,0-1,0 (al fallo)',descanso:'60s',tipo:'Brazos'},
+        {nombre:'Plank',series:'3',reps:'30-40 seg',rir:'-',descanso:'45s',tipo:'Core'},
+        {nombre:'Half Kneeling Chop (rotación de core)',series:'2',reps:'8/lado',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'Band Neck ISO (4 direcciones)',series:'2',reps:'15 seg c/u',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'KB Swing en ráfagas (10s trabajo / 50s descanso)',series:'6,6,7,8',reps:'ráfaga',rir:'-',descanso:'-',tipo:'Cardio',nota:'Aláctico ATP-PC — bajo coste, no compite con la hipertrofia'}
+      ])},
+      {nombre:'Día 2 — Tren Inferior (HIGH)', ejercicios:PREP_SRC_V2.concat([
+        {nombre:'Salida 5-10m → Freno controlado (misma repetición)',series:'2',reps:'3',rir:'-',descanso:'-',tipo:'Velocidad'},
+        {nombre:'Box Jump (parado, submáximo)',series:'2',reps:'3',rir:'-',descanso:'90s',tipo:'Pliometría'},
+        {nombre:'KB Swing (peso ligero-moderado)',series:'2',reps:'10',rir:'-',descanso:'-',tipo:'Pliometría'},
+        {nombre:'Goblet Squat / Trap Bar Deadlift',series:'3,3,4,4',reps:'8-10',rir:'4,4,3-4,3',descanso:"2'",tipo:'Piernas',nota:'1-2 series de aproximación antes del peso de trabajo (no cuentan en el registro)'},
+        {nombre:'Prensa o Front Squat',series:'3',reps:'10-12',rir:'4,4,3-4,3',descanso:'90s',tipo:'Piernas'},
+        {nombre:'RDL',series:'3',reps:'10-12',rir:'4,4,3-4,3',descanso:'90s',tipo:'Piernas'},
+        {nombre:'Hip Thrust',series:'3',reps:'10-12',rir:'4,4,3-4,3',descanso:'90s',tipo:'Piernas'},
+        {nombre:'SL Hamstring ISO Hold',series:'2',reps:'15 seg/lado',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'Dead Bug',series:'2',reps:'10/lado',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'Russian Twist',series:'2',reps:'10/lado',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'Band Neck ISO (4 direcciones)',series:'2',reps:'15 seg c/u',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'Air Bike (30s trabajo fuerte / 30s descanso)',series:'4,4,5,5',reps:'rondas',rir:'-',descanso:'-',tipo:'Cardio',nota:'Láctico — el día HIGH sí lleva condicionamiento real'}
+      ])},
+      {nombre:'Día 3 — Full Body + Técnica ligera opcional (LOW)', ejercicios:PREP_SRC_V2.concat([
+        {nombre:'Line / Ladder Hops',series:'1',reps:'20 seg',rir:'-',descanso:'-',tipo:'Pliometría'},
+        {nombre:'KB Clean (peso ligero-moderado)',series:'2',reps:'8/lado',rir:'-',descanso:'-',tipo:'Pliometría'},
+        {nombre:'Wall Ball Toss (vertical, Nivel 1)',series:'2',reps:'8',rir:'-',descanso:'-',tipo:'Pliometría'},
+        {nombre:'MB Chest Throw (Nivel 1, Banco original)',series:'2',reps:'8',rir:'-',descanso:'-',tipo:'Pliometría'},
+        {nombre:'Goblet Squat',series:'3',reps:'10',rir:'4-5,4,4,3-4',descanso:'75s',tipo:'Full Body',nota:'1-2 series de aproximación antes del peso de trabajo (no cuentan en el registro)'},
+        {nombre:'Press banca o máquina',series:'3',reps:'10',rir:'3-4,3-4,3,3',descanso:'75s',tipo:'Full Body'},
+        {nombre:'Remo',series:'3',reps:'10',rir:'3-4,3-4,3,3',descanso:'75s',tipo:'Full Body'},
+        {nombre:'Shuffle lateral / Hip Turn / Drop Step (solo si te apetece)',series:'2',reps:'8 m',rir:'-',descanso:'-',tipo:'Técnica',nota:'Opcional, sin presión. No urgente sin tatami cerca — solo si te apetece'},
+        {nombre:'Dead Bug',series:'2',reps:'10/lado',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'Band Neck ISO (4 direcciones)',series:'2',reps:'15 seg c/u',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'Opción elegida (LISS / Air Bike / Ski-erg / Sombra)',series:'1',reps:'20 min,3x15m,10 min,5-6 min',rir:'-',descanso:'-',tipo:'Cardio',nota:'Elige 1 opción y rótala cada semana — Sem1 LISS caminata/bici · Sem2 Air Bike suave · Sem3 Ski-erg suave · Sem4 Sombra continua. Todo a ritmo bajo y sostenido (nada de Sled Push, eso es aláctico)'}
+      ])},
+      {nombre:'Día 4 — Tren Superior · Volumen extra (MOD)', ejercicios:PREP_SRC_V2.concat([
+        {nombre:'Half Kneeling Chop (rotación con carga ligera)',series:'2',reps:'8/lado',rir:'-',descanso:'-',tipo:'Pliometría'},
+        {nombre:'Remo unilateral o máquina',series:'3',reps:'10-12',rir:'3-4,3-4,2-3,1-2',descanso:'75s',tipo:'Tracción',nota:'1-2 series de aproximación antes del peso de trabajo (no cuentan en el registro)'},
+        {nombre:'Face Pull',series:'3',reps:'12-15',rir:'-',descanso:'60s',tipo:'Tracción'},
+        {nombre:'Jalón al pecho (agarre ancho, foco dorsal)',series:'3',reps:'10-12',rir:'3-4,3-4,2-3,1-2',descanso:'75s',tipo:'Tracción'},
+        {nombre:'Press inclinado (mancuerna o máquina)',series:'3',reps:'10-12',rir:'3-4,3-4,2-3,1-2',descanso:'75s',tipo:'Empuje',nota:'1-2 series de aproximación antes del peso de trabajo (no cuentan en el registro)'},
+        {nombre:'Elevaciones laterales',series:'3',reps:'12-15',rir:'-',descanso:'60s',tipo:'Empuje'},
+        {nombre:'Curl + Extensión tríceps (superserie)',series:'3',reps:'12-15',rir:'2-3,1-2,0-1,0 (al fallo)',descanso:'45s',tipo:'Brazos',nota:'Superserie'},
+        {nombre:'Band Neck ISO (4 direcciones)',series:'2',reps:'15 seg c/u',rir:'-',descanso:'-',tipo:'Core'},
+        {nombre:'KB Swing en ráfagas (10s trabajo / 50s descanso)',series:'6,6,7,8',reps:'ráfaga',rir:'-',descanso:'-',tipo:'Cardio',nota:'Aláctico ATP-PC — bajo coste, no compite con la hipertrofia'}
+      ])}
     ]}}
   ],
   nutricion: []
