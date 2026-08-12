@@ -12015,7 +12015,9 @@ async function loadNutri(){
       var _ncardTop=document.querySelector('#sec-nutri > .card');
       if(_ncardTop) _ncardTop.style.display='none';
 
-      // ── NUEVO: intentar plan manual de tabla `planes` ──────────
+      // Combate = SIEMPRE Método SRC. No se muestran los sistemas antiguos (plan manual
+      // porColor/legado, opciones_nutri) aunque ese cliente tenga datos guardados de antes —
+      // solo importa si srcNutricion está configurado o no.
       var _pnArr=await db.get('planes','cliente_id=eq.'+c.id+'&tipo=eq.nutricion&activo=eq.true&limit=1').catch(function(){return [];});
       S.peNutri=_pnArr&&_pnArr[0]||null; // cached para el modal de "Mi semana"
       var _nutriManual=S.peNutri&&S.peNutri.contenido||null;
@@ -12024,27 +12026,14 @@ async function loadNutri(){
         renderNutriSRC(c,_nutriManual,S.rn);
         return;
       }
-      if(_nutriManual){
-        window._ncv=null; // reset: vuelve al color de hoy al recargar
-        renderNutriPlanManual(c,_nutriManual,S.rn);
-        return;
+      var _diasEnApp=999;
+      if(c.fecha_inicio){
+        var _fi=new Date(c.fecha_inicio+'T12:00:00');
+        var _hd=new Date(hoy()+'T12:00:00');
+        _diasEnApp=Math.max(1,Math.ceil((_hd-_fi)/(24*3600*1000))+1);
       }
-
-      // Fallback: sistema antiguo de opciones (cuestionario_datos.opciones_nutri)
-      var _qdn=c.cuestionario_datos?(typeof c.cuestionario_datos==='string'?JSON.parse(c.cuestionario_datos):c.cuestionario_datos):{};
-      var _optsNutri=_qdn.opciones_nutri||null;
-      if(_optsNutri&&_optsNutri.aprobado){
-        renderNutricionOpciones(c,S.rn,_optsNutri);
-      } else {
-        var _diasEnApp=999;
-        if(c.fecha_inicio){
-          var _fi=new Date(c.fecha_inicio+'T12:00:00');
-          var _hd=new Date(hoy()+'T12:00:00');
-          _diasEnApp=Math.max(1,Math.ceil((_hd-_fi)/(24*3600*1000))+1);
-        }
-        _diasEnAppActual=_diasEnApp;
-        renderNutricionPendiente(c,_diasEnApp);
-      }
+      _diasEnAppActual=_diasEnApp;
+      renderNutricionPendiente(c,_diasEnApp);
       return;
     } else {
       if(fitEl) fitEl.style.display='';
